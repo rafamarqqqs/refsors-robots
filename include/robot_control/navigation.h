@@ -94,7 +94,25 @@ typedef struct rotation {
 } Rotation;
 
 
-/**/
+/*
+    SAFE CONDITIONS
+
+    Robot with the laser ranges.
+    This figure explains the safe conditions
+
+
+
+                             1m     |
+                           -------  |
+    xxxxxxxxxxxxxxxxxxxxxxx  /   / /|
+    x                     x /  / / /|
+    x                     x/ /  / / |
+    x                     x\ \  \ \ |
+    x                     x \  \ \ \|
+    xxxxxxxxxxxxxxxxxxxxxxx  \   \ \|
+                                    |
+                                    |
+*/
 
 typedef struct safety {
     float min_safe_angle;
