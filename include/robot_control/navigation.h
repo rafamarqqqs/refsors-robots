@@ -10,6 +10,12 @@
 #include <math.h>
 #include <tf/transform_datatypes.h>
 
+#define SQUARE(n) (n*n)
+
+/*
+    SECTORS
+*/
+
 #define GET_DESTINATION_SECTOR(g) (g -> destiny.x >= 0 && g -> destiny.y >= 0 ? FIRST_SECTOR : \
                          (g -> destiny.x <= 0 && g -> destiny.y >= 0 ? SECOND_SECTOR : \
                          (g -> destiny.x <= 0 && g -> destiny.y <= 0 ? THIRD_SECTOR : FOURTH_SECTOR)))
@@ -23,8 +29,10 @@
 
 #define REACHED_DESTINATION(g, p) (g -> destination_sector == GET_SECTOR(g, p))
 
+/*
+    ATTRACTION COEFFICIENTS
+*/
 
-#define SQUARE(n) (n*n)
 #define GOAL_ATTRACTION 120
 #define COEFFICIENT(d) (d < 1 ? 0.8 : (d < 2 ? 0.5 : (d < 10 ? 0.3 : 0.1)))
 #define X_COEFFICIENT 0.2
@@ -32,34 +40,41 @@
 
 #define SIDE_BONUS(angle, radius) (((radius-angle)/radius > 0.85 || (radius-angle)/radius < 0.15) ? 5 : 1)
 
-#define ROBOT_FRONT_SIZE 0.670
-#define MAX_SAFE_DISTANCE (sqrt(SQUARE(ROBOT_FRONT_SIZE/2) + 1))
-#define SAFETY_ANGLE (2*asin((ROBOT_FRONT_SIZE/2)/MAX_SAFE_DISTANCE))
-#define SAFE_DISTANCE(angle) (1/(cos((SAFETY_ANGLE/2) - angle)))
-
 #define SAFE_ZONE_BONUS(min, max, angle) ((angle >= min && angle <= max ? 1 : 0.9))
 
-#define	NONE 1.0
-#define LOW 1.5
-#define MEDIUM 2.0
-#define HIGH 3.0
-#define EXTREME 4.0
-
-#define GET_STRENGTH() (this -> rotation -> attempts == 0 ? NONE : \
-						(this -> rotation -> attempts == 1 ? LOW : \
-						(this -> rotation -> attempts == 2 ? MEDIUM : \
-						(this -> rotation -> attempts == 3 ? HIGH : EXTREME))))
-
+/*
+    ROTATION ATTEMPTS
+*/
 
 #define FIRST_ATTEMPT() (this -> rotation -> attempts == 0)
 #define INCREASE_ATTEMPTS() (this -> rotation -> attempts++)
 #define REMAKE_ATTEMPTS() (this -> rotation -> attempts = 0)
 #define MAX_ATTEMPTS() (this -> rotation -> attempts == 5 ? true : false)
 
+#define NONE 1.0
+#define LOW 1.5
+#define MEDIUM 2.0
+#define HIGH 3.0
+#define EXTREME 4.0
+
+#define GET_STRENGTH() (this -> rotation -> attempts == 0 ? NONE : \
+                        (this -> rotation -> attempts == 1 ? LOW : \
+                        (this -> rotation -> attempts == 2 ? MEDIUM : \
+                        (this -> rotation -> attempts == 3 ? HIGH : EXTREME))))
+
 #define ROTATION_SPEED 0.15
 #define ROTATE_OK(angle, yaw, way) (way == CLOCKWISE ? (angle < yaw) : (angle > yaw))
 
 #define FALLBACK -0.2 * GET_STRENGTH()
+
+/*
+    SAFETY CONFIGS
+*/
+
+#define ROBOT_FRONT_SIZE 0.670
+#define MAX_SAFE_DISTANCE (sqrt(SQUARE(ROBOT_FRONT_SIZE/2) + 1))
+#define SAFETY_ANGLE (2*asin((ROBOT_FRONT_SIZE/2)/MAX_SAFE_DISTANCE))
+#define SAFE_DISTANCE(angle) (1/(cos((SAFETY_ANGLE/2) - angle)))
 
 enum Sector {
     FIRST_SECTOR,
@@ -77,6 +92,9 @@ typedef struct rotation {
     float yaw;
     int attempts;
 } Rotation;
+
+
+/**/
 
 typedef struct safety {
     float min_safe_angle;
@@ -111,6 +129,7 @@ public:
     virtual ~Navigator();
 
     bool driveTo(Goal *goal);
+    Goal *createGoal(float x, float y);
 
 
 private:
@@ -129,7 +148,7 @@ private:
     bool acquire_laser_lock();
     bool release_laser_lock();
 
-    void initSafetySpecs();
+    void initSafetyConfigs();
     bool safetyCheckIsOk();
 
     void stop();
@@ -138,11 +157,11 @@ private:
 
     geometry_msgs::Quaternion quaternion_orientation;
     geometry_msgs::Pose pose;
-    sensor_msgs::LaserScan::ConstPtr laser_data;
+    //sensor_msgs::LaserScan::ConstPtr laser_data;
 
     SafetySpecs *safe_distances;
-    LaserInfo laser_info;
     Rotation *rotation;
+    LaserInfo laser_info;
 
     float direction_x, direction_y;
     bool laser_ok;
