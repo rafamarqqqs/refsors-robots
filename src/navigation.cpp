@@ -1,126 +1,34 @@
 #include "../include/robot_control/navigation.h"
 
+
 //Constructor
 
 Navigator::Navigator(ros::NodeHandle n){
     node = n;
 
+    this -> laser = new Laser();
+
+    this -> position = (Position *) malloc(sizeof(Position));
+
+    this -> localization = new Localization();
+
     //Advertising velocity topic
     velocity_pub = node.advertise<geometry_msgs::Twist>("/larger_robot/cmd_vel", 100);
 
-    this -> safe_distances = (SafetySpecs *) malloc(sizeof(SafetySpecs));
-    this -> laser_ok = false;
-
-    this -> rotation = (Rotation *) malloc(sizeof(Rotation));
-    this -> rotation -> attempts = 0;
-    
     //Subscribing to sensors
-    laser = node.subscribe("/larger_robot/scan", 100, &Navigator::handleScan, this);
-    
-    //gps = node.subscribe("/navsat/fix", 100, &Navigator::handleGPS, this);
-    orientation = node.subscribe("/imu/data", 100, &Navigator::handleOrientation, this);
-    position = node.subscribe("/larger_robot/odometry/filtered", 100, &Navigator::handlePosition, this);
+    //this -> laser -> subscribeTo(node, "/larger_robot/scan", 100, this -> laser, sub);
+    laser_sub = node.subscribe("/larger_robot/scan", 1, &Laser::handleSubscription, this -> laser);
+    odom_sub = node.subscribe("/larger_robot/odometry/filtered", 1, &Navigator::handlePosition, this);
+    imu_sub = node.subscribe("/imu/data", 1, &Navigator::handleOrientation, this);
 }
 
 //Destructor
 
 Navigator::~Navigator(){
-    free(this -> safe_distances);
-    free(this -> rotation);
+    free(this -> position);
+    delete this -> laser;
 }
 
-/*
-
-    SAFETY CHECK
-
-*/
-
-void Navigator::initSafetyConfigs(){
-    //Initialize safety configurations
-    this -> safe_distances -> min_safe_angle = (this -> laser_info.angle_max - this -> laser_info.angle_min - SAFETY_ANGLE)/2;
-    this -> safe_distances -> max_safe_angle = this -> safe_distances -> min_safe_angle + SAFETY_ANGLE;
-    this -> safe_distances -> min_angle_safe_distance = SAFE_DISTANCE(SAFETY_ANGLE);
-    this -> safe_distances -> max_angle_safe_distance = SAFE_DISTANCE(0);
-}
-
-bool Navigator::safetyCheckIsOk(){
-    int i;
-    
-    //Verify if safety conditions are satisfied while the laser measures changes
-    if(this -> safe_distances -> laser_min_safe_angle_measure < this -> safe_distances -> min_angle_safe_distance || 
-       this -> safe_distances -> laser_max_safe_angle_measure < this -> safe_distances -> max_angle_safe_distance)
-        return false;
-
-    return true;
-}
-
-/*
-    
-    LASER SENSOR
-
-*/
-
-void Navigator::handleScan(const sensor_msgs::LaserScan::ConstPtr &laser_data){
-    //Store some info for later use by other functions
-    this -> laser_info.angle_min = laser_data -> angle_min;
-    this -> laser_info.angle_max = laser_data -> angle_max;
-
-    int i;
-    float x_component = 0, y_component = 0;
-    float angle = laser_data -> angle_min;
-    float d;
-    int start;
-    float radius = laser_data -> angle_max - laser_data -> angle_min;
-
-    //Calculates the number of measures of the laser sensor
-    int ranges = (int) floor(radius/laser_data -> angle_increment);
-
-    //Store all safe distances for each laser in the SAFETY_ANGLE
-    for(i = 0; i < ranges; i++){
-        if(i*laser_data -> angle_increment > this -> safe_distances -> min_safe_angle){
-            this -> safe_distances -> laser_min_safe_angle_measure = laser_data -> ranges[i-1];
-            break;
-        }
-    }
-
-    for(; i < ranges; i++){
-        if(i*laser_data -> angle_increment > this -> safe_distances -> max_safe_angle){
-            this -> safe_distances -> laser_max_safe_angle_measure = laser_data -> ranges[i];
-            break;
-        }
-    }
-
-    //Gets the distance from each sensor, decomposes it, scales and sums all components in the same direction
-    for(i = 0; i < ranges; i++){
-        d = laser_data -> ranges[i];
-        x_component += fabs(30 - d) * cos(angle) * COEFFICIENT(d) * GET_STRENGTH() * X_COEFFICIENT *
-                           SIDE_BONUS(angle - laser_data -> angle_min, radius) * SAFE_ZONE_BONUS(this -> 
-                           safe_distances -> min_safe_angle, this -> safe_distances -> max_safe_angle,
-                           angle);
-            
-        y_component += fabs(30 - d) * sin(angle) * COEFFICIENT(d) * GET_STRENGTH() * Y_COEFFICIENT *
-                           SIDE_BONUS(angle - laser_data -> angle_min, radius) * SAFE_ZONE_BONUS(this -> 
-                           safe_distances -> min_safe_angle, this -> safe_distances -> max_safe_angle,
-                           angle);
-
-        angle += laser_data -> angle_increment;
-    }
-
-    this -> direction_x = x_component;
-    this -> direction_y = y_component;
-
-    //Sets the laser_ok flag to true
-    //Functions can now safely use data that is changed in this function
-    this -> laser_ok = true;
-}
-
-void Navigator::handleGPS(const sensor_msgs::NavSatFix::ConstPtr &gps_data){
-    //this -> longitude = gps_data -> longitude;
-    //this -> latitude = gps_data -> latitude;
-}
-
-void Navigator::handleOrientation(const sensor_msgs::Imu::ConstPtr &orientation_data){
-}
 
 /*
 
@@ -130,81 +38,121 @@ void Navigator::handleOrientation(const sensor_msgs::Imu::ConstPtr &orientation_
 
 void Navigator::handlePosition(const nav_msgs::Odometry::ConstPtr &odometry_data){
     //Gets the estimated position and Z axis rotation of the robot
-    this -> pose = odometry_data -> pose.pose;
-    this -> rotation -> yaw = tf::getYaw(odometry_data -> pose.pose.orientation);
+    //this -> position -> pose = odometry_data -> pose.pose;
+    //this -> position -> yaw = tf::getYaw(odometry_data -> pose.pose.orientation);
 }
 
-
-/*
-
-    ROTATION - defines the angle to rotate the robot, and rotate it.
-    It succeeds when all the laser measures in the front of the robot (safety zone) are no longer closer 
-    than 1m from the object
-
-*/
-
-bool Navigator::defineRotation(Goal *goal){
-    geometry_msgs::Twist msg;
-
-    //Trigonometry
-    float hypotenuse = sqrt(SQUARE(goal -> component.x) + SQUARE(goal -> component.y));
-    float angle = acos(goal -> component.x/hypotenuse);
-
-    //Gets the right way to rotate
-    RotationWay r = angle > this -> rotation -> yaw ? CLOCKWISE : COUNTERCLOCKWISE;
-
-    //Pulls back the robot a little
-    this -> fallback();
-
-    //Msg that tells the robot to rotate in the Z axis
-    msg.angular.z = (r == CLOCKWISE ? ROTATION_SPEED : (-1)*ROTATION_SPEED);
-
-    if(!MAX_ATTEMPTS()){
-
-        ROS_INFO("ROTATING: %.4f %.4f\n", angle, this -> rotation -> yaw);
-
-        //Rotates until the robot yaw is correct with the given angle
-        while(!ROTATE_OK(angle, this -> rotation -> yaw, r) && ros::ok()){
-            velocity_pub.publish(msg);
-            ros::spinOnce();
-        }
-    }
-    else{
-        //If all attempts do not succeed in rotating the robot, it rotates indefinitly until
-        //the conditions are satisfied
-
-        ROS_INFO("UNDEFINED ROTATION\n");
-        
-        float _hypotenuse = sqrt(SQUARE(goal -> destiny.x) + SQUARE(goal -> destiny.y));
-        float _angle = acos(goal -> destiny.x/hypotenuse);
-        RotationWay _r = angle > this -> rotation -> yaw ? CLOCKWISE : COUNTERCLOCKWISE;
-        msg.angular.z = (_r == CLOCKWISE ? ROTATION_SPEED : (-1)*ROTATION_SPEED);
-
-        while(!safetyCheckIsOk() && ros::ok()){
-            velocity_pub.publish(msg);
-            ros::spinOnce();
-        }
-        
-    }
-
-    return true;
+void Navigator::handleOrientation(const sensor_msgs::Imu::ConstPtr &imu_data){
+    //Gets the estimated position and Z axis rotation of the robot
+    //this -> position -> yaw = tf::getYaw(imu_data -> orientation);
+    //ROS_INFO("%f", this -> position -> yaw);
 }
 
-/*
-
-    DIRECTION - sums the attraction vector of the goal with the components acquired by the laser, after
-    scaling it accordingly
-
-*/
-
-
-bool Navigator::defineDirection(Goal *goal){
-    ros::spinOnce();
+DrivingInfo Navigator::defineDirection(Goal *goal){
+    DrivingInfo info;
     
-    goal -> component.x = direction_x + (goal -> destiny.x - this -> pose.position.x) * GOAL_ATTRACTION;
-    goal -> component.y = direction_y + (goal -> destiny.y - this -> pose.position.y) * GOAL_ATTRACTION;
+    std::list<float> ranges = this -> laser -> getRanges();
+    std::list<_2DPoint> wall_points;
+    std::list<float>::iterator it = ranges.begin();
+    std::list<_2DPoint>::iterator wall_it;
 
-    ROS_INFO("components(%.2f %.2f)\n", goal -> component.x, goal -> component.y);
+    float x_component, y_component;
+    int i = 0;
+    float wall_x, wall_y;
+
+    _2DPoint *robot;
+    float yaw = this -> position -> yaw;
+
+    localization -> getTfTransforms();
+
+    robot = localization -> getPosition();
+    yaw = localization -> getYaw();
+
+    _2DPoint aux;
+
+    wall_points.clear();
+
+    aux.x = goal -> destiny.x - robot -> x;
+    aux.y = goal -> destiny.y - robot -> y;
+    
+    float norm = pow(pow(aux.x, 2) + pow(aux.y, 2), 0.5);
+    
+    x_component = (aux.x/norm);
+    y_component = (aux.y/norm);
+    
+    float ang1;
+    float ang2;
+
+
+    while(it != ranges.end()){
+        if((*it) < 8){
+            ang1 = (INCREMENT*i) + this -> laser -> getAngleMin();
+            ang2 = yaw;
+
+            float sum = ang1 + ang2;
+            sum = fmod(sum,2*M_PI);
+
+            float angle;
+
+            if(sum <= 0)
+                angle = sum;
+            else
+                angle = sum - (2*M_PI);
+
+            aux.x = robot -> x + ((*it) * cos(angle));
+            aux.y = robot -> y + ((*it) * sin(angle));
+            //ROS_INFO("%.3f %.3f %.3f %.3f", (INCREMENT*i) + this -> laser -> getAngleMin(), yaw, (INCREMENT*i) + this -> laser -> getAngleMin() + yaw, (*it));
+            wall_points.push_back(aux);
+        }
+
+        it++;
+        i++;
+    }
+    
+    wall_it = wall_points.begin();
+
+    while(wall_it != wall_points.end()){
+        aux.x = (*wall_it).x - robot -> x;
+        aux.y = (*wall_it).y - robot -> y;
+
+        norm = pow(pow(aux.x, 2) + pow(aux.y, 2), 1.5);
+
+        x_component -= aux.x/norm;
+        y_component -= aux.y/norm;
+        wall_it++;
+    }
+
+
+
+    //info.rotation = acos((x_component/sqrt(SQUARE(x_component) + SQUARE(y_component)))) - yaw;
+
+    ang1 = atan2(y_component, x_component);
+    ang2 = yaw;
+    float diff1 = ang1 - ang2;
+    float diff2 = diff1 - 2*M_PI;
+    float angDiff;
+
+    if(fabs(diff1) <= fabs(diff2))
+        angDiff = diff1;
+    else
+        angDiff = diff2;
+
+    info.rotation = angDiff*0.5/M_PI;
+    //info.velocity = (this -> laser -> getFront() - 0.3)*0.5/7.7;
+    info.velocity = 0.3;
+
+    //ROS_INFO("%f", this -> laser -> getFront());
+
+    //if(this -> laser -> getFront() < 0.5)
+      //  info.velocity = -0.2;
+    
+    ROS_INFO("(%.3f|%.3f) %.2f|%.2f (%.2f,%.2f)",yaw, info.rotation+yaw, x_component, y_component, robot -> x, robot -> y);
+    //ROS_INFO("(%.3f %.3f) %.3f [%d/%d-%d/%d]", info.rotation, info.velocity, yaw, (int) goal -> destiny.x, (int) goal -> destiny.y, (int) this -> position -> pose.position.x, (int) this -> position -> pose.position.y);
+
+
+    this -> laser -> setStatus(false);
+
+    return info;
 }
 
 /*
@@ -218,29 +166,30 @@ void Navigator::stop(){
     velocity_pub.publish(msg);
 }
 
+void Navigator::fallback(){
+    geometry_msgs::Twist msg;
+    msg.linear.x = -0.5;
+    msg.angular.z = 0;
+    velocity_pub.publish(msg);
+//    ros::Duration(1.5).sleep();
+    msg.linear.x = 0;
+    velocity_pub.publish(msg);
+}
+
 /*
     Drives forward
 */
 
 void Navigator::driveForward(){
     geometry_msgs::Twist msg;
-    msg.linear.x = 0.5;
+    msg.linear.x = 1;
     velocity_pub.publish(msg);
 }
 
-/*
-    Pushes the robot back
-*/
-
-void Navigator::fallback(){
+void Navigator::drive(DrivingInfo info){
     geometry_msgs::Twist msg;
-
-    msg.linear.x = FALLBACK;
-    velocity_pub.publish(msg);
-    
-    ros::Duration(1).sleep();
-
-    msg.linear.x = 0;
+    msg.angular.z = info.rotation;
+    msg.linear.x = info.velocity;
     velocity_pub.publish(msg);
 }
 
@@ -251,43 +200,21 @@ void Navigator::fallback(){
 */
 
 bool Navigator::driveTo(Goal *goal){
-    geometry_msgs::Twist msg;
-
-    //Waits for the laser to set the initial values
-    while(!laser_ok){
-        ros::spinOnce();
-    }
-
-    //0 attempts to rotate the robot
-    REMAKE_ATTEMPTS();
-
-    //Initialize safety configurations
-    this -> initSafetyConfigs();
+    DrivingInfo info;
     
-    while(!REACHED_DESTINATION(goal, this -> pose) && ros::ok()){
-        ROS_INFO("Turning (attempt %d) (%.2f %.2f)\n", this -> rotation -> attempts, this -> pose.position.x, this -> pose.position.y);
+    //Waits for the laser to set the initial values
+    ROS_INFO("waiting for laser");
+    
+
+    while(!REACHED_DESTINATION(goal, this -> localization -> getPosition()) && ros::ok()){
         
-        //Stops, gets the direction, rotates accordingly
-        this -> stop();
-        this -> defineDirection(goal);
-        this -> defineRotation(goal);
-
-        //More one attempt to turn the robot
-        INCREASE_ATTEMPTS();
-
-        //If rotated succesfully
-        if(safetyCheckIsOk() && !REACHED_DESTINATION(goal, this -> pose) && ros::ok()){
-            REMAKE_ATTEMPTS();
-
-            ROS_INFO("Driving (%.2f %.2f)\n", this -> pose.position.x, this -> pose.position.y);
-            ROS_INFO("%d %d", goal -> destination_sector, GET_SECTOR(goal, this -> pose));
-
-            //Drives forward until the safety check is not ok
-            while(safetyCheckIsOk() && ros::ok()){
-                this -> driveForward();
-                ros::spinOnce();
-            }
+        while(this -> laser -> getStatus() == false && ros::ok()){
+            ros::spinOnce();
         }
+
+        info = this -> defineDirection(goal);
+        this -> drive(info);
+        ros::spinOnce();
     }
 
     this -> stop();
@@ -330,7 +257,7 @@ int main(int argc, char **argv) {
 
     ROS_INFO("Navigator started.");
 
-    Goal *goal = nav -> createGoal(4, 4);
+    Goal *goal = nav -> createGoal(-3, 10);
 
     nav -> driveTo(goal);
 
