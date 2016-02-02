@@ -130,7 +130,7 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(${PROJECT_NAME}_node src/random_husky_driver_node.cpp)
 
-add_executable(navigation src/navigation.cpp src/localization.cpp src/laser.cpp)
+add_executable(navigation src/navigation.cpp src/localization.cpp src/laser.cpp src/resources.cpp)
 
 target_link_libraries(navigation ${catkin_LIBRARIES})
 

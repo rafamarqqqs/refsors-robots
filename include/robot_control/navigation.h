@@ -12,6 +12,7 @@
 #include <stdlib.h> 
 #include <cmath>
 #include "laser.h"
+#include "resources.h"
 #include "localization.h"
 
 #ifndef _NAVIGATION_H_
@@ -56,11 +57,6 @@ typedef struct drivingInfo {
     float velocity;
 } DrivingInfo;
 
-typedef struct position {
-    geometry_msgs::Pose pose;
-    float yaw;
-} Position;
-
 class Navigator {
 public:
     Navigator(ros::NodeHandle node);
@@ -70,36 +66,20 @@ public:
     Goal *createGoal(float x, float y);
 
 private:
-    //void handleScan(const sensor_msgs::LaserScan::ConstPtr &laser_data);
-    //void handleSubscription(const sensor_msgs::LaserScan::ConstPtr &laser_data);
-
     void handleTf(const tf::tfMessage::ConstPtr &tf_data);
-
-    void handleOrientation(const sensor_msgs::Imu::ConstPtr &imu_data);
-    
-    void handlePosition(const nav_msgs::Odometry::ConstPtr &odometry_data);
 
     DrivingInfo defineDirection(Goal *goal);
 
-    bool acquire_laser_lock();
-    bool release_laser_lock();
-
     void stop();
-    void fallback();
     void driveForward();
     void drive(DrivingInfo info);
+    std::list<_2DPoint>* calculateDistances(_2DPoint* robot, float yaw);
 
     Laser *laser;
-    Position *position;
-    geometry_msgs::Quaternion quaternion_orientation;
     Localization *localization;
-
-    float direction_x, direction_y;
 
     ros::Publisher velocity_pub;
     ros::Subscriber laser_sub;
-    ros::Subscriber odom_sub;
-    ros::Subscriber imu_sub;
     ros::NodeHandle node;
 };
 
