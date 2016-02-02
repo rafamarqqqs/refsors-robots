@@ -5,6 +5,7 @@ project(robot_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  tf
   roscpp
   std_msgs
 )
@@ -129,11 +130,9 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(${PROJECT_NAME}_node src/random_husky_driver_node.cpp)
 
-add_executable(navigation src/navigation.cpp)
-#add_executable(jackal_navigation src/jackal_navigation.cpp)
+add_executable(navigation src/navigation.cpp src/localization.cpp src/laser.cpp)
 
 target_link_libraries(navigation ${catkin_LIBRARIES})
-#target_link_libraries(jackal_navigation ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
