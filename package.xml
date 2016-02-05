@@ -49,8 +49,8 @@
 
 
   <!-- The export tag contains other, unspecified, tags -->
-  <export>
-    <!-- Other tools can request additional information be placed here -->
-
-  </export>
+<export>
+<cpp cflags="`pkg-config --cflags eigen3` -I${prefix}/include" 
+     lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -llaser_geometry"/>
+</export>
 </package>

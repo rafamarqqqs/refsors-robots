@@ -13,44 +13,26 @@
 #include <cmath>
 #include "laser.h"
 #include "resources.h"
-#include "localization.h"
+//#include "localization.h"
+//#include "mapping.h"
+
+
 
 #ifndef _NAVIGATION_H_
 #define _NAVIGATION_H_
 
-#define MAX_X(n, x) (fabs(n) < x ? n : (n/n)*x)
+#define QGOAL 1.0
+#define QWALL 1.0
+#define MAX_LIN_SPEED 0.6
+#define MAX_ANG_SPEED 0.5
 
-#define SQUARE(n) (n*n)
+#define ERROR 1.5
 
 /*
     SECTORS
 */
 
-#define GET_DESTINATION_SECTOR(g) (g -> destiny.x >= 0 && g -> destiny.y >= 0 ? FIRST_SECTOR : \
-                         (g -> destiny.x <= 0 && g -> destiny.y >= 0 ? SECOND_SECTOR : \
-                         (g -> destiny.x <= 0 && g -> destiny.y <= 0 ? THIRD_SECTOR : FOURTH_SECTOR)))
-
-#define GET_SECTOR(g, p) (p -> x >= g -> destiny.x && p -> y >= g -> destiny.y ? \
-                        FIRST_SECTOR : \
-                         (p -> x <= g -> destiny.x && p -> y >= g -> destiny.y ? \
-                        SECOND_SECTOR : \
-                         (p -> x <= g -> destiny.x && p -> y <= g -> destiny.y ? \
-                        THIRD_SECTOR : FOURTH_SECTOR)))
-
-#define REACHED_DESTINATION(g, p) (g -> destination_sector == GET_SECTOR(g, p))
-
-enum Sector {
-    FIRST_SECTOR,
-    SECOND_SECTOR,
-    THIRD_SECTOR,
-    FOURTH_SECTOR
-};
-
-typedef struct goal {
-    _2DPoint component;
-    _2DPoint destiny;
-    Sector destination_sector;
-} Goal;
+#define REACHED_DESTINATION(g, p) (fabs(g -> x - p.x) < ERROR && fabs(g -> y - p.y) < ERROR)
 
 typedef struct drivingInfo {
     float rotation;
@@ -62,25 +44,37 @@ public:
     Navigator(ros::NodeHandle node);
     virtual ~Navigator();
 
-    bool driveTo(Goal *goal);
-    Goal *createGoal(float x, float y);
+    bool driveTo(_2DPoint *goal);
+    _2DPoint *createGoal(float x, float y);
 
 private:
-    void handleTf(const tf::tfMessage::ConstPtr &tf_data);
+    DrivingInfo defineDirection(_2DPoint *goal);
 
-    DrivingInfo defineDirection(Goal *goal);
+    void handleIMU(const sensor_msgs::Imu::ConstPtr& data);
+    
+    void handleOdom(const nav_msgs::Odometry::ConstPtr& data);
+
+    void handlePose(const geometry_msgs::Pose::ConstPtr& data);
 
     void stop();
     void driveForward();
     void drive(DrivingInfo info);
     std::list<_2DPoint>* calculateDistances(_2DPoint* robot, float yaw);
+    float calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, _2DPoint *robot);
 
     Laser *laser;
-    Localization *localization;
+    //Localizator *localizator;
+    geometry_msgs::Pose pose;
 
     ros::Publisher velocity_pub;
     ros::Subscriber laser_sub;
+    ros::Subscriber imu_sub;
+    ros::Subscriber odom_sub;
+    ros::Subscriber pose_sub;
     ros::NodeHandle node;
+
+    tf::StampedTransform transform;
+    tf::TransformListener listener;
 };
 
 #endif

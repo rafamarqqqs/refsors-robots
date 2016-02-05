@@ -130,9 +130,15 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(${PROJECT_NAME}_node src/random_husky_driver_node.cpp)
 
-add_executable(navigation src/navigation.cpp src/localization.cpp src/laser.cpp src/resources.cpp)
+#add_executable(navigation src/navigation.cpp src/localization.cpp src/mapping.cpp src/laser.cpp src/resources.cpp)
+
+add_executable(navigation src/navigation.cpp src/laser.cpp src/resources.cpp)
+add_executable(localization src/localization.cpp src/laser.cpp src/resources.cpp)
+add_executable(mapping src/mapping.cpp src/laser.cpp src/resources.cpp)
 
 target_link_libraries(navigation ${catkin_LIBRARIES})
+target_link_libraries(localization ${catkin_LIBRARIES})
+target_link_libraries(mapping ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above

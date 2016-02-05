@@ -1,13 +1,17 @@
 #include "../include/robot_control/resources.h"
 
 float Resources::angleSum(float angle_a, float angle_b){
+	angle_a = normalizeAngle(angle_a);
+	angle_b = normalizeAngle(angle_b);
+	
 	float sum = angle_a + angle_b;
+    
     sum = fmod(sum,2*M_PI);
 
-    if(sum <= 0)
-        return sum;
-    else
-        return sum - (2*M_PI);
+    if(sum < M_PI)
+	    return sum;
+  	
+  	return sum - (2*M_PI);
 }
 
 
@@ -17,6 +21,26 @@ float Resources::angleDiff(float angle_a, float angle_b){
 
     if(fabs(diff1) <= fabs(diff2))
         return diff1;
-    else
-        return diff2;
+
+    return diff2;
+}
+
+float Resources::transformYaw(float yaw){
+	yaw = fmod(yaw, 2*M_PI);
+
+	if(yaw < 0)
+		return yaw + (2*M_PI);
+
+	return yaw;
+}
+
+float Resources::normalizeAngle(float angle){
+	if(angle < 0){
+		angle += (2*M_PI);
+	}
+
+	//if(angle < M_PI)
+		return angle;
+
+	//return angle - (2*M_PI);
 }

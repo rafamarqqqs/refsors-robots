@@ -1,38 +1,68 @@
 #include "../include/robot_control/localization.h"
 
-Localization::Localization(){
-	this -> position = (_2DPoint*) malloc(sizeof(_2DPoint));
+Localizator::Localizator(){
 }
 
-Localization::Localization(float yaw, float x, float y){
-	this -> position = (_2DPoint*) malloc(sizeof(_2DPoint));
-	this -> position -> x = x;
-	this -> position -> y = y;
-	this -> yaw = yaw;
+Localizator::~Localizator(){
 }
 
-Localization::~Localization(){
-	free(this -> position);
+void Localizator::getPosition(){
+	odom_listener.waitForTransform("/odom", "/base_link", ros::Time(0), ros::Duration(1));
+    odom_listener.lookupTransform("/odom", "/base_link", ros::Time(0), odom_transform);
+
+    this -> pose.position.x = odom_transform.getOrigin().x();
+    this -> pose.position.y = odom_transform.getOrigin().y();
 }
 
-_2DPoint* Localization::getPosition(){
-	return this -> position;
+void Localizator::getYaw(){
+	imu_listener.waitForTransform("/base_link", "/imu_link", ros::Time(0), ros::Duration(1));
+    imu_listener.lookupTransform("/base_link", "/imu_link", ros::Time(0), imu_transform);
+
+    this -> pose.orientation.x = imu_transform.getRotation().x();
+    this -> pose.orientation.y = imu_transform.getRotation().y();
+    this -> pose.orientation.z = imu_transform.getRotation().z();
+    this -> pose.orientation.w = imu_transform.getRotation().w();
 }
 
-float Localization::getYaw(){
-	return this -> yaw;
+geometry_msgs::Pose Localizator::getPose(){
+	return this -> pose;
 }
 
-void Localization::getTfTransforms(){
-    listener.lookupTransform("/odom", "/base_link", ros::Time(0), transform);
+int main(int argc, char **argv){
+  ros::init(argc, argv, "pose_publisher");
 
-    this -> position -> x = transform.getOrigin().x();
-    this -> position -> y = transform.getOrigin().y();
+  ros::NodeHandle n;
+  ros::Publisher pose_pub = n.advertise<geometry_msgs::Pose>("/larger_robot/pose", 1000);
 
-    tf::Quaternion q(transform.getRotation().x(), 
-	    			 transform.getRotation().y(),
-	    			 transform.getRotation().z(),
-	    			 transform.getRotation().w());
+  Localizator localizator;
 
-    this -> yaw = tf::getYaw(q);
+  ros::Rate r(10.0);
+
+  while(n.ok()){
+
+    ros::spinOnce();               // check for incoming messages
+
+    localizator.getYaw();
+    localizator.getPosition();
+
+    //next, we'll publish the odometry message over ROS
+    geometry_msgs::Pose pose;
+    geometry_msgs::Pose aux;
+
+    //set the position
+    aux = localizator.getPose();
+
+    pose.position.x = aux.position.x;
+    pose.position.y = aux.position.y;
+
+    pose.orientation.x = aux.orientation.x;
+    pose.orientation.y = aux.orientation.y;
+    pose.orientation.z = aux.orientation.z;
+    pose.orientation.w = aux.orientation.w;
+
+    //publish the message
+    pose_pub.publish(pose);
+
+    r.sleep();
+  }
 }

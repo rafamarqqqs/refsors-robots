@@ -5,6 +5,7 @@ Laser::Laser(){
 	this -> angle_max = -1;
 	this -> angle_min = -1;
 	this -> status = false;
+
 }
 
 Laser::Laser(float angle_increment, float angle_max, float angle_min){
@@ -48,7 +49,7 @@ bool Laser::getStatus(){
 	return this -> status;
 }
 
-std::list<float> Laser::getRanges(){
+std::list<LaserPoint> Laser::getRanges(){
 	return this -> ranges;	
 }
 
@@ -58,6 +59,7 @@ float Laser::getFront(){
 
 void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr &laser_data){
     int i;
+    LaserPoint point;
 
     while(this -> status == true);
 
@@ -72,14 +74,18 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr &laser_dat
 
 
     for(i = 0; i <= RANGES; i++){
-        this -> ranges.push_back(laser_data -> ranges[(floor(INCREMENT/angle_increment*i))]);
+        point.angle = ((-1)*angle_min) - ((floor(INCREMENT/angle_increment*i))*angle_increment);
+
+        point.range = laser_data -> ranges[(floor((angle_max*2)/angle_increment)) - (floor(((INCREMENT * i))/angle_increment))];
+
+        this -> ranges.push_back(point);
     }
 
     this -> front = 10;
 
     for(i = 340; i < 380; i++){
-    	if(laser_data -> ranges[i] < this -> front);
-    		this -> front = laser_data -> ranges[i];
+        if(laser_data -> ranges[i] < this -> front);
+            this -> front = laser_data -> ranges[i];
     }
 
     this -> status = true;
