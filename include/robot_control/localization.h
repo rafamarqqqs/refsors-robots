@@ -15,8 +15,6 @@ public:
 	Localizator();
 	~Localizator();
 
-	void getYaw();
-	void getPosition();
 	geometry_msgs::Pose getPose();
 
 private:
@@ -24,7 +22,4 @@ private:
 
 	tf::StampedTransform odom_transform;
     tf::TransformListener odom_listener;
-
-	tf::StampedTransform imu_transform;
-    tf::TransformListener imu_listener;
 };

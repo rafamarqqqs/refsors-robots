@@ -1,50 +1,80 @@
 #include "resources.h"
-#include "laser.h"
 #include <vector>
+#include <tf/tf.h>
+#include <geometry_msgs/Pose.h>
+#include <sensor_msgs/LaserScan.h>
+#include <list>
+#include <geometry_msgs/Quaternion.h>
+#include <gazebo_msgs/ModelStates.h>
+#include <tf/transform_listener.h>
 #include <ros/ros.h>
 #include <fstream>
+#include "laser.h"
 
 #ifndef _MAPPING_H_
 #define _MAPPING_H_
 
+#define INSIDE(p) (p.x + (this -> length/2) >= 0 && p.y + (this -> width/2) >= 0 && \
+				   p.x < this -> length/2 && p.y < this -> width/2)
+
 #define BASE_X (floor((this -> length/this -> cell_size) / 2))
 #define BASE_Y (floor((this -> width/this -> cell_size) / 2))
+
+typedef char CellValue;
+
+#define FULL '*'
+#define EMPTY ' '
+#define ME 'X'
+
+#define GET_SIGNAL(yaw) (fabs(yaw) > M_PI/2 ? -1 : 1)
+
+#define BASE (M_PI/4)
+
+#define TO_CELLS(v) (((int)(v/this -> cell_size)))
 
 class Mapper {
 public:
 	Mapper(ros::NodeHandle n, float length, float width, float cell_size);
 	~Mapper();
 
-	void handleLaser(const sensor_msgs::LaserScan::ConstPtr &data);
 
-	std::vector<std::vector<CellValue>* >* getMap();
-
-	void addToMap(_2DPoint point, CellValue value);
-
-
-
-
-
-//		SOMAR DISPLACEMENT !!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-
-
-	void writeMap();
+	std::vector<CellValue>* getMap();
 
 	void createMap();
-	//void increaseCell(_2DPoint point);
 
 private:
+	void writeMap();
+
+	void addToMap(_2DPoint point, CellValue value);
+	
+	void handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data);
+
+	void handlePose(const geometry_msgs::Pose::ConstPtr &data);
+
+	void calculateDistances(float real_x, float real_y);
+
 	float length;
 	float width;
 	float cell_size;
-	Laser *laser;
-	std::vector<std::vector<CellValue>* >* map;
+	
+	Robot* robot;
+	//Robot* robotAux;
+	Laser* laser;
+	//LaserData* laser;
+	
+	std::vector<CellValue>* map;
+	//std::list<float> ranges;
 	ros::NodeHandle node;
+	std::list<_2DPoint> points;
+
+	float real_x;
+	float real_y;
+
 	ros::Subscriber laser_sub;
-	//std::vector<std::vector<int>* >* occupancy_grid;
+	ros::Subscriber pose_sub;
+	ros::Subscriber gazebo_pose_sub;
+
+	int status;
 };
 
 

@@ -25,6 +25,23 @@ float Resources::angleDiff(float angle_a, float angle_b){
     return diff2;
 }
 
+QUADRANT Resources::getQuadrant(float angle_a, float angle_b){
+	float sum = Resources::angleSum(angle_a, angle_b);
+
+	if(sum >= 0){
+		if(sum <= M_PI/2)
+			return FIRST_QUADRANT;
+
+		return SECOND_QUADRANT;
+	}
+	else{
+		if(sum <= -M_PI/2)
+			return THIRD_QUADRANT;
+
+		return FOURTH_QUADRANT;
+	}
+}
+
 float Resources::transformYaw(float yaw){
 	yaw = fmod(yaw, 2*M_PI);
 
@@ -39,8 +56,5 @@ float Resources::normalizeAngle(float angle){
 		angle += (2*M_PI);
 	}
 
-	//if(angle < M_PI)
-		return angle;
-
-	//return angle - (2*M_PI);
+	return angle;
 }

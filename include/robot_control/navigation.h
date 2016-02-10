@@ -13,8 +13,8 @@
 #include <cmath>
 #include "laser.h"
 #include "resources.h"
-//#include "localization.h"
-//#include "mapping.h"
+#include "occupancy_grid.h"
+#include <gazebo_msgs/ModelStates.h>
 
 
 
@@ -23,14 +23,13 @@
 
 #define QGOAL 1.0
 #define QWALL 1.0
-#define MAX_LIN_SPEED 0.6
+#define QOG 1.0
+#define MAX_LIN_SPEED 0.7
 #define MAX_ANG_SPEED 0.5
 
 #define ERROR 1.5
 
-/*
-    SECTORS
-*/
+#define START_OG_CALCULATION(x, y) (fabs(x) > 0.5 || fabs(y) > 0.5)
 
 #define REACHED_DESTINATION(g, p) (fabs(g -> x - p.x) < ERROR && fabs(g -> y - p.y) < ERROR)
 
@@ -50,31 +49,27 @@ public:
 private:
     DrivingInfo defineDirection(_2DPoint *goal);
 
-    void handleIMU(const sensor_msgs::Imu::ConstPtr& data);
-    
-    void handleOdom(const nav_msgs::Odometry::ConstPtr& data);
-
     void handlePose(const geometry_msgs::Pose::ConstPtr& data);
+
+    void handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data);
 
     void stop();
     void driveForward();
     void drive(DrivingInfo info);
-    std::list<_2DPoint>* calculateDistances(_2DPoint* robot, float yaw);
-    float calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, _2DPoint *robot);
+    std::list<_2DPoint>* calculateDistances(Robot* robot);
+    float calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, _2DPoint robot);
 
-    Laser *laser;
-    //Localizator *localizator;
+    Laser* laser;
+    OccupancyGrid *og;
     geometry_msgs::Pose pose;
 
     ros::Publisher velocity_pub;
-    ros::Subscriber laser_sub;
-    ros::Subscriber imu_sub;
-    ros::Subscriber odom_sub;
-    ros::Subscriber pose_sub;
-    ros::NodeHandle node;
 
-    tf::StampedTransform transform;
-    tf::TransformListener listener;
+    ros::Subscriber laser_sub;
+    ros::Subscriber pose_sub;
+    ros::Subscriber gazebo_pose_sub;
+
+    ros::NodeHandle node;
 };
 
 #endif

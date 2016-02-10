@@ -1,48 +1,14 @@
 #include "../include/robot_control/laser.h"
 
 Laser::Laser(){
-	this -> angle_increment = -1;
-	this -> angle_max = -1;
-	this -> angle_min = -1;
-	this -> status = false;
-
-}
-
-Laser::Laser(float angle_increment, float angle_max, float angle_min){
-	this -> angle_increment = angle_increment;
-	this -> angle_max = angle_max;
-	this -> angle_min = angle_min;
-	this -> status = false;
+    this -> status = false;
+	this -> ready = false;
 }
 
 Laser::~Laser(){}
 
-void Laser::setAngleIncrement(float angle_increment){
-	this -> angle_increment = angle_increment;
-}
-    
-void Laser::setAngleMax(float angle_max){
-	this -> angle_max = angle_max;
-}
-    
-void Laser::setAngleMin(float angle_min){
-	this -> angle_min = angle_min;
-}
-
 void Laser::setStatus(bool status){
 	this -> status = status;
-}
-
-float Laser::getAngleIncrement(){
-	return this -> angle_increment;
-}
-
-float Laser::getAngleMax(){
-	return this -> angle_max;
-}
-
-float Laser::getAngleMin(){
-	return this -> angle_min;
 }
 
 bool Laser::getStatus(){
@@ -53,6 +19,10 @@ std::list<LaserPoint> Laser::getRanges(){
 	return this -> ranges;	
 }
 
+bool Laser::isReady(){
+    return this -> ready;
+}
+
 float Laser::getFront(){
 	return this -> front;
 }
@@ -61,29 +31,32 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr &laser_dat
     int i;
     LaserPoint point;
 
-    while(this -> status == true);
+    if(this -> status == true)
+        return;
 
     this -> ranges.clear();
 
     //Store some info for later use by other functions
-    if(LASER_NOT_INITIALIZED(this)){
-        this -> setAngleIncrement(laser_data -> angle_increment);
-        this -> setAngleMin(laser_data -> angle_min);
-        this -> setAngleMax(laser_data -> angle_max);
+    if(this -> isReady() == false){
+        this -> ready = true;
     }
 
-
-    for(i = 0; i <= RANGES; i++){
-        point.angle = ((-1)*angle_min) - ((floor(INCREMENT/angle_increment*i))*angle_increment);
-
-        point.range = laser_data -> ranges[(floor((angle_max*2)/angle_increment)) - (floor(((INCREMENT * i))/angle_increment))];
+    for(i = 0; i < MEASURES; i+= (int) MEASURES/RANGES){
+        
+        point.angle = ANGLE_MIN + (ANGLE_INCREMENT*i);
+        point.range = laser_data -> ranges[i];
 
         this -> ranges.push_back(point);
     }
 
+
+    //point.angle = ANGLE_MIN + (ANGLE_INCREMENT*i);
+    //point.range = laser_data -> ranges[639];
+    //this -> ranges.push_back(point);
+
     this -> front = 10;
 
-    for(i = 340; i < 380; i++){
+    for(i = (MEASURES/2) - 15 ; i < (MEASURES/2) + 15; i++){
         if(laser_data -> ranges[i] < this -> front);
             this -> front = laser_data -> ranges[i];
     }

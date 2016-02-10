@@ -20,13 +20,6 @@
     <arg name="joystick" value="false"/>
   </include>
 
-  <!-- Spawn Jackal -->
-  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
-	      args="-urdf -model jackal -param robot_description -x 5.0 -y 0 -z 1.0" />
-	  <!-- Spawn Jackal 
 	  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
 		      args="-urdf -model jackal -param robot_description -x 3 -y 3 -z 1.0" respawn="false" output="screen"/>
-	-->
-	  <!-- Spawn Jackal -->
-
 </launch>

@@ -6,32 +6,36 @@ Localizator::Localizator(){
 Localizator::~Localizator(){
 }
 
-void Localizator::getPosition(){
-	odom_listener.waitForTransform("/odom", "/base_link", ros::Time(0), ros::Duration(1));
+geometry_msgs::Pose Localizator::getPose(){
+    odom_listener.waitForTransform("/odom", "/base_link", ros::Time(0), ros::Duration(1));
     odom_listener.lookupTransform("/odom", "/base_link", ros::Time(0), odom_transform);
 
     this -> pose.position.x = odom_transform.getOrigin().x();
     this -> pose.position.y = odom_transform.getOrigin().y();
-}
+    
+    tf::Quaternion q(odom_transform.getRotation().x(),
+                    odom_transform.getRotation().y(),
+                    odom_transform.getRotation().z(),
+                    odom_transform.getRotation().w());
 
-void Localizator::getYaw(){
-	imu_listener.waitForTransform("/base_link", "/imu_link", ros::Time(0), ros::Duration(1));
-    imu_listener.lookupTransform("/base_link", "/imu_link", ros::Time(0), imu_transform);
+    q = q.normalized();
 
-    this -> pose.orientation.x = imu_transform.getRotation().x();
-    this -> pose.orientation.y = imu_transform.getRotation().y();
-    this -> pose.orientation.z = imu_transform.getRotation().z();
-    this -> pose.orientation.w = imu_transform.getRotation().w();
-}
+    ROS_INFO("%3.2f %3.2f %3.2f", pose.position.x, pose.position.y, tf::getYaw(q));
 
-geometry_msgs::Pose Localizator::getPose(){
-	return this -> pose;
+    tf::quaternionTFToMsg(q, this -> pose.orientation);
+
+  	return this -> pose;
 }
 
 int main(int argc, char **argv){
   ros::init(argc, argv, "pose_publisher");
 
   ros::NodeHandle n;
+  tf::TransformListener listener;
+
+  while(!listener.frameExists("base_link") ||
+  	    !listener.frameExists("odom"));
+
   ros::Publisher pose_pub = n.advertise<geometry_msgs::Pose>("/larger_robot/pose", 1000);
 
   Localizator localizator;
@@ -42,23 +46,12 @@ int main(int argc, char **argv){
 
     ros::spinOnce();               // check for incoming messages
 
-    localizator.getYaw();
-    localizator.getPosition();
-
     //next, we'll publish the odometry message over ROS
     geometry_msgs::Pose pose;
-    geometry_msgs::Pose aux;
+    //geometry_msgs::Pose aux;
 
     //set the position
-    aux = localizator.getPose();
-
-    pose.position.x = aux.position.x;
-    pose.position.y = aux.position.y;
-
-    pose.orientation.x = aux.orientation.x;
-    pose.orientation.y = aux.orientation.y;
-    pose.orientation.z = aux.orientation.z;
-    pose.orientation.w = aux.orientation.w;
+    pose = localizator.getPose();
 
     //publish the message
     pose_pub.publish(pose);

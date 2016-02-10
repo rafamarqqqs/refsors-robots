@@ -11,7 +11,10 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
+
+#find_package(catkin REQUIRED COMPONENTS roslaunch)
+#roslaunch_add_file_check(launch)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -132,7 +135,7 @@ include_directories(
 
 #add_executable(navigation src/navigation.cpp src/localization.cpp src/mapping.cpp src/laser.cpp src/resources.cpp)
 
-add_executable(navigation src/navigation.cpp src/laser.cpp src/resources.cpp)
+add_executable(navigation src/navigation.cpp src/occupancy_grid.cpp src/laser.cpp src/resources.cpp)
 add_executable(localization src/localization.cpp src/laser.cpp src/resources.cpp)
 add_executable(mapping src/mapping.cpp src/laser.cpp src/resources.cpp)
 

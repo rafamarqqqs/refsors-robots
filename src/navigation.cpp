@@ -1,57 +1,43 @@
 #include "../include/robot_control/navigation.h"
 
-
 //Constructor
 
 Navigator::Navigator(ros::NodeHandle n){
     node = n;
 
     this -> laser = new Laser();
-    //this -> localizator = new Localizator();
+    this -> og = new OccupancyGrid(40.0, 40.0, 0.5, 1);
 
     //Advertising velocity topic
     velocity_pub = node.advertise<geometry_msgs::Twist>("/larger_robot/cmd_vel", 100);
 
     //Subscribing to sensors
     laser_sub = node.subscribe("/larger_robot/base_scan/scan", 1, &Laser::handleSubscription, this -> laser);
-    //imu_sub = node.subscribe("/imu/data", 1, &Navigator::handleIMU, this);
-    //odom_sub = node.subscribe("/larger_robot/odometry/filtered", 1, &Navigator::handleOdom, this);
     pose_sub = node.subscribe("/larger_robot/pose", 1, &Navigator::handlePose, this);
+    gazebo_pose_sub = node.subscribe("/gazebo/model_states", 1, &Navigator::handleGazeboModelState, this);
 }
 
 void Navigator::handlePose(const geometry_msgs::Pose::ConstPtr& data){
-    this -> pose.position = data -> position;
-    this -> pose.orientation = data -> orientation;
+    //this -> pose.position = data -> position;
+    //this -> pose.orientation = data -> orientation;
 }
 
-void Navigator::handleIMU(const sensor_msgs::Imu::ConstPtr& data){
+void Navigator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data){
+    int i = 0;
 
-    /*listener.waitForTransform("/base_link", "/imu_link", ros::Time(0), ros::Duration(0));
-    listener.lookupTransform("/base_link", "/imu_link", ros::Time(0), transform);
+    while(data -> name[i] != "mobile_base"){        
+        i++;
+    }
 
-    tf::Quaternion q(transform.getRotation().x(), 
-                     transform.getRotation().y(),
-                     transform.getRotation().z(),
-                     transform.getRotation().w());
-
-    this -> yaw = tf::getYaw(q);*/
-    //float aux = tf::getYaw(q);
-    //this -> yaw = Resources::angleSum(aux, tf::getYaw(data -> orientation));
+    this -> pose = data -> pose[i];
 }
-
-void Navigator::handleOdom(const nav_msgs::Odometry::ConstPtr& odom){
-    //this -> pose = odom -> pose.pose;
-    //this -> yaw = tf::getYaw(odom -> pose.pose.orientation);
-}
-
 //Destructor
 
 Navigator::~Navigator(){
     delete this -> laser;
-    //delete this -> localizator;
 }
 
-std::list<_2DPoint>* Navigator::calculateDistances(_2DPoint* robot, float yaw){
+std::list<_2DPoint>* Navigator::calculateDistances(Robot* robot){
     std::list<LaserPoint> ranges = this -> laser -> getRanges();
     std::list<LaserPoint>::iterator it = ranges.begin();
     std::list<_2DPoint>* wall_points = new std::list<_2DPoint>();
@@ -60,49 +46,68 @@ std::list<_2DPoint>* Navigator::calculateDistances(_2DPoint* robot, float yaw){
 
     while(it != ranges.end()){
         if((*it).range < 8){
-            angle = Resources::angleSum((*it).angle, yaw);
+            angle = Resources::angleSum((*it).angle, robot -> yaw);
 
-            aux.x = robot -> x + ((*it).range * cos(angle)) - X_DISPLACEMENT;
-            aux.y = robot -> y + ((*it).range * sin(angle)) - Y_DISPLACEMENT;
+            aux.x = robot -> position.x + ((*it).range * cos(angle))
+                                        - (X_DISPLACEMENT * cos(robot -> yaw));
+            aux.y = robot -> position.y + ((*it).range * sin(angle))
+                                        - (X_DISPLACEMENT * sin(robot -> yaw));
 
             wall_points -> push_back(aux);
+            //ROS_INFO("%3.2f %3.2f %3.2f (%2.2f %2.2f)", (*it).angle, robot -> yaw, angle, robot -> position.x, robot -> position.y);
         }
 
-        it++;
+        for(int i = 0; i < 40; i++)
+            it ++;
     }
 
     return wall_points;
 }
 
-float Navigator::calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, _2DPoint *robot){
+float Navigator::calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, _2DPoint robot){
     _2DPoint aux;
     std::list<_2DPoint>::iterator it;
-
-    float x_component, y_component;
+    OGVector ogv;
+    float x_component = 0, y_component = 0;
     float norm;
 
     //Goal attraction
-    aux.x = goal -> x - robot -> x;
+    /*aux.x = goal -> x - robot -> x;
     aux.y = goal -> y - robot -> y;
     
     norm = pow(pow(aux.x, 2) + pow(aux.y, 2), 0.5);
     
     x_component = (aux.x * QGOAL)/norm;
     y_component = (aux.y * QGOAL)/norm;
+    */
+
     //Wall repulsion
     it = wall_points -> begin();
 
     while(it != wall_points -> end()){
-        aux.x = (*it).x - robot -> x;
-        aux.y = (*it).y - robot -> y;
+        aux.x = (*it).x - robot.x;
+        aux.y = (*it).y - robot.y;
 
         norm = pow(pow(aux.x, 2) + pow(aux.y, 2), 1.5);
 
         x_component -= (aux.x * QWALL)/norm;
         y_component -= (aux.y * QWALL)/norm;
-
+        
         it++;
     }
+    
+
+    ogv = og -> calculateOGVector(robot.x, robot.y);
+
+    norm = pow(pow(ogv.x, 2) + pow(ogv.y, 2), 1.2);
+
+    x_component -= (ogv.x * QOG)/norm;
+    y_component -= (ogv.y * QOG)/norm;
+        
+    //ROS_INFO("OG-XY: %3.2f %3.2f", x_component, y_component);
+
+    //ROS_INFO("OG: %3.2f %3.2f %3.2f", ogv.x, ogv.y, norm);
+    //ROS_INFO("XY:%3.2f %3.2f OG:%3.2f %3.2f", x_component, y_component, -ogv.x, -ogv.y);
 
     return Resources::normalizeAngle(atan2(y_component, x_component));
 }
@@ -110,30 +115,32 @@ float Navigator::calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points
 DrivingInfo Navigator::defineDirection(_2DPoint *goal){
     DrivingInfo info;
     std::list<_2DPoint>* wall_points;
-    _2DPoint *robot = (_2DPoint *) malloc(sizeof(_2DPoint));
-    float yaw, angleDiff, angleForce;
+    Robot *robot = (Robot *) malloc(sizeof(Robot));
+    float angleDiff, angleForce;
 
-    //robot = localizator -> getPosition();
-    //yaw = Resources::transformYaw(localizator -> getYaw());
-    //yaw = localizator -> getYaw();
-    robot -> x = this -> pose.position.x;
-    robot -> y = this -> pose.position.y;
-    yaw = tf::getYaw(this -> pose.orientation);
+    robot -> position.x = this -> pose.position.x;
+    robot -> position.y = this -> pose.position.y;
+    robot -> yaw = tf::getYaw(this -> pose.orientation);
 
-    wall_points = calculateDistances(robot, yaw);
+    wall_points = calculateDistances(robot);
 
-    angleForce = calculateAngle(goal, wall_points, robot);
+    angleForce = calculateAngle(goal, wall_points, robot -> position);
 
-    angleDiff = Resources::angleDiff(angleForce, Resources::transformYaw(yaw))*MAX_ANG_SPEED/M_PI;
+    angleDiff = Resources::angleDiff(angleForce, Resources::transformYaw(robot -> yaw))
+                                                                        *MAX_ANG_SPEED/M_PI;
 
+    //ROS_INFO("Angle: %3.2f %3.2f", angleDiff, robot -> yaw);
+
+    info.velocity = (this -> laser -> getFront() - 0.3)*MAX_LIN_SPEED/7.7;
     info.rotation = angleDiff;
-    info.velocity = (this -> laser -> getFront())*MAX_LIN_SPEED/7.7;
-
-    delete wall_points;
 
     this -> laser -> setStatus(false);
 
+    this -> og -> updatePosition(robot -> position.x, robot -> position.y);
+    this -> og -> writeMap();
+
     free(robot);
+    delete wall_points;
 
     return info;
 }
@@ -165,9 +172,12 @@ bool Navigator::driveTo(_2DPoint *goal){
     
     //Waits for the laser to set the initial values
     ROS_INFO("waiting for laser");
+    while(!(laser -> isReady()) && ros::ok()){
+        ros::spinOnce();
+    }
 
-    while(!REACHED_DESTINATION(goal, this -> pose.position) && ros::ok()){
-        while(this -> laser -> getStatus() == false && ros::ok()){
+    while(/*!REACHED_DESTINATION(goal, this -> pose.position) && */ros::ok()){
+        while(laser -> getStatus() == false && ros::ok()){
             ros::spinOnce();
         }
 

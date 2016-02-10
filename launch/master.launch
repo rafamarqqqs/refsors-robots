@@ -4,24 +4,33 @@
 
   <!--<arg name="world_name" default="worlds/empty.world"/>-->
 
-  	<!-- Spawn a Husky  
-  	<group ns="smaller_robot">
-		<include file="$(find robot_control)/launch/smaller_robot.launch" ></include>
-	</group>
-  -->
-  	
-  	<group ns="larger_robot">
-	    <include file="$(find robot_control)/launch/larger_robot.launch" ></include>
-	</group>
+    <!--  	
+    <group ns="smaller_robot">
+    <include file="$(find robot_control)/launch/smaller_robot.launch" ></include>
+    
+    <include file="$(find pioneer3at)/launch/robot_control.launch">
+    </include>
+  
+  </group>
+ -->
+    <group ns="larger_robot">
+        <include file="$(find robot_control)/launch/larger_robot.launch" ></include>
+    </group>
+
+    <!--
+    <node name="Mapping" pkg="robot_control" type="mapping" output="screen" respawn="true" />
+
+    <node name="Navigation" pkg="robot_control" type="navigation" output="screen" respawn="true" />
+    -->
 
 
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find robot_control)/world/containers.world"/> <!-- world_name is wrt GAZEBO_RESOURCE_PATH environment variable -->
-    <arg name="paused" value="false"/>
-    <arg name="use_sim_time" value="true"/>
-    <arg name="gui" value="true"/>
-    <arg name="headless" value="false"/>
-    <arg name="debug" value="false"/>
-  </include>
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find robot_control)/world/containers_real.world"/>
+      <arg name="paused" value="false"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="gui" value="true"/>
+        <arg name="headless" value="false"/>
+        <arg name="debug" value="false"/>
+    </include>
 
 </launch>
