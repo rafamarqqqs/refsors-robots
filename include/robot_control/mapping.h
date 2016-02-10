@@ -8,6 +8,7 @@
 #include <gazebo_msgs/ModelStates.h>
 #include <tf/transform_listener.h>
 #include <ros/ros.h>
+#include "topics.h"
 #include <fstream>
 #include "laser.h"
 
@@ -47,8 +48,6 @@ private:
 
 	void addToMap(_2DPoint point, CellValue value);
 	
-	void handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data);
-
 	void handlePose(const geometry_msgs::Pose::ConstPtr &data);
 
 	void calculateDistances(float real_x, float real_y);
@@ -60,10 +59,8 @@ private:
 	Robot* robot;
 	//Robot* robotAux;
 	Laser* laser;
-	//LaserData* laser;
 	
 	std::vector<CellValue>* map;
-	//std::list<float> ranges;
 	ros::NodeHandle node;
 	std::list<_2DPoint> points;
 
@@ -72,7 +69,6 @@ private:
 
 	ros::Subscriber laser_sub;
 	ros::Subscriber pose_sub;
-	ros::Subscriber gazebo_pose_sub;
 
 	int status;
 };

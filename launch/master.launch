@@ -18,10 +18,12 @@
     </group>
 
     <!--
-    <node name="Mapping" pkg="robot_control" type="mapping" output="screen" respawn="true" />
 
+    <node name="Mapping" pkg="robot_control" type="mapping" output="screen" respawn="true" />
+    <node name="Localization" pkg="robot_control" type="localization" output="screen" respawn="true" />
     <node name="Navigation" pkg="robot_control" type="navigation" output="screen" respawn="true" />
     -->
+
 
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch">

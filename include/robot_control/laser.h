@@ -16,7 +16,6 @@
 #define ANGLE_MAX 1.57
 #define ANGLE_MIN -1.57
 #define ANGLE_INCREMENT (3.14/MEASURES)
-#define RANGES 640
 
 class Laser {
 public:

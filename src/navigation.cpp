@@ -6,31 +6,22 @@ Navigator::Navigator(ros::NodeHandle n){
     node = n;
 
     this -> laser = new Laser();
-    this -> og = new OccupancyGrid(40.0, 40.0, 0.5, 1);
+    this -> og = new OccupancyGrid(MAP_LENGTH, MAP_WIDTH, CELL_SIZE, REPULSION, 0, 0);
 
     //Advertising velocity topic
-    velocity_pub = node.advertise<geometry_msgs::Twist>("/larger_robot/cmd_vel", 100);
+    velocity_pub = node.advertise<geometry_msgs::Twist>(LARGER_ROBOT_VEL, 100);
 
     //Subscribing to sensors
-    laser_sub = node.subscribe("/larger_robot/base_scan/scan", 1, &Laser::handleSubscription, this -> laser);
-    pose_sub = node.subscribe("/larger_robot/pose", 1, &Navigator::handlePose, this);
-    gazebo_pose_sub = node.subscribe("/gazebo/model_states", 1, &Navigator::handleGazeboModelState, this);
+    laser_sub = node.subscribe(LARGER_ROBOT_SCAN, 1, &Laser::handleSubscription, this -> laser);
+    pose_sub = node.subscribe(LARGER_ROBOT_POSE, 1, &Navigator::handlePose, this);
 }
 
 void Navigator::handlePose(const geometry_msgs::Pose::ConstPtr& data){
-    //this -> pose.position = data -> position;
-    //this -> pose.orientation = data -> orientation;
+    this -> pose.position = data -> position;
+    this -> pose.orientation = data -> orientation;
+    //ROS_INFO("%3.2f %3.2f %3.2f", pose.position.x, pose.position.y, tf::getYaw(pose.orientation));
 }
 
-void Navigator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data){
-    int i = 0;
-
-    while(data -> name[i] != "mobile_base"){        
-        i++;
-    }
-
-    this -> pose = data -> pose[i];
-}
 //Destructor
 
 Navigator::~Navigator(){
@@ -43,22 +34,31 @@ std::list<_2DPoint>* Navigator::calculateDistances(Robot* robot){
     std::list<_2DPoint>* wall_points = new std::list<_2DPoint>();
     _2DPoint aux;
     float angle;
+    bool last_angle = false;
 
     while(it != ranges.end()){
-        if((*it).range < 8){
+        if((*it).range < MIN_RANGE){
             angle = Resources::angleSum((*it).angle, robot -> yaw);
 
-            aux.x = robot -> position.x + ((*it).range * cos(angle))
+            aux.x = robot -> position.x + ((*it).range * cos(angle));
                                         - (X_DISPLACEMENT * cos(robot -> yaw));
-            aux.y = robot -> position.y + ((*it).range * sin(angle))
+            aux.y = robot -> position.y + ((*it).range * sin(angle));
                                         - (X_DISPLACEMENT * sin(robot -> yaw));
-
             wall_points -> push_back(aux);
             //ROS_INFO("%3.2f %3.2f %3.2f (%2.2f %2.2f)", (*it).angle, robot -> yaw, angle, robot -> position.x, robot -> position.y);
         }
+        
+        ROS_INFO("%3.2f %3.2f", (*it).angle, (*it).range);
 
-        for(int i = 0; i < 40; i++)
-            it ++;
+        for(int i = 0; i < (int) MEASURES/RANGES; i++){
+            it++;
+
+            if(it == ranges.end() && !last_angle){
+                it--;
+                last_angle = true;
+                break;
+            }
+        }
     }
 
     return wall_points;
@@ -93,20 +93,19 @@ float Navigator::calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points
         x_component -= (aux.x * QWALL)/norm;
         y_component -= (aux.y * QWALL)/norm;
         
+        //ROS_INFO("xy: %3.2f %3.2f", x_component, y_component);
         it++;
     }
     
-
     ogv = og -> calculateOGVector(robot.x, robot.y);
 
-    norm = pow(pow(ogv.x, 2) + pow(ogv.y, 2), 1.2);
+    norm = pow(pow(ogv.x, 2) + pow(ogv.y, 2), 1.5);
 
-    x_component -= (ogv.x * QOG)/norm;
-    y_component -= (ogv.y * QOG)/norm;
+    x_component += (ogv.x * QOG)/norm;
+    y_component += (ogv.y * QOG)/norm;
         
-    //ROS_INFO("OG-XY: %3.2f %3.2f", x_component, y_component);
+    //ROS_INFO("OG:%2.2f %2.2f xy:%2.2f %2.2f", (ogv.x * QOG)/norm, (ogv.y * QOG)/norm, x_component, y_component);
 
-    //ROS_INFO("OG: %3.2f %3.2f %3.2f", ogv.x, ogv.y, norm);
     //ROS_INFO("XY:%3.2f %3.2f OG:%3.2f %3.2f", x_component, y_component, -ogv.x, -ogv.y);
 
     return Resources::normalizeAngle(atan2(y_component, x_component));

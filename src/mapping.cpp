@@ -19,9 +19,8 @@ Mapper::Mapper(ros::NodeHandle n, float length, float width, float cell_size){
 			this -> map -> at(i) = EMPTY;
 	}
 
-	laser_sub = node.subscribe("/larger_robot/base_scan/scan", 1, &Laser::handleSubscription, this -> laser);
-	//pose_sub = node.subscribe("/larger_robot/pose", 1, &Mapper::handlePose, this);
-	gazebo_pose_sub = node.subscribe("/gazebo/model_states", 1, &Mapper::handleGazeboModelState, this);
+	laser_sub = node.subscribe(LARGER_ROBOT_SCAN, 1, &Laser::handleSubscription, this -> laser);
+	pose_sub = node.subscribe(LARGER_ROBOT_POSE, 1, &Mapper::handlePose, this);
 
 }
 
@@ -32,21 +31,9 @@ Mapper::~Mapper(){
 }
 
 void Mapper::handlePose(const geometry_msgs::Pose::ConstPtr& data){
-	//this -> robot -> position.x = data -> position.x;
-	//this -> robot -> position.y = data -> position.y;
-	//this -> robot -> yaw = tf::getYaw(data -> orientation);
-}
-
-void Mapper::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data){
-    int i = 0;
-	
-    while(data -> name[i] != "mobile_base"){
-        i++;
-    }
-
-	this -> robot -> position.x = data -> pose[i].position.x;
-	this -> robot -> position.y = data -> pose[i].position.y;
-	this -> robot -> yaw = tf::getYaw(data -> pose[i].orientation);
+	this -> robot -> position.x = data -> position.x;
+	this -> robot -> position.y = data -> position.y;
+	this -> robot -> yaw = tf::getYaw(data -> orientation);
 }
 
 void Mapper::calculateDistances(float real_x, float real_y){
@@ -58,7 +45,6 @@ void Mapper::calculateDistances(float real_x, float real_y){
 
 	ranges = this -> laser -> getRanges();
 	it = ranges.begin();
-	ROS_INFO("SIZE %d", (int) ranges.size());
 
 	while(it != ranges.end() && ros::ok()){
 		if((*it).range < 6){

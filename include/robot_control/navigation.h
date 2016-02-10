@@ -14,12 +14,21 @@
 #include "laser.h"
 #include "resources.h"
 #include "occupancy_grid.h"
+#include "topics.h"
 #include <gazebo_msgs/ModelStates.h>
-
 
 
 #ifndef _NAVIGATION_H_
 #define _NAVIGATION_H_
+
+#define MIN_RANGE 8
+
+#define RANGES 8
+
+#define MAP_LENGTH 40.0
+#define MAP_WIDTH 40.0
+#define CELL_SIZE 0.5
+#define REPULSION 1
 
 #define QGOAL 1.0
 #define QWALL 1.0
@@ -51,8 +60,6 @@ private:
 
     void handlePose(const geometry_msgs::Pose::ConstPtr& data);
 
-    void handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data);
-
     void stop();
     void driveForward();
     void drive(DrivingInfo info);
@@ -67,7 +74,6 @@ private:
 
     ros::Subscriber laser_sub;
     ros::Subscriber pose_sub;
-    ros::Subscriber gazebo_pose_sub;
 
     ros::NodeHandle node;
 };

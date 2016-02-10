@@ -31,8 +31,8 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr &laser_dat
     int i;
     LaserPoint point;
 
-    if(this -> status == true)
-        return;
+    while(this -> status == true);
+        //return;
 
     this -> ranges.clear();
 
@@ -41,7 +41,7 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr &laser_dat
         this -> ready = true;
     }
 
-    for(i = 0; i < MEASURES; i+= (int) MEASURES/RANGES){
+    for(i = 0; i < MEASURES; i++){
         
         point.angle = ANGLE_MIN + (ANGLE_INCREMENT*i);
         point.range = laser_data -> ranges[i];

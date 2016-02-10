@@ -6,7 +6,7 @@
 #ifndef _OCCUPANCY_GRID_H_
 #define _OCCUPANCY_GRID_H_
 
-#define NEARBY 2
+#define NEARBY 3
 
 #define IS_INSIDE(x, y) (x >= 0 && y >= 0 && x < TO_CELLS(length) && y < TO_CELLS(width))
 
@@ -22,7 +22,7 @@ typedef struct OccupancyGridVector {
 
 class OccupancyGrid{
 public:
-	OccupancyGrid(float length, float width, float cell_size, float rep);
+	OccupancyGrid(float length, float width, float cell_size, float rep, float x, float y);
 	~OccupancyGrid();
 
 	OGVector calculateOGVector(float x, float y);
@@ -33,6 +33,8 @@ private:
 	void initMap();
 
 	int** map;
+
+	float last_x, last_y;
 
 	float length;
 	float width;

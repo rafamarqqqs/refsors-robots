@@ -9,16 +9,23 @@
 #include <stdlib.h> 
 #include <cmath>
 #include "laser.h"
+#include "topics.h"
+#include <gazebo_msgs/ModelStates.h>
+
 
 class Localizator {
 public:
-	Localizator();
-	~Localizator();
+	Localizator(ros::NodeHandle n);
+	virtual ~Localizator();
 
 	geometry_msgs::Pose getPose();
 
+	void handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data);
+
 private:
 	geometry_msgs::Pose pose;
+
+	ros::Subscriber gazebo_pose_sub;
 
 	tf::StampedTransform odom_transform;
     tf::TransformListener odom_listener;
