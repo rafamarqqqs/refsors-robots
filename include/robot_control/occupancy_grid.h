@@ -6,7 +6,7 @@
 #ifndef _OCCUPANCY_GRID_H_
 #define _OCCUPANCY_GRID_H_
 
-#define NEARBY 3
+#define NEARBY 4
 
 #define IS_INSIDE(x, y) (x >= 0 && y >= 0 && x < TO_CELLS(length) && y < TO_CELLS(width))
 

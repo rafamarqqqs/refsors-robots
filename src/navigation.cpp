@@ -28,29 +28,52 @@ Navigator::~Navigator(){
     delete this -> laser;
 }
 
+std::list<LaserPoint> Navigator::remakeRanges(std::list<LaserPoint> ranges){
+    std::list<LaserPoint> aux;
+    std::list<LaserPoint>::iterator it = ranges.begin();
+
+    while(it != ranges.end()){
+        aux.push_back((*it));
+        
+        for(int i = 0; i < 60; i++)
+            it++;
+    }
+
+    it--;
+
+    aux.push_back((*it));
+
+    return aux;
+}
+
 std::list<_2DPoint>* Navigator::calculateDistances(Robot* robot){
-    std::list<LaserPoint> ranges = this -> laser -> getRanges();
+    std::list<LaserPoint> ranges = remakeRanges(this -> laser -> getRanges());
     std::list<LaserPoint>::iterator it = ranges.begin();
     std::list<_2DPoint>* wall_points = new std::list<_2DPoint>();
     _2DPoint aux;
     float angle;
     bool last_angle = false;
 
+    ROS_INFO("start");
+
     while(it != ranges.end()){
         if((*it).range < MIN_RANGE){
             angle = Resources::angleSum((*it).angle, robot -> yaw);
 
             aux.x = robot -> position.x + ((*it).range * cos(angle));
-                                        - (X_DISPLACEMENT * cos(robot -> yaw));
+                                        //- (X_DISPLACEMENT * cos(robot -> yaw));
             aux.y = robot -> position.y + ((*it).range * sin(angle));
-                                        - (X_DISPLACEMENT * sin(robot -> yaw));
+                                        //- (X_DISPLACEMENT * sin(robot -> yaw));
             wall_points -> push_back(aux);
+            
+            //ROS_INFO("%3.2f %3.2f", (*it).angle, (*it).range);
             //ROS_INFO("%3.2f %3.2f %3.2f (%2.2f %2.2f)", (*it).angle, robot -> yaw, angle, robot -> position.x, robot -> position.y);
         }
         
         ROS_INFO("%3.2f %3.2f", (*it).angle, (*it).range);
 
-        for(int i = 0; i < (int) MEASURES/RANGES; i++){
+        it++;
+/*        for(int i = 0; i < (int) MEASURES/RANGES; i++){
             it++;
 
             if(it == ranges.end() && !last_angle){
@@ -58,8 +81,10 @@ std::list<_2DPoint>* Navigator::calculateDistances(Robot* robot){
                 last_angle = true;
                 break;
             }
-        }
+        }*/
     }
+
+    ROS_INFO("end");
 
     return wall_points;
 }

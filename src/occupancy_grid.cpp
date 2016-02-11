@@ -39,8 +39,8 @@ void OccupancyGrid::updatePosition(float x, float y){
 	int map_y = TO_CELLS(y) + BASE_Y;
 	int i, j;
 
-	for(i = map_x - NEARBY + 1; i < map_x + NEARBY; i++){
-		for(j = map_y - NEARBY + 1; j < map_y + NEARBY; j++){
+	for(i = map_x - NEARBY + 1; i < map_x + NEARBY - 1; i++){
+		for(j = map_y - NEARBY + 1; j < map_y + NEARBY - 1; j++){
 			if(IS_INSIDE(i, j))
 				map[i][j] += repulsion;
 		}

@@ -27,7 +27,7 @@ Mapper::Mapper(ros::NodeHandle n, float length, float width, float cell_size){
 Mapper::~Mapper(){
 	delete this -> map;
 	free(this -> robot);
-	free(this -> laser);
+	delete this -> laser;
 }
 
 void Mapper::handlePose(const geometry_msgs::Pose::ConstPtr& data){

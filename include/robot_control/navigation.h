@@ -32,7 +32,7 @@
 
 #define QGOAL 1.0
 #define QWALL 1.0
-#define QOG 1.0
+#define QOG 1.5
 #define MAX_LIN_SPEED 0.7
 #define MAX_ANG_SPEED 0.5
 
@@ -65,6 +65,8 @@ private:
     void drive(DrivingInfo info);
     std::list<_2DPoint>* calculateDistances(Robot* robot);
     float calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, _2DPoint robot);
+
+    std::list<LaserPoint> remakeRanges(std::list<LaserPoint> ranges);
 
     Laser* laser;
     OccupancyGrid *og;
