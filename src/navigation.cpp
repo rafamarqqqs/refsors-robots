@@ -6,14 +6,18 @@ Navigator::Navigator(ros::NodeHandle n){
     node = n;
 
     this -> laser = new Laser();
-    this -> og = new OccupancyGrid(MAP_LENGTH, MAP_WIDTH, CELL_SIZE, REPULSION, 0, 0);
+    this -> og = new OccupancyGrid(MAP_LENGTH, MAP_WIDTH, CELL_SIZE, REPULSION, -14, 16);
 
     //Advertising velocity topic
     velocity_pub = node.advertise<geometry_msgs::Twist>(LARGER_ROBOT_VEL, 100);
 
+    ROS_INFO("subscribing to services");
+
     //Subscribing to sensors
     laser_sub = node.subscribe(LARGER_ROBOT_SCAN, 1, &Laser::handleSubscription, this -> laser);
     pose_sub = node.subscribe(LARGER_ROBOT_POSE, 1, &Navigator::handlePose, this);
+
+    service = node.advertiseService("search", &Navigator::search, this);
 }
 
 void Navigator::handlePose(const geometry_msgs::Pose::ConstPtr& data){
@@ -26,6 +30,7 @@ void Navigator::handlePose(const geometry_msgs::Pose::ConstPtr& data){
 
 Navigator::~Navigator(){
     delete this -> laser;
+    delete this -> og;
 }
 
 std::list<LaserPoint> Navigator::remakeRanges(std::list<LaserPoint> ranges){
@@ -34,14 +39,16 @@ std::list<LaserPoint> Navigator::remakeRanges(std::list<LaserPoint> ranges){
 
     while(it != ranges.end()){
         aux.push_back((*it));
+        //ROS_INFO("%3.2f %3.2f", (*it).angle, (*it).range);
         
-        for(int i = 0; i < 60; i++)
+        for(int i = 0; i < MEASURES/RANGES; i++)
             it++;
     }
 
     it--;
 
     aux.push_back((*it));
+    //ROS_INFO("%3.2f %3.2f", (*it).angle, (*it).range);
 
     return aux;
 }
@@ -54,46 +61,33 @@ std::list<_2DPoint>* Navigator::calculateDistances(Robot* robot){
     float angle;
     bool last_angle = false;
 
-    ROS_INFO("start");
-
     while(it != ranges.end()){
         if((*it).range < MIN_RANGE){
             angle = Resources::angleSum((*it).angle, robot -> yaw);
 
             aux.x = robot -> position.x + ((*it).range * cos(angle));
-                                        //- (X_DISPLACEMENT * cos(robot -> yaw));
             aux.y = robot -> position.y + ((*it).range * sin(angle));
-                                        //- (X_DISPLACEMENT * sin(robot -> yaw));
+
             wall_points -> push_back(aux);
             
             //ROS_INFO("%3.2f %3.2f", (*it).angle, (*it).range);
             //ROS_INFO("%3.2f %3.2f %3.2f (%2.2f %2.2f)", (*it).angle, robot -> yaw, angle, robot -> position.x, robot -> position.y);
         }
         
-        ROS_INFO("%3.2f %3.2f", (*it).angle, (*it).range);
+        //ROS_INFO("%3.2f %3.2f", (*it).angle, (*it).range);
 
         it++;
-/*        for(int i = 0; i < (int) MEASURES/RANGES; i++){
-            it++;
-
-            if(it == ranges.end() && !last_angle){
-                it--;
-                last_angle = true;
-                break;
-            }
-        }*/
     }
-
-    ROS_INFO("end");
 
     return wall_points;
 }
 
-float Navigator::calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, _2DPoint robot){
+float Navigator::calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, Robot* robot){
     _2DPoint aux;
     std::list<_2DPoint>::iterator it;
     OGVector ogv;
-    float x_component = 0, y_component = 0;
+    float x_component = 0;
+    float y_component = 0;
     float norm;
 
     //Goal attraction
@@ -110,28 +104,50 @@ float Navigator::calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points
     it = wall_points -> begin();
 
     while(it != wall_points -> end()){
-        aux.x = (*it).x - robot.x;
-        aux.y = (*it).y - robot.y;
+        aux.x = (*it).x - robot -> position.x;
+        aux.y = (*it).y - robot -> position.y;
 
         norm = pow(pow(aux.x, 2) + pow(aux.y, 2), 1.5);
+
+        /*
+        if(pow(pow(aux.x, 2) + pow(aux.y, 2), 0.5) > DANGER_ZONE){
+            aux.x *= 0.4;
+            aux.y *= 0.4;
+        }
+        ROS_INFO("%3.2f", fabs(Resources::normalizeAngle(atan((*it).y/(*it).x))));
+
+        if(fabs(Resources::normalizeAngle(atan((*it).y/(*it).x))) > DANGER_ANGLE){
+            aux.x *= 0.7;
+            aux.y *= 0.7;
+        }
+        */
 
         x_component -= (aux.x * QWALL)/norm;
         y_component -= (aux.y * QWALL)/norm;
         
-        //ROS_INFO("xy: %3.2f %3.2f", x_component, y_component);
         it++;
     }
     
-    ogv = og -> calculateOGVector(robot.x, robot.y);
+    if(og -> OGReady()){
+        //ROS_INFO("using occupancy grid");
 
-    norm = pow(pow(ogv.x, 2) + pow(ogv.y, 2), 1.5);
+        ogv = og -> calculateOGVector(robot -> position);
 
-    x_component += (ogv.x * QOG)/norm;
-    y_component += (ogv.y * QOG)/norm;
-        
+        norm = pow(pow(ogv.x, 2) + pow(ogv.y, 2), 0.5);
+
+        x_component += (ogv.x * QOG)/norm;
+        y_component += (ogv.y * QOG)/norm;
+    }
+
     //ROS_INFO("OG:%2.2f %2.2f xy:%2.2f %2.2f", (ogv.x * QOG)/norm, (ogv.y * QOG)/norm, x_component, y_component);
 
-    //ROS_INFO("XY:%3.2f %3.2f OG:%3.2f %3.2f", x_component, y_component, -ogv.x, -ogv.y);
+    //ROS_INFO("XY:%3.2f %3.2f OG:%3.2f %3.2f %d", x_component, y_component, ogv.x, ogv.y, (int) wall_points -> size());
+    
+    if((y_component == 0 && x_component == 0) || isnan(y_component) || isnan(x_component))
+        return Resources::transformYaw(robot -> yaw);
+
+    //ROS_INFO("xy: %3.2f %3.2f", x_component, y_component);
+    //ROS_INFO("%f", Resources::normalizeAngle(atan2(y_component, x_component)));
 
     return Resources::normalizeAngle(atan2(y_component, x_component));
 }
@@ -148,19 +164,18 @@ DrivingInfo Navigator::defineDirection(_2DPoint *goal){
 
     wall_points = calculateDistances(robot);
 
-    angleForce = calculateAngle(goal, wall_points, robot -> position);
+    angleForce = calculateAngle(goal, wall_points, robot);
 
-    angleDiff = Resources::angleDiff(angleForce, Resources::transformYaw(robot -> yaw))
-                                                                        *MAX_ANG_SPEED/M_PI;
-
-    //ROS_INFO("Angle: %3.2f %3.2f", angleDiff, robot -> yaw);
+    angleDiff = Resources::angleDiff(angleForce, Resources::transformYaw(robot -> yaw))*MAX_ANG_SPEED/M_PI;
 
     info.velocity = (this -> laser -> getFront() - 0.3)*MAX_LIN_SPEED/7.7;
     info.rotation = angleDiff;
 
-    this -> laser -> setStatus(false);
+    //ROS_INFO("Velocity %3.2f", info.velocity);
+    //ROS_INFO("Angle: %3.2f %3.2f", angleDiff, robot -> yaw);
 
-    this -> og -> updatePosition(robot -> position.x, robot -> position.y);
+    this -> laser -> setStatus(false);
+    this -> og -> updatePosition(robot -> position.x, robot -> position.y, robot -> yaw);
     this -> og -> writeMap();
 
     free(robot);
@@ -192,7 +207,16 @@ void Navigator::drive(DrivingInfo info){
 */
 
 bool Navigator::driveTo(_2DPoint *goal){
+
+    return true;
+}
+
+bool Navigator::search(robot_control::search::Request& request, robot_control::search::Request& response){
+    ROS_INFO("service called");
+
     DrivingInfo info;
+
+    //ros::Rate r(20);
     
     //Waits for the laser to set the initial values
     ROS_INFO("waiting for laser");
@@ -200,21 +224,17 @@ bool Navigator::driveTo(_2DPoint *goal){
         ros::spinOnce();
     }
 
-    while(/*!REACHED_DESTINATION(goal, this -> pose.position) && */ros::ok()){
+    while(ros::ok()){
         while(laser -> getStatus() == false && ros::ok()){
             ros::spinOnce();
         }
 
-        info = this -> defineDirection(goal);
+        info = this -> defineDirection(NULL);
         this -> drive(info);
         ros::spinOnce();
     }
 
     this -> stop();
-
-    free(goal);
-
-    ROS_INFO("Reached destination");
 
 return true;
 }
@@ -239,13 +259,19 @@ int main(int argc, char **argv) {
     ros::NodeHandle node;
 
     Navigator *nav = new Navigator(node);
-    ros::spinOnce();
+    //ros::spinOnce();
 
     ROS_INFO("Navigator started.");
 
-    _2DPoint *goal = nav -> createGoal(-3, 10);
+    
 
-    nav -> driveTo(goal);
+    //_2DPoint *goal = nav -> createGoal(-3, 10);
 
-    delete nav;
+    //nav -> drive();
+
+    //delete nav;
+
+    ros::spin();
+
+    return 0;
 }

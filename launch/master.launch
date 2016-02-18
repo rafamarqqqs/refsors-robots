@@ -15,13 +15,14 @@
  -->
     <group ns="larger_robot">
         <include file="$(find robot_control)/launch/larger_robot.launch" ></include>
+        <node name="Localization" pkg="robot_control" type="localization" output="screen" respawn="true" />
+        <node name="Navigation" pkg="robot_control" type="navigation" output="screen" respawn="true" />
+        <node name="Control" pkg="robot_control" type="control" output="screen" respawn="true" />
+        <node name="Mapping" pkg="robot_control" type="mapping" output="screen" respawn="true" />
     </group>
 
     <!--
 
-    <node name="Mapping" pkg="robot_control" type="mapping" output="screen" respawn="true" />
-    <node name="Localization" pkg="robot_control" type="localization" output="screen" respawn="true" />
-    <node name="Navigation" pkg="robot_control" type="navigation" output="screen" respawn="true" />
     -->
 
 

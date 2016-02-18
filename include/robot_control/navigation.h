@@ -16,12 +16,16 @@
 #include "occupancy_grid.h"
 #include "topics.h"
 #include <gazebo_msgs/ModelStates.h>
-
+#include <std_srvs/Empty.h>
+#include "robot_control/search.h"
 
 #ifndef _NAVIGATION_H_
 #define _NAVIGATION_H_
 
-#define MIN_RANGE 8
+#define MIN_RANGE 1.5
+
+#define DANGER_ZONE 1.0
+#define DANGER_ANGLE (M_PI/3)
 
 #define RANGES 8
 
@@ -32,9 +36,9 @@
 
 #define QGOAL 1.0
 #define QWALL 1.0
-#define QOG 1.5
-#define MAX_LIN_SPEED 0.7
-#define MAX_ANG_SPEED 0.5
+#define QOG 1.0
+#define MAX_LIN_SPEED 0.4
+#define MAX_ANG_SPEED 0.6
 
 #define ERROR 1.5
 
@@ -52,6 +56,7 @@ public:
     Navigator(ros::NodeHandle node);
     virtual ~Navigator();
 
+    bool search(robot_control::search::Request& request, robot_control::search::Request& response);
     bool driveTo(_2DPoint *goal);
     _2DPoint *createGoal(float x, float y);
 
@@ -64,7 +69,7 @@ private:
     void driveForward();
     void drive(DrivingInfo info);
     std::list<_2DPoint>* calculateDistances(Robot* robot);
-    float calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, _2DPoint robot);
+    float calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, Robot* robot);
 
     std::list<LaserPoint> remakeRanges(std::list<LaserPoint> ranges);
 
@@ -76,6 +81,8 @@ private:
 
     ros::Subscriber laser_sub;
     ros::Subscriber pose_sub;
+
+    ros::ServiceServer service;
 
     ros::NodeHandle node;
 };

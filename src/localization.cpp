@@ -16,16 +16,16 @@ void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPt
 
     this -> pose = data -> pose[i];
 
-    ROS_INFO("%3.2f %3.2f %3.2f", pose.position.x, pose.position.y, tf::getYaw(pose.orientation));
+    //ROS_INFO("%3.2f %3.2f %3.2f", pose.position.x, pose.position.y, tf::getYaw(pose.orientation));
 
-    /*tf::Quaternion q(data -> pose[i].orientation.x,
+    tf::Quaternion q(data -> pose[i].orientation.x,
                     data -> pose[i].orientation.y,
                     data -> pose[i].orientation.z,
                     data -> pose[i].orientation.w);
 
     q = q.normalized();
 
-    tf::quaternionTFToMsg(q, this -> pose.orientation);*/
+    tf::quaternionTFToMsg(q, this -> pose.orientation);
 }
 
 geometry_msgs::Pose Localizator::getPose(){

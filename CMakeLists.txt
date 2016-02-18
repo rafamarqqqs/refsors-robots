@@ -7,7 +7,11 @@ project(robot_control)
 find_package(catkin REQUIRED COMPONENTS
   tf
   roscpp
+  genmsg
   std_msgs
+  message_generation
+  actionlib_msgs
+  actionlib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -47,31 +51,30 @@ find_package(Boost REQUIRED COMPONENTS system)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  #Drive.msg
+)
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  search.srv
+  createMap.srv
+)
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  DIRECTORY action
+  #FILES search.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  actionlib_msgs
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -103,10 +106,10 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES random_husky_driver
-#  CATKIN_DEPENDS roscpp std_msgs
-#  DEPENDS system_lib
+  INCLUDE_DIRS include
+  LIBRARIES robot_control
+  CATKIN_DEPENDS roscpp std_msgs message_runtime actionlib_msgs
+  DEPENDS system_lib
 )
 
 ###########
@@ -117,7 +120,9 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS} include
+  include
+  ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   src/libraries
 )
 
@@ -136,17 +141,26 @@ include_directories(
 
 #add_executable(navigation src/navigation.cpp src/localization.cpp src/mapping.cpp src/laser.cpp src/resources.cpp)
 
+add_executable(control src/control.cpp)
 add_executable(navigation src/navigation.cpp src/occupancy_grid.cpp src/laser.cpp src/resources.cpp)
 add_executable(localization src/localization.cpp src/laser.cpp src/resources.cpp)
 add_executable(mapping src/mapping.cpp src/laser.cpp src/resources.cpp)
 
+add_dependencies(control robot_control_generate_messages_cpp)
+add_dependencies(navigation robot_control_generate_messages_cpp)
+
+add_dependencies(control ${robot_control_EXPORTED_TARGETS})
+add_dependencies(navigation ${robot_control_EXPORTED_TARGETS})
+
 target_link_libraries(navigation ${catkin_LIBRARIES})
+target_link_libraries(control ${catkin_LIBRARIES})
 target_link_libraries(localization ${catkin_LIBRARIES})
 target_link_libraries(mapping ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(${PROJECT_NAME}_gencpp ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node

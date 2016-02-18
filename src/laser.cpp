@@ -32,9 +32,7 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr &laser_dat
     LaserPoint point;
 
     while(this -> status == true);
-        //return;
-    //ROS_INFO("%3.2f %3.2f %3.2f %3.2f", laser_data -> angle_min, laser_data -> angle_max, laser_data -> angle_increment,
-      //                              (laser_data -> angle_max - laser_data -> angle_min)/laser_data -> angle_increment);
+
     this -> ranges.clear();
 
     //Store some info for later use by other functions
@@ -54,11 +52,6 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr &laser_dat
 
         this -> ranges.push_back(point);
     }
-
-
-    //point.angle = ANGLE_MIN + (ANGLE_INCREMENT*i);
-    //point.range = laser_data -> ranges[639];
-    //this -> ranges.push_back(point);
 
     this -> front = 10;
 

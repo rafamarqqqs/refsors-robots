@@ -7,6 +7,7 @@ OccupancyGrid::OccupancyGrid(float length, float width, float cell_size, float r
 	this -> repulsion = rep;
 	this -> last_x = x;
 	this -> last_y = y;
+	this -> ready = false;
 
 	initMap();
 }
@@ -25,64 +26,114 @@ void OccupancyGrid::initMap(){
 OccupancyGrid::~OccupancyGrid(){
 	int i;
 
-	for(i = 0; i < TO_CELLS(length); i++)
+	for(i = 1; i < TO_CELLS(length); i++)
 		free(map[i]);
 
 	free(map);
 }
 
-void OccupancyGrid::updatePosition(float x, float y){
-	if(TO_CELLS(x) == TO_CELLS(last_x) && TO_CELLS(y) == TO_CELLS(last_y))
-		return;
-	
-	int map_x = TO_CELLS(x) + BASE_X;
-	int map_y = TO_CELLS(y) + BASE_Y;
-	int i, j;
+bool OccupancyGrid::OGReady(){
+	if(ready == true)
+		return true;
 
-	for(i = map_x - NEARBY + 1; i < map_x + NEARBY - 1; i++){
-		for(j = map_y - NEARBY + 1; j < map_y + NEARBY - 1; j++){
-			if(IS_INSIDE(i, j))
-				map[i][j] += repulsion;
+	int i, j;
+	float total;
+
+	for(i = 0; i < TO_CELLS(length); i++){
+		for(j = 0; j < TO_CELLS(width); j++){
+			if(map[i][j] != 0){
+				total += 1.0;
+			}
 		}
 	}
 
-	//map[map_x][map_y] += 4;
+	//ROS_INFO("%f %f %f > 0.005",total, TO_CELLS(length)*TO_CELLS(width)*1.0, total/(TO_CELLS(length)*TO_CELLS(width)*1.0));
+
+	if((1.0*total)/(TO_CELLS(length)*TO_CELLS(width)*1.0) > 0.005){
+		this -> ready = true;
+		return true;
+	}
+
+	return false;
+}
+
+void OccupancyGrid::updatePosition(float x, float y, float yaw){
+	int map_x;
+	int map_y;
+	float tail_x, tail_y;
+	float i;
+	float last_equal = true;
+	int last_x = 1000;
+	int last_y = 1000;
+	float aux;
+
+	for(i = (-1)*TAIL_ANGLE; i <= TAIL_ANGLE; i+= TAIL_ANGLE){
+		//last_equal = true;
+		aux = i;
+
+		//while(last_equal && ros::ok()){
+			float angle = Resources::angleSum(yaw, aux);
+
+			tail_x = x - (cos(angle) * TAIL_SIZE);
+			tail_y = y - (sin(angle) * TAIL_SIZE);
+
+			map_x = (int) floor(TO_CELLS(tail_x) + BASE_X);
+			map_y = (int) floor(TO_CELLS(tail_y) + BASE_Y);
+
+			//ROS_INFO("%3.2f %d %d",yaw, map_x, map_y);
+
+		//	if(map_x != last_x || map_y != last_y){
+		//		last_equal = false;
+		//		last_x = map_x;
+		//		last_y = map_y;
+
+				if(IS_INSIDE(map_x, map_y))
+					map[map_x][map_y] += repulsion;
+		//	}
+		//	else
+		//		aux += DISPLACEMENT;
+//		}
+	}
 }
 
 void OccupancyGrid::writeMap(){
 	int i, j;
 
-	std::ofstream file("occupancy_grid.map");
+	std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/occupancy_grid.map");
 
 	for(i = 0; i < TO_CELLS(length); i++){
-		for(j = 0; j < TO_CELLS(width); j++){	
-			file << this -> map[i][j];
-			//file << " ";
+		for(j = 0; j < TO_CELLS(width); j++){
+			file << " | ";
+			if(map[i][j] == 0)
+				file << "    ";
+			else
+				file << std::setfill(' ') << std::setw(4) << this -> map[i][j];
 		}
-
+		file.put('|');
+		file.put('\n');
 		file.put('\n');
 	}
-
 	file.close();
 }
 
-OGVector OccupancyGrid::calculateOGVector(float x, float y){
+OGVector OccupancyGrid::calculateOGVector(_2DPoint robot){
+	float x = robot.x;
+	float y = robot.y;
 	int map_x = TO_CELLS(x) + BASE_X;
 	int map_y = TO_CELLS(y) + BASE_Y;
 	OGVector ogv;
-	int max = INT_MIN;
+	int max = 30;
 	float total;
 	float average;
-	int i;
+	int i, j;
 	int size;
 
 	ogv.x = 0;
 	ogv.y = 0;
 
-	
 
 	// N
-	for(i = 1; i <= NEARBY; i++){
+	for(i = 1; i < NEARBY; i++){
 		if(IS_INSIDE(map_x + i, map_y)){
 			total += map[map_x + i][map_y];
 			size++;
@@ -98,15 +149,18 @@ OGVector OccupancyGrid::calculateOGVector(float x, float y){
 		max = average;
 	}
 	
-	size = total = 0;
+	size = 0;
+	total = 0;
 
 	
 
 	// NE
-	for(i = 1; i <= NEARBY; i++){
-		if(IS_INSIDE(map_x + i, map_y - i)){
-			total += map[map_x + i][map_y - i];
-			size++;
+	for(i = 1; i < NEARBY; i++){
+		for(j = 1; j < NEARBY; j++){
+			if(IS_INSIDE(map_x + i, map_y - j)){
+				total += map[map_x + i][map_y - j];
+				size++;
+			}
 		}
 	}
 
@@ -119,12 +173,13 @@ OGVector OccupancyGrid::calculateOGVector(float x, float y){
 		max = average;
 	}
 
-	size = total = 0;
+	size = 0;
+	total = 0;
 
 	
 
 	// E
-	for(i = 1; i <= NEARBY; i++){
+	for(i = 1; i < NEARBY; i++){
 		if(IS_INSIDE(map_x, map_y - i)){
 			total += map[map_x][map_y - i];
 			size++;
@@ -134,22 +189,24 @@ OGVector OccupancyGrid::calculateOGVector(float x, float y){
 	average = total/size;
 	
 	if(size > 0 && average > max){
-		ogv.x = -0;
+		ogv.x = 0;
 		ogv.y = 1;
 
 		max = average;
-		total = 0;
 	}	
 
-	size = total = 0;
+	size = 0;
+	total = 0;
 
 	
 
 	// SE
-	for(i = 1; i <= NEARBY; i++){
-		if(IS_INSIDE(map_x - i, map_y - i)){
-			total += map[map_x - i][map_y - i];
-			size++;
+	for(i = 1; i < NEARBY; i++){
+		for(j = 1; j < NEARBY; j++){
+			if(IS_INSIDE(map_x - i, map_y - j)){
+				total += map[map_x - i][map_y - j];
+				size++;
+			}
 		}
 	}
 	
@@ -162,11 +219,12 @@ OGVector OccupancyGrid::calculateOGVector(float x, float y){
 		max = average;
 	}	
 
-	size = total = 0;
+	size = 0;
+	total = 0;
 	
 
 	// S
-	for(i = 1; i <= NEARBY; i++){
+	for(i = 1; i < NEARBY; i++){
 		if(IS_INSIDE(map_x - i, map_y)){
 			total += map[map_x - i][map_y];
 			size++;
@@ -180,17 +238,19 @@ OGVector OccupancyGrid::calculateOGVector(float x, float y){
 		ogv.y = 0;
 
 		max = average;
-		total = 0;
 	}	
 
-	size = total = 0;
+	size = 0;
+	total = 0;
 	
 
 	// SW
-	for(i = 1; i <= NEARBY; i++){
-		if(IS_INSIDE(map_x - i, map_y + i)){
-			total += map[map_x - i][map_y + i];
-			size++;
+	for(i = 1; i < NEARBY; i++){
+		for(j = 1; j < NEARBY; j++){
+			if(IS_INSIDE(map_x - i, map_y + j)){
+				total += map[map_x - i][map_y + j];
+				size++;
+			}
 		}
 	}
 
@@ -203,11 +263,12 @@ OGVector OccupancyGrid::calculateOGVector(float x, float y){
 		max = average;
 	}	
 
-	size = total = 0;
+	size = 0;
+	total = 0;
 	
 
 	// W
-	for(i = 1; i <= NEARBY; i++){
+	for(i = 1; i < NEARBY; i++){
 		if(IS_INSIDE(map_x, map_y + i)){
 			total += map[map_x][map_y + i];
 			size++;
@@ -223,14 +284,17 @@ OGVector OccupancyGrid::calculateOGVector(float x, float y){
 		max = average;
 	}	
 
-	size = total = 0;
+	size = 0;
+	total = 0;
 	
 
 	// NW
-	for(i = 1; i <= NEARBY; i++){
-		if(IS_INSIDE(map_x + i, map_y + i)){
-			total += map[map_x + i][map_y + i];
-			size++;
+	for(i = 1; i < NEARBY; i++){
+		for(j = 1; j < NEARBY; j++){
+			if(IS_INSIDE(map_x + i, map_y + j)){
+				total += map[map_x + i][map_y + j];
+				size++;
+			}
 		}
 	}
 
@@ -239,8 +303,7 @@ OGVector OccupancyGrid::calculateOGVector(float x, float y){
 	if(size > 0 && average > max){
 		ogv.x = -1;
 		ogv.y = -1;
-	}	
-
+	}
 
 	return ogv;
 }

@@ -15,17 +15,21 @@
 #ifndef _MAPPING_H_
 #define _MAPPING_H_
 
+#define max(a, b) (a > b ? a : b)
+#define min(a, b) (a > b ? b : a)
+
+#define COMPARE(start, goal, pos) (start > goal ? (pos > goal) : (pos < goal))
+
 #define INSIDE(p) (p.x + (this -> length/2) >= 0 && p.y + (this -> width/2) >= 0 && \
 				   p.x < this -> length/2 && p.y < this -> width/2)
 
 #define BASE_X (floor((this -> length/this -> cell_size) / 2))
 #define BASE_Y (floor((this -> width/this -> cell_size) / 2))
 
-typedef char CellValue;
-
-#define FULL '*'
+#define FULL '#'
+#define UNKNOWN ':'
 #define EMPTY ' '
-#define ME 'X'
+#define ME 'x'
 
 #define GET_SIGNAL(yaw) (fabs(yaw) > M_PI/2 ? -1 : 1)
 
@@ -38,19 +42,20 @@ public:
 	Mapper(ros::NodeHandle n, float length, float width, float cell_size);
 	~Mapper();
 
-
-	std::vector<CellValue>* getMap();
+	char** getMap();
 
 	void createMap();
 
 private:
 	void writeMap();
 
-	void addToMap(_2DPoint point, CellValue value);
+	void addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_inc, float y_inc, float range);
+
+	void initMap();
 	
 	void handlePose(const geometry_msgs::Pose::ConstPtr &data);
 
-	void calculateDistances(float real_x, float real_y);
+	void calculateDistances(_2DPoint real_pose);
 
 	float length;
 	float width;
@@ -60,7 +65,7 @@ private:
 	//Robot* robotAux;
 	Laser* laser;
 	
-	std::vector<CellValue>* map;
+	char** map;
 	ros::NodeHandle node;
 	std::list<_2DPoint> points;
 
