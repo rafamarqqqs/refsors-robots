@@ -1,6 +1,7 @@
 #include "../include/robot_control/mapping.h"
 
-Mapper::Mapper(ros::NodeHandle n, float length, float width, float cell_size){
+Mapper::Mapper(ros::NodeHandle n, float length, float width, float cell_size, char *type):
+    createMapServer(n, "createMap", boost::bind(&Mapper::createMap, (Mapper *) this, _1), false) {
 	int i, j;
 
 	this -> node = n;
@@ -14,17 +15,21 @@ Mapper::Mapper(ros::NodeHandle n, float length, float width, float cell_size){
 	this -> laser = new Laser();
 
 	
-	laser_sub = node.subscribe(LARGER_ROBOT_SCAN, 1, &Laser::handleSubscription, this -> laser);
-	pose_sub = node.subscribe(LARGER_ROBOT_POSE, 1, &Mapper::handlePose, this);
+	laser_sub = node.subscribe(SCAN(type), 1, &Laser::handleSubscription, this -> laser);
+	pose_sub = node.subscribe(POSE(type), 1, &Mapper::handlePose, this);
 	
 	initMap();
+
+	createMapServer.start();
 }
 
 Mapper::~Mapper(){
-	for(int i = 0; i < TO_CELLS(width); i++)
-		free(map[i]);
+//	for(int i = 0; i < TO_CELLS(width); i++)
+//		free(map[i]);
 
-	free(map);
+//	free(map);
+
+	delete map;
 
 	
 	free(this -> robot);
@@ -59,6 +64,7 @@ void Mapper::calculateDistances(_2DPoint real_pose){
 	float theta;
 	int i = 0;
 
+
 	ranges = this -> laser -> getRanges();
 	it = ranges.begin();
 
@@ -72,7 +78,7 @@ void Mapper::calculateDistances(_2DPoint real_pose){
 
 			//ROS_INFO("(%d) %3.2f %3.2f %3.2f", i, theta, aux.x, aux.y);
 
-			addToMap(aux, FULL, real_pose, cos(theta)*0.25, sin(theta)*0.25, (*it).range);
+			addToMap(aux, FULL, real_pose, cos(theta)*0.5, sin(theta)*0.5, (*it).range);
 
 			/*
 			*/
@@ -87,18 +93,21 @@ void Mapper::calculateDistances(_2DPoint real_pose){
 	}
 }
 
-void Mapper::createMap(){
+void Mapper::createMap(const robot_control::createMapGoalConstPtr &goal){
 	float last_x = 1000, last_y = 1000;
 	float y_diff, x_diff;
 
-	while(laser -> isReady() == false && ros::ok()){
-		ros::spinOnce();
-	}
-	
-	while(ros::ok()){
+	ROS_INFO("mapper waiting for laser");
 
+	ros::Rate r(20);
+
+    while(!(laser -> isReady()) && ros::ok()){
+        r.sleep();
+    }
+
+	while(ros::ok()){
 		while(this -> laser -> getStatus() == false && ros::ok()){
-			ros::spinOnce();
+			r.sleep();
 		}
 
 		x_diff = fabs(this -> robot -> position.x - last_x);
@@ -121,6 +130,7 @@ void Mapper::createMap(){
 
 		laser -> setStatus(false);
 	}
+
 }
 
 void Mapper::addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_inc, float y_inc, float range){
@@ -134,9 +144,7 @@ void Mapper::addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_in
 	int map_x, map_y;
 	bool first_time = true;
 
-	//ROS_INFO("%3.2f %3.2f", x_inc, y_inc);
-
-	while(COMPARE(real_pose.x, x, aux_x) && COMPARE(real_pose.y, y, aux_y)){
+	while(COMPARE(real_pose.x, point.x, aux_x) && COMPARE(real_pose.y, point.y, aux_y)){
 		aux_x += x_inc;
 		aux_y += y_inc;
 
@@ -150,13 +158,13 @@ void Mapper::addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_in
 		first_time = false;
 	}
 
-	this -> map[x][y] = value;
+	map[x][y] = value;
 }
 
 
 
 char** Mapper::getMap(){
-	return this -> map;
+	return map;
 }
 
 void Mapper::writeMap(){
@@ -166,9 +174,9 @@ void Mapper::writeMap(){
 
 	for(i = 0; i < TO_CELLS(length); i++){
 		for(j = 0; j < TO_CELLS(width); j++){
-			file.put(this -> map[i][j]);
+			file.put(map[i][j]);
 			//VISUALIZATION PURPOSES, REMOVE WHEN READY
-			file.put(this -> map[i][j]);
+			//file.put(map[i][j]);
 		}
 
 		file.put('\n');
@@ -178,18 +186,21 @@ void Mapper::writeMap(){
 }
 
 int main(int argc, char **argv) {
+	if(argc < 2){
+        ROS_INFO("Robot type not specified. Shuting down...");
+        return -1;
+    }
+
     //Initializes ROS, and sets up a node
     ros::init(argc, argv, "mapping");
 
     ros::NodeHandle node;
 
-    Mapper *mapper = new Mapper(node, 40.0, 40.0, 0.5);
-
-    ros::spinOnce();
+    Mapper *mapper = new Mapper(node, 40.0, 40.0, 0.5, argv[1]);
 
     ROS_INFO("Mapper started.");
 
-    mapper -> createMap();
+    ros::spin();
 
-    delete mapper;
+    return 0;
 }

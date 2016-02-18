@@ -1,22 +1,25 @@
 #include "../include/robot_control/localization.h"
 
-Localizator::Localizator(ros::NodeHandle n){
+Localizator::Localizator(ros::NodeHandle n, char *type){
+    node = n;
     gazebo_pose_sub = n.subscribe("/gazebo/model_states", 1, &Localizator::handleGazeboModelState, this);
+    robot_name = (char *) malloc(sizeof(char) * (strlen(MOBILE(type)) + 1));
+    strcpy(robot_name, MOBILE(type));
 }
 
 Localizator::~Localizator(){
+    free(robot_name);
 }
 
 void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data){
     int i = 0;
+    std::string model_name(robot_name);
 
-    while(data -> name[i] != "mobile_base"){        
+    while(data -> name[i].compare(model_name) != 0){        
         i++;
     }
 
     this -> pose = data -> pose[i];
-
-    //ROS_INFO("%3.2f %3.2f %3.2f", pose.position.x, pose.position.y, tf::getYaw(pose.orientation));
 
     tf::Quaternion q(data -> pose[i].orientation.x,
                     data -> pose[i].orientation.y,
@@ -48,30 +51,19 @@ geometry_msgs::Pose Localizator::getPose(){
     */
 
 
-  	return this -> pose;
+    return this -> pose;
 }
 
-int main(int argc, char **argv){
-    ros::init(argc, argv, "pose_publisher");
-
-    ros::NodeHandle n;
-    //tf::TransformListener listener;
-
-    //while(!listener.frameExists("base_link") ||
-  	//    !listener.frameExists("odom"));
-
-    ros::Publisher pose_pub = n.advertise<geometry_msgs::Pose>("/larger_robot/pose", 1000);
-
-    Localizator *localizator = new Localizator(n);
-
+void Localizator::publishPose(){
+    ros::Publisher pose_pub = node.advertise<geometry_msgs::Pose>(POSE(argv[1]), 1000);
+    geometry_msgs::Pose pose;
     ros::Rate r(10.0);
 
-    while(n.ok()){
+    while(node.ok()){
 
         ros::spinOnce();               // check for incoming messages
 
         //next, we'll publish the odometry message over ROS
-        geometry_msgs::Pose pose;
         //geometry_msgs::Pose aux;
 
         //set the position
@@ -82,4 +74,26 @@ int main(int argc, char **argv){
 
         r.sleep();
     }
+}
+
+int main(int argc, char **argv){
+    if(argc < 2){
+        ROS_INFO("Robot type not specified. Shuting down...");
+        return -1;
+    }
+
+    ros::init(argc, argv, "pose_publisher");
+
+    ros::NodeHandle n;
+    //tf::TransformListener listener;
+
+    //while(!listener.frameExists("base_link") ||
+    //    !listener.frameExists("odom"));
+
+
+    Localizator *localizator = new Localizator(n, argv[1]);
+
+    localizator -> publishPose();
+
+    return 0;
 }

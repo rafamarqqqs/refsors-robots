@@ -1,5 +1,6 @@
 #include "ros/ros.h"
-#include "robot_control/search.h"
+#include "robot_control/searchAction.h"
+#include "robot_control/createMapAction.h"
 #include <actionlib/client/terminal_state.h>
 #include <actionlib/client/simple_action_client.h>
 
@@ -9,20 +10,28 @@ int main(int argc, char *argv[]){
 
 	ros::NodeHandle node;
 
-	/*actionlib::SimpleActionClient<robot_control::searchAction> client("NavSearch", true);
+	actionlib::SimpleActionClient<robot_control::searchAction> search_client("search", true);
+	actionlib::SimpleActionClient<robot_control::createMapAction> map_client("createMap", true);
 
-	robot_control::searchGoal goal;
+	robot_control::searchGoal search_goal;
+	robot_control::createMapGoal map_goal;
 
-	goal.order = 20;
+	search_client.waitForServer();
+	map_client.waitForServer();
 
-	client.waitForServer();
+	if(search_client.isServerConnected())
+		ROS_INFO("search connected");
+	if(map_client.isServerConnected())
+		ROS_INFO("map connected");
 
-	if(client.isServerConnected())
-		ROS_INFO("connected");
+	map_client.sendGoal(map_goal);
+	search_client.sendGoal(search_goal);
 
-	client.sendGoal(goal);
-
-	client.waitForResult();*/
+	search_client.waitForResult();
+	map_client.waitForResult();
+	
+	ROS_INFO("done");
+	/*
 
 	ros::ServiceClient client = node.serviceClient<robot_control::search>("search", true);
 
@@ -39,7 +48,7 @@ int main(int argc, char *argv[]){
 
 	client.call(srv);
 
-	ROS_INFO("done");
+	*/
 
 	return 0;
 }

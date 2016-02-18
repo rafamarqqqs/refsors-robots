@@ -2,22 +2,25 @@
 
 //Constructor
 
-Navigator::Navigator(ros::NodeHandle n){
+Navigator::Navigator(ros::NodeHandle n, char *type):
+    searchServer(n, "search", boost::bind(&Navigator::search, this, _1), false) {
     node = n;
 
     this -> laser = new Laser();
     this -> og = new OccupancyGrid(MAP_LENGTH, MAP_WIDTH, CELL_SIZE, REPULSION, -14, 16);
 
     //Advertising velocity topic
-    velocity_pub = node.advertise<geometry_msgs::Twist>(LARGER_ROBOT_VEL, 100);
+    velocity_pub = node.advertise<geometry_msgs::Twist>(VEL(type), 100);
 
-    ROS_INFO("subscribing to services");
+    ROS_INFO("subscribing to services %s %s %s", VEL(type), SCAN(type), POSE(type));
 
     //Subscribing to sensors
-    laser_sub = node.subscribe(LARGER_ROBOT_SCAN, 1, &Laser::handleSubscription, this -> laser);
-    pose_sub = node.subscribe(LARGER_ROBOT_POSE, 1, &Navigator::handlePose, this);
+    laser_sub = node.subscribe(SCAN(type), 1, &Laser::handleSubscription, this -> laser);
+    pose_sub = node.subscribe(POSE(type), 1, &Navigator::handlePose, this);
 
-    service = node.advertiseService("search", &Navigator::search, this);
+    //service = node.advertiseService("search", &Navigator::search, this);
+
+    searchServer.start();
 }
 
 void Navigator::handlePose(const geometry_msgs::Pose::ConstPtr& data){
@@ -211,32 +214,28 @@ bool Navigator::driveTo(_2DPoint *goal){
     return true;
 }
 
-bool Navigator::search(robot_control::search::Request& request, robot_control::search::Request& response){
-    ROS_INFO("service called");
-
+void Navigator::search(const robot_control::searchGoalConstPtr &goal){
     DrivingInfo info;
 
-    //ros::Rate r(20);
+    ros::Rate r(20);
     
     //Waits for the laser to set the initial values
-    ROS_INFO("waiting for laser");
+    ROS_INFO("navigator waiting for laser");
     while(!(laser -> isReady()) && ros::ok()){
-        ros::spinOnce();
+        r.sleep();
     }
 
     while(ros::ok()){
         while(laser -> getStatus() == false && ros::ok()){
-            ros::spinOnce();
+            r.sleep();
         }
 
         info = this -> defineDirection(NULL);
         this -> drive(info);
-        ros::spinOnce();
+        r.sleep();
     }
 
     this -> stop();
-
-return true;
 }
 
 /*
@@ -254,12 +253,19 @@ _2DPoint *Navigator::createGoal(float x, float y){
 
 int main(int argc, char **argv) {
     //Initializes ROS, and sets up a node
+
     ros::init(argc, argv, "navigation");
+
+    if(argc < 2){
+        ROS_INFO("Robot type not specified. Shuting down...");
+        return -1;
+    }
 
     ros::NodeHandle node;
 
-    Navigator *nav = new Navigator(node);
+    Navigator *nav = new Navigator(node, argv[1]);
     //ros::spinOnce();
+    //ROS_INFO("subscribing to services %s %s", argv[0], argv[1]);
 
     ROS_INFO("Navigator started.");
 

@@ -16,8 +16,8 @@
 #include "occupancy_grid.h"
 #include "topics.h"
 #include <gazebo_msgs/ModelStates.h>
-#include <std_srvs/Empty.h>
-#include "robot_control/search.h"
+#include <actionlib/server/simple_action_server.h>
+#include "robot_control/searchAction.h"
 
 #ifndef _NAVIGATION_H_
 #define _NAVIGATION_H_
@@ -51,12 +51,14 @@ typedef struct drivingInfo {
     float velocity;
 } DrivingInfo;
 
+typedef actionlib::SimpleActionServer<robot_control::searchAction> SearchAction; 
+
 class Navigator {
 public:
-    Navigator(ros::NodeHandle node);
+    Navigator(ros::NodeHandle node, char *type);
     virtual ~Navigator();
 
-    bool search(robot_control::search::Request& request, robot_control::search::Request& response);
+    void search(const robot_control::searchGoalConstPtr &goal);
     bool driveTo(_2DPoint *goal);
     _2DPoint *createGoal(float x, float y);
 
@@ -78,6 +80,8 @@ private:
     geometry_msgs::Pose pose;
 
     ros::Publisher velocity_pub;
+
+    SearchAction searchServer;
 
     ros::Subscriber laser_sub;
     ros::Subscriber pose_sub;

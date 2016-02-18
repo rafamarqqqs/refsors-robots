@@ -23,7 +23,6 @@
 class Laser {
 public:
 	Laser();
-    Laser(float angle_increment, float angle_min, float angle_max);
     virtual ~Laser();
 
     void handleSubscription(const sensor_msgs::LaserScan::ConstPtr &laser_data);
@@ -36,6 +35,7 @@ public:
     float getFront();
 
 private:
+    robot_control::laserMeasures measures;
     std::list<LaserPoint> ranges;
     bool status;
     bool ready;

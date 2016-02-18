@@ -11,6 +11,8 @@
 #include "topics.h"
 #include <fstream>
 #include "laser.h"
+#include <actionlib/server/simple_action_server.h>
+#include "robot_control/createMapAction.h"
 
 #ifndef _MAPPING_H_
 #define _MAPPING_H_
@@ -37,14 +39,16 @@
 
 #define TO_CELLS(v) (((int)(v/this -> cell_size)))
 
+typedef actionlib::SimpleActionServer<robot_control::createMapAction> CreateMapAction;
+
 class Mapper {
 public:
-	Mapper(ros::NodeHandle n, float length, float width, float cell_size);
+	Mapper(ros::NodeHandle n, float length, float width, float cell_size, char *type);
 	~Mapper();
 
 	char** getMap();
 
-	void createMap();
+	void createMap(const robot_control::createMapGoalConstPtr &goal);
 
 private:
 	void writeMap();
@@ -71,6 +75,8 @@ private:
 
 	float real_x;
 	float real_y;
+
+	CreateMapAction createMapServer;
 
 	ros::Subscriber laser_sub;
 	ros::Subscriber pose_sub;

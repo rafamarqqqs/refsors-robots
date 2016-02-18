@@ -59,14 +59,16 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  search.srv
-  createMap.srv
+  #search.srv
+  #createMap.srv
 )
 
 ## Generate actions in the 'action' folder
 add_action_files(
   DIRECTORY action
-  #FILES search.action
+  FILES 
+  search.action
+  createMap.action
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -151,6 +153,7 @@ add_dependencies(navigation robot_control_generate_messages_cpp)
 
 add_dependencies(control ${robot_control_EXPORTED_TARGETS})
 add_dependencies(navigation ${robot_control_EXPORTED_TARGETS})
+add_dependencies(mapping ${robot_control_EXPORTED_TARGETS})
 
 target_link_libraries(navigation ${catkin_LIBRARIES})
 target_link_libraries(control ${catkin_LIBRARIES})
