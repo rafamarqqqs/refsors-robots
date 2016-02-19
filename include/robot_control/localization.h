@@ -15,21 +15,25 @@
 
 class Localizator {
 public:
-	Localizator(ros::NodeHandle n, char *type);
+	Localizator(ros::NodeHandle n, char* type);
 	virtual ~Localizator();
 
-	geometry_msgs::Pose getPose();
 
-	void handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data);
-	char* robot_name;
+	void publishPose(char* type);
+
 
 private:
+	void handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data);
+	
+	geometry_msgs::Pose getPose();
+
 	geometry_msgs::Pose pose;
 
 	ros::Subscriber gazebo_pose_sub;
 
 	ros::NodeHandle node;
 
-	tf::StampedTransform odom_transform;
-    tf::TransformListener odom_listener;
+	char* robot_name;
+	//tf::StampedTransform odom_transform;
+    //tf::TransformListener odom_listener;
 };

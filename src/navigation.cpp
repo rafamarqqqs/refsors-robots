@@ -4,21 +4,19 @@
 
 Navigator::Navigator(ros::NodeHandle n, char *type):
     searchServer(n, "search", boost::bind(&Navigator::search, this, _1), false) {
+
     node = n;
 
-    this -> laser = new Laser();
     this -> og = new OccupancyGrid(MAP_LENGTH, MAP_WIDTH, CELL_SIZE, REPULSION, -14, 16);
 
     //Advertising velocity topic
     velocity_pub = node.advertise<geometry_msgs::Twist>(VEL(type), 100);
 
-    ROS_INFO("subscribing to services %s %s %s", VEL(type), SCAN(type), POSE(type));
-
     //Subscribing to sensors
-    laser_sub = node.subscribe(SCAN(type), 1, &Laser::handleSubscription, this -> laser);
+    laser_sub = node.subscribe(LASER(type), 1, &Navigator::handleLaser, this);
     pose_sub = node.subscribe(POSE(type), 1, &Navigator::handlePose, this);
 
-    //service = node.advertiseService("search", &Navigator::search, this);
+    laser_ready = false;
 
     searchServer.start();
 }
@@ -26,43 +24,72 @@ Navigator::Navigator(ros::NodeHandle n, char *type):
 void Navigator::handlePose(const geometry_msgs::Pose::ConstPtr& data){
     this -> pose.position = data -> position;
     this -> pose.orientation = data -> orientation;
-    //ROS_INFO("%3.2f %3.2f %3.2f", pose.position.x, pose.position.y, tf::getYaw(pose.orientation));
+}
+
+void Navigator::handleLaser(const robot_control::laserMeasures::ConstPtr& data){
+    if(data -> range.size() == 0 || data -> angle.size() == 0)
+        return;
+
+
+    this -> range = data -> range;
+    this -> angle = data -> angle;
+    this -> front = data -> front;
+
+    this -> laser_ready = true;
+
+    //ROS_INFO("received laser %3.2f %d %d", this -> front, (int)this -> range.size(), (int)this -> angle.size());
 }
 
 //Destructor
 
 Navigator::~Navigator(){
-    delete this -> laser;
     delete this -> og;
 }
 
-std::list<LaserPoint> Navigator::remakeRanges(std::list<LaserPoint> ranges){
-    std::list<LaserPoint> aux;
-    std::list<LaserPoint>::iterator it = ranges.begin();
+std::list<LaserPoint> Navigator::remakeRanges(){
+    std::vector<float> range(this -> range);
+    std::vector<float> angle(this -> angle);
 
-    while(it != ranges.end()){
-        aux.push_back((*it));
-        //ROS_INFO("%3.2f %3.2f", (*it).angle, (*it).range);
-        
-        for(int i = 0; i < MEASURES/RANGES; i++)
-            it++;
+    LaserPoint aux;
+
+    std::vector<float>::iterator range_it = range.begin();
+    std::vector<float>::iterator angle_it = angle.begin();
+
+    std::list<LaserPoint> laser_list;
+
+    while(range_it != range.end()){
+        aux.range = (*range_it);
+        aux.angle = (*angle_it);
+
+        //ROS_INFO("%3.2f %3.2f", (*range_it), (*angle_it));
+
+        laser_list.push_back(aux);
+
+        for(int i = 0; i < MEASURES/RANGES; i++){
+            range_it++;
+            angle_it++;
+        }
     }
+    
+    range_it--;
+    angle_it--;
 
-    it--;
+    aux.range = (*range_it);
+    aux.angle = (*angle_it);
 
-    aux.push_back((*it));
+
+    laser_list.push_back(aux);
     //ROS_INFO("%3.2f %3.2f", (*it).angle, (*it).range);
 
-    return aux;
+    return laser_list;
 }
 
 std::list<_2DPoint>* Navigator::calculateDistances(Robot* robot){
-    std::list<LaserPoint> ranges = remakeRanges(this -> laser -> getRanges());
+    std::list<LaserPoint> ranges = remakeRanges();
     std::list<LaserPoint>::iterator it = ranges.begin();
     std::list<_2DPoint>* wall_points = new std::list<_2DPoint>();
     _2DPoint aux;
     float angle;
-    bool last_angle = false;
 
     while(it != ranges.end()){
         if((*it).range < MIN_RANGE){
@@ -112,19 +139,6 @@ float Navigator::calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points
 
         norm = pow(pow(aux.x, 2) + pow(aux.y, 2), 1.5);
 
-        /*
-        if(pow(pow(aux.x, 2) + pow(aux.y, 2), 0.5) > DANGER_ZONE){
-            aux.x *= 0.4;
-            aux.y *= 0.4;
-        }
-        ROS_INFO("%3.2f", fabs(Resources::normalizeAngle(atan((*it).y/(*it).x))));
-
-        if(fabs(Resources::normalizeAngle(atan((*it).y/(*it).x))) > DANGER_ANGLE){
-            aux.x *= 0.7;
-            aux.y *= 0.7;
-        }
-        */
-
         x_component -= (aux.x * QWALL)/norm;
         y_component -= (aux.y * QWALL)/norm;
         
@@ -160,6 +174,7 @@ DrivingInfo Navigator::defineDirection(_2DPoint *goal){
     std::list<_2DPoint>* wall_points;
     Robot *robot = (Robot *) malloc(sizeof(Robot));
     float angleDiff, angleForce;
+    float front = this -> front;
 
     robot -> position.x = this -> pose.position.x;
     robot -> position.y = this -> pose.position.y;
@@ -171,13 +186,13 @@ DrivingInfo Navigator::defineDirection(_2DPoint *goal){
 
     angleDiff = Resources::angleDiff(angleForce, Resources::transformYaw(robot -> yaw))*MAX_ANG_SPEED/M_PI;
 
-    info.velocity = (this -> laser -> getFront() - 0.3)*MAX_LIN_SPEED/7.7;
+    info.velocity = (front - 0.3)*MAX_LIN_SPEED/7.7;
     info.rotation = angleDiff;
 
     //ROS_INFO("Velocity %3.2f", info.velocity);
     //ROS_INFO("Angle: %3.2f %3.2f", angleDiff, robot -> yaw);
 
-    this -> laser -> setStatus(false);
+    //this -> laser -> setStatus(false);
     this -> og -> updatePosition(robot -> position.x, robot -> position.y, robot -> yaw);
     this -> og -> writeMap();
 
@@ -217,19 +232,15 @@ bool Navigator::driveTo(_2DPoint *goal){
 void Navigator::search(const robot_control::searchGoalConstPtr &goal){
     DrivingInfo info;
 
-    ros::Rate r(20);
+    ros::Rate r(10);
     
     //Waits for the laser to set the initial values
     ROS_INFO("navigator waiting for laser");
-    while(!(laser -> isReady()) && ros::ok()){
+    while(laser_ready == false && ros::ok()){
         r.sleep();
     }
 
     while(ros::ok()){
-        while(laser -> getStatus() == false && ros::ok()){
-            r.sleep();
-        }
-
         info = this -> defineDirection(NULL);
         this -> drive(info);
         r.sleep();
@@ -254,7 +265,7 @@ _2DPoint *Navigator::createGoal(float x, float y){
 int main(int argc, char **argv) {
     //Initializes ROS, and sets up a node
 
-    ros::init(argc, argv, "navigation");
+    ros::init(argc, argv, "Navigation");
 
     if(argc < 2){
         ROS_INFO("Robot type not specified. Shuting down...");

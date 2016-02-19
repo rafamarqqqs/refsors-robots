@@ -54,9 +54,8 @@ geometry_msgs::Pose Localizator::getPose(){
     return this -> pose;
 }
 
-void Localizator::publishPose(){
-    ros::Publisher pose_pub = node.advertise<geometry_msgs::Pose>(POSE(argv[1]), 1000);
-    geometry_msgs::Pose pose;
+void Localizator::publishPose(char* type){
+    ros::Publisher pose_pub = node.advertise<geometry_msgs::Pose>(POSE(type), 1000);
     ros::Rate r(10.0);
 
     while(node.ok()){
@@ -67,10 +66,9 @@ void Localizator::publishPose(){
         //geometry_msgs::Pose aux;
 
         //set the position
-        pose = localizator -> getPose();
 
         //publish the message
-        pose_pub.publish(pose);
+        pose_pub.publish(getPose());
 
         r.sleep();
     }
@@ -93,7 +91,7 @@ int main(int argc, char **argv){
 
     Localizator *localizator = new Localizator(n, argv[1]);
 
-    localizator -> publishPose();
+    localizator -> publishPose(argv[1]);
 
     return 0;
 }

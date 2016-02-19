@@ -1,88 +1,49 @@
 #include "../include/robot_control/laser.h"
 
-Laser::Laser(){
-    this -> status = false;
-	this -> ready = false;
+Laser::Laser(ros::NodeHandle n, char *type){
+    node = n;
+    laser_sub = node.subscribe(SCAN(type), 1, &Laser::handleSubscription, this);
 }
 
 Laser::~Laser(){}
 
-void Laser::setStatus(bool status){
-	this -> status = status;
-}
-
-bool Laser::getStatus(){
-	return this -> status;
-}
-
-std::list<LaserPoint> Laser::getRanges(){
-	return this -> ranges;	
-}
-
-bool Laser::isReady(){
-    return this -> ready;
-}
-
-float Laser::getFront(){
-	return this -> front;
-}
-
-void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr &laser_data){
+void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr& laser_data){
     int i, j = 0;
-    LaserPoint point;
 
-    while(this -> status == true);
-
-    this -> ranges.clear();
-
-    if(this -> isReady() == false){
-        this -> ready = true;
-    }
+    measures.range.clear();
+    measures.angle.clear();
 
     //480 (2PI/3 - PI)/angle increment
 
     for(i = 0; i < 480; i++){
-        point.angle = ANGLE_MAX - (ANGLE_INCREMENT*i);
-        point.range = laser_data -> ranges[i+120];
-
-        measures.range[j] = laser_data -> ranges[i+120];
-        measures.angle[j] = ANGLE_MAX - (ANGLE_INCREMENT*i);
-
-        j++;
-
-        this -> ranges.push_back(point);
+        measures.range.push_back(laser_data -> ranges[i+120]);
+        measures.angle.push_back(ANGLE_MAX - (ANGLE_INCREMENT*i));
     }
 
-    this -> front = 10;
+    measures.front = 10;
 
     for(i = (LASER_MEASURES/2) - 15 ; i < (LASER_MEASURES/2) + 15; i++){
-        if(laser_data -> ranges[i] < this -> front);
-            this -> front = laser_data -> ranges[i];
+        if(laser_data -> ranges[i] < measures.front);
+            measures.front = laser_data -> ranges[i];
     }
-
-    this -> status = true;
 }
 
-void Laser::publishPose(){
-    ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>("laser_measures", 100);
-    robot_control::laserMeasures measures;
+void Laser::publishMeasures(char* type){
+    ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>(LASER(type), 1000);
     ros::Rate r(10.0);
 
     while(node.ok()){
 
-        ros::spinOnce();               // check for incoming messages
+        ros::spinOnce();
 
-        //next, we'll publish the odometry message over ROS
-        //geometry_msgs::Pose aux;
-
-        //set the position
-        measures = laser -> getMeasures();
-
-        //publish the message
-        pose_pub.publish(pose);
+        laser_pub.publish(getMeasures());
 
         r.sleep();
     }
+}
+
+robot_control::laserMeasures Laser::getMeasures(){
+    return this -> measures;
 }
 
 int main(int argc, char **argv){
@@ -95,10 +56,9 @@ int main(int argc, char **argv){
 
     ros::NodeHandle n;
 
+    Laser *laser = new Laser(n, argv[1]);
 
-    Localizator *localizator = new Localizator(n, argv[1]);
-
-    localizator -> publishPose();
+    laser -> publishMeasures(argv[1]);
 
     return 0;
 }

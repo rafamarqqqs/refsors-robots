@@ -10,9 +10,10 @@
 #include <ros/ros.h>
 #include "topics.h"
 #include <fstream>
-#include "laser.h"
 #include <actionlib/server/simple_action_server.h>
 #include "robot_control/createMapAction.h"
+#include "robot_control/laserMeasures.h"
+#include <mutex>
 
 #ifndef _MAPPING_H_
 #define _MAPPING_H_
@@ -55,9 +56,11 @@ private:
 
 	void addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_inc, float y_inc, float range);
 
+	void handleLaser(const robot_control::laserMeasures::ConstPtr& data);
+
+	void handlePose(const geometry_msgs::Pose::ConstPtr& data);
+
 	void initMap();
-	
-	void handlePose(const geometry_msgs::Pose::ConstPtr &data);
 
 	void calculateDistances(_2DPoint real_pose);
 
@@ -66,10 +69,18 @@ private:
 	float cell_size;
 	
 	Robot* robot;
-	//Robot* robotAux;
-	Laser* laser;
 	
+    std::vector<float> range;
+    std::vector<float> angle;
+    float front;
+
+    bool laser_ready;
+
 	char** map;
+
+	//static bool flag;
+	bool flag;
+
 	ros::NodeHandle node;
 	std::list<_2DPoint> points;
 
@@ -84,5 +95,6 @@ private:
 	int status;
 };
 
+//bool Mapper::flag;
 
 #endif

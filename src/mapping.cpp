@@ -4,18 +4,18 @@ Mapper::Mapper(ros::NodeHandle n, float length, float width, float cell_size, ch
     createMapServer(n, "createMap", boost::bind(&Mapper::createMap, (Mapper *) this, _1), false) {
 	int i, j;
 
+	this -> flag = strcmp(type, "smaller_robot") == 0 ? false : true;
+
 	this -> node = n;
 	this -> length = length;
 	this -> width = width;
 	this -> cell_size = cell_size;
 
 	this -> robot = (Robot *) malloc(sizeof(Robot));
-	//this -> robotAux = (Robot *) malloc(sizeof(Robot));
 
-	this -> laser = new Laser();
-
+	this -> laser_ready = false;
 	
-	laser_sub = node.subscribe(SCAN(type), 1, &Laser::handleSubscription, this -> laser);
+	laser_sub = node.subscribe(LASER(type), 1, &Mapper::handleLaser, this);
 	pose_sub = node.subscribe(POSE(type), 1, &Mapper::handlePose, this);
 	
 	initMap();
@@ -24,16 +24,8 @@ Mapper::Mapper(ros::NodeHandle n, float length, float width, float cell_size, ch
 }
 
 Mapper::~Mapper(){
-//	for(int i = 0; i < TO_CELLS(width); i++)
-//		free(map[i]);
-
-//	free(map);
-
 	delete map;
-
-	
 	free(this -> robot);
-	delete this -> laser;
 }
 
 void Mapper::initMap(){
@@ -57,39 +49,49 @@ void Mapper::handlePose(const geometry_msgs::Pose::ConstPtr& data){
 	this -> robot -> yaw = tf::getYaw(data -> orientation);
 }
 
+void Mapper::handleLaser(const robot_control::laserMeasures::ConstPtr& data){
+    if(data -> range.size() == 0 || data -> angle.size() == 0)
+        return;
+
+
+    this -> range = data -> range;
+    this -> angle = data -> angle;
+    this -> front = data -> front;
+
+    this -> laser_ready = true;
+
+}
+
+
 void Mapper::calculateDistances(_2DPoint real_pose){
-	std::list<LaserPoint>::iterator it;
-	std::list<LaserPoint> ranges;
 	_2DPoint aux;
 	float theta;
-	int i = 0;
 
+	std::vector<float>::iterator range_it = range.begin();
+    std::vector<float>::iterator angle_it = angle.begin();
 
-	ranges = this -> laser -> getRanges();
-	it = ranges.begin();
+	while(range_it != range.end()){
+		if((*range_it) < 25){
 
-	while(it != ranges.end() && ros::ok()){
-		if((*it).range < 25){
-
-			theta = Resources::angleSum(this -> robot -> yaw, (*it).angle);
+			theta = Resources::angleSum(this -> robot -> yaw, (*angle_it));
 				
-			aux.x = real_pose.x +  (cos(theta) * (*it).range); 
-			aux.y = real_pose.y + (sin(theta) * (*it).range);
+			aux.x = real_pose.x +  (cos(theta) * (*range_it)); 
+			aux.y = real_pose.y + (sin(theta) * (*range_it));
 
 			//ROS_INFO("(%d) %3.2f %3.2f %3.2f", i, theta, aux.x, aux.y);
 
-			addToMap(aux, FULL, real_pose, cos(theta)*0.5, sin(theta)*0.5, (*it).range);
+			addToMap(aux, FULL, real_pose, cos(theta)*0.5, sin(theta)*0.5, (*range_it));
 
 			/*
-			*/
 			aux.x = robot -> position.x;
 			aux.y = robot -> position.y;
 
 			addToMap(aux, ME, real_pose, 0, 0, 0);
+			*/
 		}
 
-		i++;
-		it++;
+		range_it++;
+		angle_it++;
 	}
 }
 
@@ -97,18 +99,16 @@ void Mapper::createMap(const robot_control::createMapGoalConstPtr &goal){
 	float last_x = 1000, last_y = 1000;
 	float y_diff, x_diff;
 
-	ROS_INFO("mapper waiting for laser");
+	//ROS_INFO("mapper waiting for laser");
 
-	ros::Rate r(20);
+	ros::Rate r(10);
 
-    while(!(laser -> isReady()) && ros::ok()){
+    ROS_INFO("navigator waiting for laser");
+    while(laser_ready == false && ros::ok()){
         r.sleep();
     }
 
 	while(ros::ok()){
-		while(this -> laser -> getStatus() == false && ros::ok()){
-			r.sleep();
-		}
 
 		x_diff = fabs(this -> robot -> position.x - last_x);
 		y_diff = fabs(this -> robot -> position.y - last_y);
@@ -125,12 +125,12 @@ void Mapper::createMap(const robot_control::createMapGoalConstPtr &goal){
 			last_x = this -> robot -> position.x;
 			last_y = this -> robot -> position.y;
 
-			writeMap();
+			if(flag)
+				writeMap();
 		}
 
-		laser -> setStatus(false);
+		r.sleep();
 	}
-
 }
 
 void Mapper::addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_inc, float y_inc, float range){
@@ -142,7 +142,6 @@ void Mapper::addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_in
 	float aux_x = real_pose.x;
 	float aux_y = real_pose.y;
 	int map_x, map_y;
-	bool first_time = true;
 
 	while(COMPARE(real_pose.x, point.x, aux_x) && COMPARE(real_pose.y, point.y, aux_y)){
 		aux_x += x_inc;
@@ -152,10 +151,9 @@ void Mapper::addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_in
 		map_x = ((int) TO_CELLS(aux_x)) + BASE_X;
 		map_y = ((int) TO_CELLS(aux_y)) + BASE_Y;
 
-		if(map[map_x][map_y] != FULL && map[map_x][map_y] != ME)
+		if(map[map_x][map_y] != FULL/* && map[map_x][map_y] != ME*/)
 			map[map_x][map_y] = EMPTY;
 
-		first_time = false;
 	}
 
 	map[x][y] = value;
@@ -192,7 +190,7 @@ int main(int argc, char **argv) {
     }
 
     //Initializes ROS, and sets up a node
-    ros::init(argc, argv, "mapping");
+    ros::init(argc, argv, "Mapping");
 
     ros::NodeHandle node;
 

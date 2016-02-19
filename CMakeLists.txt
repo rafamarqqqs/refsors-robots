@@ -54,6 +54,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 add_message_files(
   FILES
   #Drive.msg
+  laserMeasures.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -144,12 +145,15 @@ include_directories(
 #add_executable(navigation src/navigation.cpp src/localization.cpp src/mapping.cpp src/laser.cpp src/resources.cpp)
 
 add_executable(control src/control.cpp)
-add_executable(navigation src/navigation.cpp src/occupancy_grid.cpp src/laser.cpp src/resources.cpp)
-add_executable(localization src/localization.cpp src/laser.cpp src/resources.cpp)
-add_executable(mapping src/mapping.cpp src/laser.cpp src/resources.cpp)
+add_executable(navigation src/navigation.cpp src/occupancy_grid.cpp src/resources.cpp)
+add_executable(localization src/localization.cpp src/resources.cpp)
+add_executable(mapping src/mapping.cpp src/resources.cpp)
+add_executable(laser src/laser.cpp src/resources.cpp)
 
 add_dependencies(control robot_control_generate_messages_cpp)
 add_dependencies(navigation robot_control_generate_messages_cpp)
+add_dependencies(localization robot_control_generate_messages_cpp)
+add_dependencies(laser robot_control_generate_messages_cpp)
 
 add_dependencies(control ${robot_control_EXPORTED_TARGETS})
 add_dependencies(navigation ${robot_control_EXPORTED_TARGETS})
@@ -159,6 +163,7 @@ target_link_libraries(navigation ${catkin_LIBRARIES})
 target_link_libraries(control ${catkin_LIBRARIES})
 target_link_libraries(localization ${catkin_LIBRARIES})
 target_link_libraries(mapping ${catkin_LIBRARIES})
+target_link_libraries(laser ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
