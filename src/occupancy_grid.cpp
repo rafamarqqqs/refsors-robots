@@ -1,25 +1,47 @@
 #include "../include/robot_control/occupancy_grid.h"
 
-OccupancyGrid::OccupancyGrid(float length, float width, float cell_size, float rep, float x, float y){
+OccupancyGrid::OccupancyGrid(float length, float width, float cell_size, int area_size, float rep){
 	this -> length = length;
 	this -> width = width;
 	this -> cell_size = cell_size;
 	this -> repulsion = rep;
-	this -> last_x = x;
-	this -> last_y = y;
 	this -> ready = false;
+	this -> area_size = area_size;
 
+	initAreas();
 	initMap();
+}
+
+void OccupancyGrid::initAreas(){
+	Area aux;
+
+	areas = new std::vector<Area*>();
+
+	for(int i = 0; i < (int) TO_CELLS(length); i++){
+		for(int j = 0; j < (int) TO_CELLS(width); j++){
+			aux = new Area();
+
+			aux -> start.x = j * area_size;
+			aux -> start.y = i * area_size;
+
+			aux -> end.x = (j + 1) * area_size;
+			aux -> end.y = (i + 1) * area_size;
+
+			aux -> occupied = false;
+
+			areas -> push_back(aux);
+		}
+	}
 }
 
 void OccupancyGrid::initMap(){
 	int i, j;
 
-	map = (int **) malloc(sizeof(int *)*TO_CELLS(length));
+	map = (float **) malloc(sizeof(float *)*TO_CELLS(length));
 
 	for(i = 0; i < TO_CELLS(length); i++){
-		map[i] = (int *) malloc(sizeof(int) * TO_CELLS(width));
-		memset(map[i], 0, TO_CELLS(width)*sizeof(int));
+		map[i] = (float *) malloc(sizeof(float) * TO_CELLS(width));
+		memset(map[i], 0, TO_CELLS(width)*sizeof(float));
 	}
 }
 
@@ -30,6 +52,22 @@ OccupancyGrid::~OccupancyGrid(){
 		free(map[i]);
 
 	free(map);
+
+	delete areas;
+}
+
+void OccupancyGrid::getNewGoal(_2DPoint* goal){
+	srand(time(NULL));
+	int new_area_index;
+
+	new_area_index = rand() % ((int) areas -> size());
+
+	while(areas[new_area_index] -> occupied == true){
+		new_area_index = rand() % ((int) areas -> size());		
+	}
+
+	goal -> x = (areas[new_area_index] -> start.x + areas[new_area_index] -> end.x)/2;
+	goal -> y = (areas[new_area_index] -> start.y + areas[new_area_index] -> end.y)/2;
 }
 
 bool OccupancyGrid::OGReady(){
@@ -62,44 +100,48 @@ void OccupancyGrid::updatePosition(float x, float y, float yaw){
 	int map_y;
 	float tail_x, tail_y;
 	float i;
-	float last_equal = true;
-	int last_x = 1000;
-	int last_y = 1000;
-	float aux;
 
 	for(i = (-1)*TAIL_ANGLE; i <= TAIL_ANGLE; i+= TAIL_ANGLE){
-		//last_equal = true;
-		aux = i;
 
-		//while(last_equal && ros::ok()){
-			float angle = Resources::angleSum(yaw, aux);
+		float angle = Resources::angleSum(yaw, i);
 
-			tail_x = x - (cos(angle) * TAIL_SIZE);
-			tail_y = y - (sin(angle) * TAIL_SIZE);
+		tail_x = x - (cos(angle) * TAIL_SIZE);
+		tail_y = y - (sin(angle) * TAIL_SIZE);
 
-			map_x = (int) floor(TO_CELLS(tail_x) + BASE_X);
-			map_y = (int) floor(TO_CELLS(tail_y) + BASE_Y);
+		map_x = (int) floor(TO_CELLS(tail_x) + BASE_X);
+		map_y = (int) floor(TO_CELLS(tail_y) + BASE_Y);
 
-			//ROS_INFO("%3.2f %d %d",yaw, map_x, map_y);
-
-		//	if(map_x != last_x || map_y != last_y){
-		//		last_equal = false;
-		//		last_x = map_x;
-		//		last_y = map_y;
-
-				if(IS_INSIDE(map_x, map_y))
-					map[map_x][map_y] += repulsion;
-		//	}
-		//	else
-		//		aux += DISPLACEMENT;
-//		}
+		if(IS_INSIDE(map_x, map_y))
+			map[map_x][map_y] += repulsion;
 	}
+	/*
+
+	for(i = (-2)*TAIL_ANGLE; i <= 2*TAIL_ANGLE; i+= TAIL_ANGLE){
+
+		float angle = Resources::angleSum(yaw, i);
+
+		tail_x = x + (cos(angle) * TAIL_SIZE);
+		tail_y = y + (sin(angle) * TAIL_SIZE);
+
+		map_x = (int) floor(TO_CELLS(tail_x) + BASE_X);
+		map_y = (int) floor(TO_CELLS(tail_y) + BASE_Y);
+
+		if(IS_INSIDE(map_x, map_y))
+			map[map_x][map_y] += (repulsion/3);
+	}
+
+	//just for checking
+	map_x = (int) floor(TO_CELLS(x) + BASE_X);
+	map_y = (int) floor(TO_CELLS(y) + BASE_Y);
+
+	map[map_x][map_y] += repulsion;
+	*/
 }
 
-void OccupancyGrid::writeMap(){
+void OccupancyGrid::writeMap(std::string type){
 	int i, j;
 
-	std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/occupancy_grid.map");
+	std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/occupancy_grid_" + type + ".map");
 
 	for(i = 0; i < TO_CELLS(length); i++){
 		for(j = 0; j < TO_CELLS(width); j++){
@@ -116,20 +158,22 @@ void OccupancyGrid::writeMap(){
 	file.close();
 }
 
-OGVector OccupancyGrid::calculateOGVector(_2DPoint robot){
+OGVector* OccupancyGrid::calculateOGVector(_2DPoint robot){
 	float x = robot.x;
 	float y = robot.y;
 	int map_x = TO_CELLS(x) + BASE_X;
 	int map_y = TO_CELLS(y) + BASE_Y;
-	OGVector ogv;
+	OGVector* ogv;
 	int max = 30;
 	float total;
 	float average;
 	int i, j;
 	int size;
 
-	ogv.x = 0;
-	ogv.y = 0;
+	ogv = new OGVector();
+
+	ogv -> x = 0;
+	ogv -> y = 0;
 
 
 	// N
@@ -143,8 +187,8 @@ OGVector OccupancyGrid::calculateOGVector(_2DPoint robot){
 	average = total/size;
 
 	if(size > 0 && average > max){
-		ogv.x = -1;
-		ogv.y = 0;
+		ogv -> x = -1;
+		ogv -> y = 0;
 
 		max = average;
 	}
@@ -167,8 +211,8 @@ OGVector OccupancyGrid::calculateOGVector(_2DPoint robot){
 	average = total/size;
 	
 	if(size > 0 && average > max){
-		ogv.x = -1;
-		ogv.y = 1;
+		ogv -> x = -1;
+		ogv -> y = 1;
 
 		max = average;
 	}
@@ -189,8 +233,8 @@ OGVector OccupancyGrid::calculateOGVector(_2DPoint robot){
 	average = total/size;
 	
 	if(size > 0 && average > max){
-		ogv.x = 0;
-		ogv.y = 1;
+		ogv -> x = 0;
+		ogv -> y = 1;
 
 		max = average;
 	}	
@@ -213,8 +257,8 @@ OGVector OccupancyGrid::calculateOGVector(_2DPoint robot){
 	average = total/size;
 	
 	if(size > 0 && average > max){
-		ogv.x = 1;
-		ogv.y = 1;
+		ogv -> x = 1;
+		ogv -> y = 1;
 
 		max = average;
 	}	
@@ -234,8 +278,8 @@ OGVector OccupancyGrid::calculateOGVector(_2DPoint robot){
 	average = total/size;
 	
 	if(size > 0 && average > max){
-		ogv.x = 1;
-		ogv.y = 0;
+		ogv -> x = 1;
+		ogv -> y = 0;
 
 		max = average;
 	}	
@@ -257,8 +301,8 @@ OGVector OccupancyGrid::calculateOGVector(_2DPoint robot){
 	average = total/size;
 	
 	if(size > 0 && average > max){
-		ogv.x = 1;
-		ogv.y = -1;
+		ogv -> x = 1;
+		ogv -> y = -1;
 
 		max = average;
 	}	
@@ -278,8 +322,8 @@ OGVector OccupancyGrid::calculateOGVector(_2DPoint robot){
 	average = total/size;
 	
 	if(size > 0 && average > max){
-		ogv.x = 0;
-		ogv.y = -1;
+		ogv -> x = 0;
+		ogv -> y = -1;
 
 		max = average;
 	}	
@@ -301,8 +345,8 @@ OGVector OccupancyGrid::calculateOGVector(_2DPoint robot){
 	average = total/size;
 	
 	if(size > 0 && average > max){
-		ogv.x = -1;
-		ogv.y = -1;
+		ogv -> x = -1;
+		ogv -> y = -1;
 	}
 
 	return ogv;

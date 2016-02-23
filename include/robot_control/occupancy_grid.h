@@ -1,6 +1,7 @@
 #include <fstream>
 #include <ros/ros.h>
 #include <cmath>
+#include <ctime>
 #include <stdlib.h>
 #include <iomanip>
 #include "resources.h"
@@ -31,23 +32,32 @@ typedef struct map_point{
 	int y;
 } MapPoint;
 
+typedef struct area {
+	_2DPoint start;
+	_2DPoint end;
+	bool occupied;
+} Area;
+
 class OccupancyGrid{
 public:
-	OccupancyGrid(float length, float width, float cell_size, float rep, float x, float y);
+	OccupancyGrid(float length, float width, float cell_size, float rep);
 	~OccupancyGrid();
 
-	OGVector calculateOGVector(_2DPoint robot);
+	OGVector* calculateOGVector(_2DPoint robot);
+	void getNewGoal(_2DPoint *goal);
 	void updatePosition(float x, float y, float yaw);
-	void writeMap();
+	void writeMap(std::string type);
 	bool OGReady();
 
 private:
 	void initMap();
+	void initAreas();
 
-	int** map;
+	float** map;
 
-	float last_x, last_y;
+	std::vector<Area*> areas;
 
+	float area_size;
 	float length;
 	float width;
 	bool ready;

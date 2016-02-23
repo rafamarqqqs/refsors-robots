@@ -22,15 +22,15 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr& laser_dat
 
     measures.front = 10;
 
-    for(i = (LASER_MEASURES/2) - 15 ; i < (LASER_MEASURES/2) + 15; i++){
+    for(i = (LASER_MEASURES/2) - 20 ; i < (LASER_MEASURES/2) + 20; i++){
         if(laser_data -> ranges[i] < measures.front);
             measures.front = laser_data -> ranges[i];
     }
 }
 
 void Laser::publishMeasures(char* type){
-    ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>(LASER(type), 1000);
-    ros::Rate r(10.0);
+    ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>(LASER(type), 100);
+    ros::Rate r(5.0);
 
     while(node.ok()){
 
@@ -52,11 +52,13 @@ int main(int argc, char **argv){
         return -1;
     }
 
-    ros::init(argc, argv, "laser_publisher");
+    ros::init(argc, argv, "Laser");
 
     ros::NodeHandle n;
 
     Laser *laser = new Laser(n, argv[1]);
+
+    ROS_INFO("Laser started.");
 
     laser -> publishMeasures(argv[1]);
 

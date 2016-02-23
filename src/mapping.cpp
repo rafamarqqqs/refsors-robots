@@ -4,7 +4,9 @@ Mapper::Mapper(ros::NodeHandle n, float length, float width, float cell_size, ch
     createMapServer(n, "createMap", boost::bind(&Mapper::createMap, (Mapper *) this, _1), false) {
 	int i, j;
 
-	this -> flag = strcmp(type, "smaller_robot") == 0 ? false : true;
+	std::string aux(type);
+
+	this -> type = aux;
 
 	this -> node = n;
 	this -> length = length;
@@ -53,13 +55,11 @@ void Mapper::handleLaser(const robot_control::laserMeasures::ConstPtr& data){
     if(data -> range.size() == 0 || data -> angle.size() == 0)
         return;
 
-
     this -> range = data -> range;
     this -> angle = data -> angle;
     this -> front = data -> front;
 
     this -> laser_ready = true;
-
 }
 
 
@@ -71,7 +71,7 @@ void Mapper::calculateDistances(_2DPoint real_pose){
     std::vector<float>::iterator angle_it = angle.begin();
 
 	while(range_it != range.end()){
-		if((*range_it) < 25){
+		if((*range_it) < 15){
 
 			theta = Resources::angleSum(this -> robot -> yaw, (*angle_it));
 				
@@ -80,7 +80,7 @@ void Mapper::calculateDistances(_2DPoint real_pose){
 
 			//ROS_INFO("(%d) %3.2f %3.2f %3.2f", i, theta, aux.x, aux.y);
 
-			addToMap(aux, FULL, real_pose, cos(theta)*0.5, sin(theta)*0.5, (*range_it));
+			addToMap(aux, FULL, real_pose, cos(theta)*0.1, sin(theta)*0.1, (*range_it));
 
 			/*
 			aux.x = robot -> position.x;
@@ -125,8 +125,7 @@ void Mapper::createMap(const robot_control::createMapGoalConstPtr &goal){
 			last_x = this -> robot -> position.x;
 			last_y = this -> robot -> position.y;
 
-			if(flag)
-				writeMap();
+			writeMap();
 		}
 
 		r.sleep();
@@ -144,16 +143,14 @@ void Mapper::addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_in
 	int map_x, map_y;
 
 	while(COMPARE(real_pose.x, point.x, aux_x) && COMPARE(real_pose.y, point.y, aux_y)){
-		aux_x += x_inc;
-		aux_y += y_inc;
-
-
 		map_x = ((int) TO_CELLS(aux_x)) + BASE_X;
 		map_y = ((int) TO_CELLS(aux_y)) + BASE_Y;
 
 		if(map[map_x][map_y] != FULL/* && map[map_x][map_y] != ME*/)
 			map[map_x][map_y] = EMPTY;
 
+		aux_x += x_inc;
+		aux_y += y_inc;
 	}
 
 	map[x][y] = value;
@@ -168,7 +165,7 @@ char** Mapper::getMap(){
 void Mapper::writeMap(){
 	int i, j;
 
-	std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/containers.map");
+	std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/containers_" + this -> type + ".map");
 
 	for(i = 0; i < TO_CELLS(length); i++){
 		for(j = 0; j < TO_CELLS(width); j++){

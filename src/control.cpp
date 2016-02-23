@@ -6,7 +6,9 @@
 
 int main(int argc, char *argv[]){
 	
-	ros::init(argc, argv, "control");
+	ros::init(argc, argv, "Control");
+
+	ROS_INFO("Control started.");
 
 	ros::NodeHandle node;
 
@@ -20,13 +22,13 @@ int main(int argc, char *argv[]){
 	map_client.waitForServer();
 
 	if(search_client.isServerConnected())
-		ROS_INFO("search connected");
+		ROS_INFO("Search connected");
 	if(map_client.isServerConnected())
-		ROS_INFO("map connected");
+		ROS_INFO("Map connected");
 
 	map_client.sendGoal(map_goal);
 	search_client.sendGoal(search_goal);
-
+	
 	search_client.waitForResult();
 	map_client.waitForResult();
 	

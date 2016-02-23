@@ -22,29 +22,32 @@
 #ifndef _NAVIGATION_H_
 #define _NAVIGATION_H_
 
-#define MIN_RANGE 1.8
-
-#define DANGER_ZONE 1.0
-#define DANGER_ANGLE (M_PI/3)
-
 #define RANGES 8
 
 #define MAP_LENGTH 40.0
 #define MAP_WIDTH 40.0
 #define CELL_SIZE 0.5
 #define REPULSION 1
+#define AREA_SIZE 4
+
+#define MEASURES 480
 
 #define QGOAL 1.0
 #define QWALL 1.0
-#define QOG 1.0
-#define MAX_LIN_SPEED 0.4
-#define MAX_ANG_SPEED 0.5
+#define QOG 0.5
+#define MAX_LIN_SPEED 0.5
+#define MAX_ANG_SPEED 0.7
+
+//seconds
+#define TIME_LIMIT (2 * 60)
 
 #define ERROR 1.5
 
 #define START_OG_CALCULATION(x, y) (fabs(x) > 0.5 || fabs(y) > 0.5)
 
 #define REACHED_DESTINATION(g, p) (fabs(g -> x - p.x) < ERROR && fabs(g -> y - p.y) < ERROR)
+
+#define REACHED_TIME_LIMIT(start, now) (difftime(now, start) > TIME_LIMIT ? true : false)
 
 typedef struct drivingInfo {
     float rotation;
@@ -83,7 +86,12 @@ private:
 
     std::vector<float> range;
     std::vector<float> angle;
+    
     float front;
+
+    float min_range;
+
+    std::string type;
 
     bool laser_ready;
 
@@ -93,8 +101,6 @@ private:
 
     ros::Subscriber laser_sub;
     ros::Subscriber pose_sub;
-
-    ros::ServiceServer service;
 
     ros::NodeHandle node;
 };

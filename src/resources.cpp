@@ -8,7 +8,7 @@ float Resources::angleSum(float angle_a, float angle_b){
     
     sum = fmod(sum,2*M_PI);
 
-    if(sum < M_PI)
+    if(sum <= M_PI)
 	    return sum;
   	
   	return sum - (2*M_PI);

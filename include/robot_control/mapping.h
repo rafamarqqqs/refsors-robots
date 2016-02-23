@@ -38,7 +38,7 @@
 
 #define BASE (M_PI/4)
 
-#define TO_CELLS(v) (((int)(v/this -> cell_size)))
+#define TO_CELLS(v) (((int)floor(v/this -> cell_size)))
 
 typedef actionlib::SimpleActionServer<robot_control::createMapAction> CreateMapAction;
 
@@ -78,8 +78,7 @@ private:
 
 	char** map;
 
-	//static bool flag;
-	bool flag;
+	std::string type;
 
 	ros::NodeHandle node;
 	std::list<_2DPoint> points;
@@ -94,7 +93,5 @@ private:
 
 	int status;
 };
-
-//bool Mapper::flag;
 
 #endif
