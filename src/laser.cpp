@@ -22,14 +22,14 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr& laser_dat
 
     measures.front = 10;
 
-    for(i = (LASER_MEASURES/2) - 20 ; i < (LASER_MEASURES/2) + 20; i++){
+    for(i = (LASER_MEASURES/2) - 25 ; i < (LASER_MEASURES/2) + 25; i++){
         if(laser_data -> ranges[i] < measures.front);
             measures.front = laser_data -> ranges[i];
     }
 }
 
 void Laser::publishMeasures(char* type){
-    ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>(LASER(type), 100);
+    ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>(LASER(type), 1000);
     ros::Rate r(5.0);
 
     while(node.ok()){

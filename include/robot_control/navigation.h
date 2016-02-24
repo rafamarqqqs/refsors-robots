@@ -33,13 +33,13 @@
 #define MEASURES 480
 
 #define QGOAL 1.0
-#define QWALL 1.0
-#define QOG 0.5
-#define MAX_LIN_SPEED 0.5
-#define MAX_ANG_SPEED 0.7
+#define QWALL 1.3
+#define QOG 1.3
+#define MAX_LIN_SPEED 0.7
+#define MAX_ANG_SPEED 1.0
 
 //seconds
-#define TIME_LIMIT (2 * 60)
+#define TIME_LIMIT (3 * 60)
 
 #define ERROR 1.5
 
@@ -62,7 +62,6 @@ public:
     virtual ~Navigator();
 
     void search(const robot_control::searchGoalConstPtr &goal);
-    bool driveTo(_2DPoint *goal);
     _2DPoint *createGoal(float x, float y);
 
 private:

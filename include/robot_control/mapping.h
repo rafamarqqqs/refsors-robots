@@ -11,32 +11,15 @@
 #include "topics.h"
 #include <fstream>
 #include <actionlib/server/simple_action_server.h>
+#include "robot_control/addToMap.h"
 #include "robot_control/createMapAction.h"
 #include "robot_control/laserMeasures.h"
-#include <mutex>
 
 #ifndef _MAPPING_H_
 #define _MAPPING_H_
 
-#define max(a, b) (a > b ? a : b)
-#define min(a, b) (a > b ? b : a)
-
-#define COMPARE(start, goal, pos) (start > goal ? (pos > goal) : (pos < goal))
-
 #define INSIDE(p) (p.x + (this -> length/2) >= 0 && p.y + (this -> width/2) >= 0 && \
 				   p.x < this -> length/2 && p.y < this -> width/2)
-
-#define BASE_X (floor((this -> length/this -> cell_size) / 2))
-#define BASE_Y (floor((this -> width/this -> cell_size) / 2))
-
-#define FULL '#'
-#define UNKNOWN ':'
-#define EMPTY ' '
-#define ME 'x'
-
-#define GET_SIGNAL(yaw) (fabs(yaw) > M_PI/2 ? -1 : 1)
-
-#define BASE (M_PI/4)
 
 #define TO_CELLS(v) (((int)floor(v/this -> cell_size)))
 
@@ -47,20 +30,14 @@ public:
 	Mapper(ros::NodeHandle n, float length, float width, float cell_size, char *type);
 	~Mapper();
 
-	char** getMap();
-
-	void createMap(const robot_control::createMapGoalConstPtr &goal);
+ 	void createMap(const robot_control::createMapGoalConstPtr &goal);
 
 private:
-	void writeMap();
-
 	void addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_inc, float y_inc, float range);
 
 	void handleLaser(const robot_control::laserMeasures::ConstPtr& data);
 
 	void handlePose(const geometry_msgs::Pose::ConstPtr& data);
-
-	void initMap();
 
 	void calculateDistances(_2DPoint real_pose);
 
@@ -76,12 +53,12 @@ private:
 
     bool laser_ready;
 
-	char** map;
-
 	std::string type;
 
 	ros::NodeHandle node;
 	std::list<_2DPoint> points;
+
+	ros::ServiceClient client;
 
 	float real_x;
 	float real_y;

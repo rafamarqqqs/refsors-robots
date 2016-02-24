@@ -14,6 +14,7 @@
         <node name="Control" pkg="robot_control" type="control" output="screen" respawn="true" args="larger_robot"/>
     </group>
  -->
+    <node name="Knowledge" pkg="robot_control" type="knowledge" output="screen" respawn="true" args="larger_robot"/>
   
     <group ns="larger_robot">
         <include file="$(find robot_control)/launch/larger_robot.launch" ></include>
@@ -23,7 +24,6 @@
         <node name="Navigation" pkg="robot_control" type="navigation" output="screen" respawn="true" args="larger_robot"/>
         <node name="Control" pkg="robot_control" type="control" output="screen" respawn="true" args="larger_robot"/>
     </group>
-    <!--
     
     <group ns="smaller_robot">
         <include file="$(find robot_control)/launch/smaller_robot.launch" ></include>
@@ -33,6 +33,7 @@
         <node name="Navigation" pkg="robot_control" type="navigation" output="screen" respawn="true" args="smaller_robot"/>
         <node name="Control" pkg="robot_control" type="control" output="screen" respawn="true" args="smaller_robot"/>
     </group>
+    <!--
     -->
 
 

@@ -55,7 +55,7 @@ geometry_msgs::Pose Localizator::getPose(){
 }
 
 void Localizator::publishPose(char* type){
-    ros::Publisher pose_pub = node.advertise<geometry_msgs::Pose>(POSE(type), 100);
+    ros::Publisher pose_pub = node.advertise<geometry_msgs::Pose>(POSE(type), 1000);
     ros::Rate r(5.0);
 
     while(node.ok()){

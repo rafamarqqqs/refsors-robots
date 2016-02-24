@@ -5,13 +5,14 @@
 #include <stdlib.h>
 #include <iomanip>
 #include "resources.h"
+#include <algorithm>
 
 #ifndef _OCCUPANCY_GRID_H_
 #define _OCCUPANCY_GRID_H_
 
 #define DISPLACEMENT (M_PI/10)
 
-#define NEARBY 5
+#define NEARBY 4
 #define TAIL_SIZE 0.6
 #define TAIL_ANGLE (M_PI/4)
 
@@ -40,22 +41,24 @@ typedef struct area {
 
 class OccupancyGrid{
 public:
-	OccupancyGrid(float length, float width, float cell_size, float rep);
+	OccupancyGrid(float length, float width, float cell_size, int area_size, float rep);
 	~OccupancyGrid();
 
 	OGVector* calculateOGVector(_2DPoint robot);
 	void getNewGoal(_2DPoint *goal);
 	void updatePosition(float x, float y, float yaw);
 	void writeMap(std::string type);
+	void writeAreas(std::string type);
 	bool OGReady();
 
 private:
 	void initMap();
 	void initAreas();
+	void remakeOccupiedAreas();
 
 	float** map;
 
-	std::vector<Area*> areas;
+	std::vector<Area>* areas;
 
 	float area_size;
 	float length;

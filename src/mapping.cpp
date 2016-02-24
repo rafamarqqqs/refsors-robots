@@ -19,30 +19,14 @@ Mapper::Mapper(ros::NodeHandle n, float length, float width, float cell_size, ch
 	
 	laser_sub = node.subscribe(LASER(type), 1, &Mapper::handleLaser, this);
 	pose_sub = node.subscribe(POSE(type), 1, &Mapper::handlePose, this);
-	
-	initMap();
 
+	client = n.serviceClient<robot_control::addToMap>("/Knowledge/addToMap");
+	
 	createMapServer.start();
 }
 
 Mapper::~Mapper(){
-	delete map;
 	free(this -> robot);
-}
-
-void Mapper::initMap(){
-	int i, j;
-
-	map = (char **) malloc(sizeof(char *)*TO_CELLS(length));
-
-	for(i = 0; i < TO_CELLS(length); i++)
-		map[i] = (char *) malloc(sizeof(char) * TO_CELLS(width));
-	
-	for(i = 0; i < TO_CELLS(length); i++){
-		for(j = 0; j < TO_CELLS(width); j++)
-			map[i][j] = UNKNOWN;
-
-	}
 }
 
 void Mapper::handlePose(const geometry_msgs::Pose::ConstPtr& data){
@@ -66,6 +50,7 @@ void Mapper::handleLaser(const robot_control::laserMeasures::ConstPtr& data){
 void Mapper::calculateDistances(_2DPoint real_pose){
 	_2DPoint aux;
 	float theta;
+	robot_control::addToMap srv;
 
 	std::vector<float>::iterator range_it = range.begin();
     std::vector<float>::iterator angle_it = angle.begin();
@@ -78,9 +63,22 @@ void Mapper::calculateDistances(_2DPoint real_pose){
 			aux.x = real_pose.x +  (cos(theta) * (*range_it)); 
 			aux.y = real_pose.y + (sin(theta) * (*range_it));
 
-			//ROS_INFO("(%d) %3.2f %3.2f %3.2f", i, theta, aux.x, aux.y);
+			srv.request.wall_x = aux.x;
+			srv.request.wall_y = aux.y;
 
-			addToMap(aux, FULL, real_pose, cos(theta)*0.1, sin(theta)*0.1, (*range_it));
+			srv.request.start_x = real_pose.x;
+			srv.request.start_y = real_pose.y;
+
+			srv.request.inc_x = cos(theta)*0.1;
+			srv.request.inc_y = sin(theta)*0.1;
+
+			srv.request.range = (*range_it);
+
+			if(!client.call(srv)){	
+				ROS_INFO("Could not add cell to map.");
+			}
+
+			//addToMap(aux, FULL, real_pose, cos(theta)*0.1, sin(theta)*0.1, (*range_it));
 
 			/*
 			aux.x = robot -> position.x;
@@ -125,59 +123,11 @@ void Mapper::createMap(const robot_control::createMapGoalConstPtr &goal){
 			last_x = this -> robot -> position.x;
 			last_y = this -> robot -> position.y;
 
-			writeMap();
+			//writeMap();
 		}
 
 		r.sleep();
 	}
-}
-
-void Mapper::addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_inc, float y_inc, float range){
-	if(!INSIDE(point))
-		return;
-
-	int x = BASE_X + TO_CELLS(point.x);
-	int y = BASE_Y + TO_CELLS(point.y);
-	float aux_x = real_pose.x;
-	float aux_y = real_pose.y;
-	int map_x, map_y;
-
-	while(COMPARE(real_pose.x, point.x, aux_x) && COMPARE(real_pose.y, point.y, aux_y)){
-		map_x = ((int) TO_CELLS(aux_x)) + BASE_X;
-		map_y = ((int) TO_CELLS(aux_y)) + BASE_Y;
-
-		if(map[map_x][map_y] != FULL/* && map[map_x][map_y] != ME*/)
-			map[map_x][map_y] = EMPTY;
-
-		aux_x += x_inc;
-		aux_y += y_inc;
-	}
-
-	map[x][y] = value;
-}
-
-
-
-char** Mapper::getMap(){
-	return map;
-}
-
-void Mapper::writeMap(){
-	int i, j;
-
-	std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/containers_" + this -> type + ".map");
-
-	for(i = 0; i < TO_CELLS(length); i++){
-		for(j = 0; j < TO_CELLS(width); j++){
-			file.put(map[i][j]);
-			//VISUALIZATION PURPOSES, REMOVE WHEN READY
-			//file.put(map[i][j]);
-		}
-
-		file.put('\n');
-	}
-
-	file.close();
 }
 
 int main(int argc, char **argv) {

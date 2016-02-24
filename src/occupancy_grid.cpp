@@ -15,19 +15,17 @@ OccupancyGrid::OccupancyGrid(float length, float width, float cell_size, int are
 void OccupancyGrid::initAreas(){
 	Area aux;
 
-	areas = new std::vector<Area*>();
+	areas = new std::vector<Area>;
 
-	for(int i = 0; i < (int) TO_CELLS(length); i++){
-		for(int j = 0; j < (int) TO_CELLS(width); j++){
-			aux = new Area();
+	for(int i = 0; i < (int) TO_CELLS(length)/area_size; i++){
+		for(int j = 0; j < (int) TO_CELLS(width)/area_size; j++){
+			aux.start.x = i * area_size;
+			aux.start.y = j * area_size;
 
-			aux -> start.x = j * area_size;
-			aux -> start.y = i * area_size;
+			aux.end.x = (i + 1) * area_size;
+			aux.end.y = (j + 1) * area_size;
 
-			aux -> end.x = (j + 1) * area_size;
-			aux -> end.y = (i + 1) * area_size;
-
-			aux -> occupied = false;
+			aux.occupied = false;
 
 			areas -> push_back(aux);
 		}
@@ -62,12 +60,43 @@ void OccupancyGrid::getNewGoal(_2DPoint* goal){
 
 	new_area_index = rand() % ((int) areas -> size());
 
-	while(areas[new_area_index] -> occupied == true){
+	while(areas -> at(new_area_index).occupied == true){
 		new_area_index = rand() % ((int) areas -> size());		
 	}
 
-	goal -> x = (areas[new_area_index] -> start.x + areas[new_area_index] -> end.x)/2;
-	goal -> y = (areas[new_area_index] -> start.y + areas[new_area_index] -> end.y)/2;
+	goal -> x = (((areas -> at(new_area_index).start.x + areas -> at(new_area_index).end.x)/2) * cell_size) - (length/2);
+	goal -> y = (((areas -> at(new_area_index).start.y + areas -> at(new_area_index).end.y)/2) * cell_size) - (width/2);
+
+//	ROS_INFO("got new goal %3.2f %3.2f", goal -> x, goal -> y);
+	remakeOccupiedAreas();
+}
+
+void OccupancyGrid::remakeOccupiedAreas(){
+	std::vector<Area>::iterator it = areas -> begin();
+	int size;
+	int occupied;
+
+	while(it != areas -> end()){
+		occupied = size = 0;
+
+		for(int i = (*it).start.x; i < (*it).end.x; i++){
+			for(int j = (*it).start.y; j < (*it).end.y; j++){
+				if(IS_INSIDE(i, j)){
+					size++;
+
+					if(map[i][j] != 0)
+						occupied++;
+				}
+			}
+		}
+
+		ROS_INFO("%3.2f", occupied/size);
+
+		if(occupied/size > 0.6)
+			(*it).occupied = true;
+
+		it++;
+	}
 }
 
 bool OccupancyGrid::OGReady(){
@@ -96,46 +125,16 @@ bool OccupancyGrid::OGReady(){
 }
 
 void OccupancyGrid::updatePosition(float x, float y, float yaw){
-	int map_x;
-	int map_y;
-	float tail_x, tail_y;
-	float i;
+	int map_x = (int) (TO_CELLS(x) + BASE_X);
+	int map_y = (int) (TO_CELLS(y) + BASE_Y);
 
-	for(i = (-1)*TAIL_ANGLE; i <= TAIL_ANGLE; i+= TAIL_ANGLE){
-
-		float angle = Resources::angleSum(yaw, i);
-
-		tail_x = x - (cos(angle) * TAIL_SIZE);
-		tail_y = y - (sin(angle) * TAIL_SIZE);
-
-		map_x = (int) floor(TO_CELLS(tail_x) + BASE_X);
-		map_y = (int) floor(TO_CELLS(tail_y) + BASE_Y);
-
-		if(IS_INSIDE(map_x, map_y))
-			map[map_x][map_y] += repulsion;
+	for(int i = - area_size; i < area_size; i++){
+		for(int j = - area_size; j < area_size; j++){
+			if(IS_INSIDE(map_x + i, map_y + j)){
+				map[map_x + i][map_y + j] += repulsion;
+			}
+		}
 	}
-	/*
-
-	for(i = (-2)*TAIL_ANGLE; i <= 2*TAIL_ANGLE; i+= TAIL_ANGLE){
-
-		float angle = Resources::angleSum(yaw, i);
-
-		tail_x = x + (cos(angle) * TAIL_SIZE);
-		tail_y = y + (sin(angle) * TAIL_SIZE);
-
-		map_x = (int) floor(TO_CELLS(tail_x) + BASE_X);
-		map_y = (int) floor(TO_CELLS(tail_y) + BASE_Y);
-
-		if(IS_INSIDE(map_x, map_y))
-			map[map_x][map_y] += (repulsion/3);
-	}
-
-	//just for checking
-	map_x = (int) floor(TO_CELLS(x) + BASE_X);
-	map_y = (int) floor(TO_CELLS(y) + BASE_Y);
-
-	map[map_x][map_y] += repulsion;
-	*/
 }
 
 void OccupancyGrid::writeMap(std::string type){
@@ -156,7 +155,34 @@ void OccupancyGrid::writeMap(std::string type){
 		file.put('\n');
 	}
 	file.close();
+
+	writeAreas(type);
 }
+
+void OccupancyGrid::writeAreas(std::string type){
+	int counter = 0;
+	std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/areas_" + type + ".map");
+
+	std::vector<Area>::iterator it = areas -> begin();
+
+	while(it != areas -> end()){
+
+		file << "|";
+		
+		file << std::setfill(' ') << ((*it).occupied == true ? '1' : '0');
+		
+		it++;
+		counter++;
+		
+		if(counter % ((int) (TO_CELLS(length)/area_size)) == 0){
+			file << "|";
+			file << "\n";
+		}
+	}
+
+	file.close();
+}
+
 
 OGVector* OccupancyGrid::calculateOGVector(_2DPoint robot){
 	float x = robot.x;
