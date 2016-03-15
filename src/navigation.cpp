@@ -3,7 +3,8 @@
 //Constructor
 
 Navigator::Navigator(ros::NodeHandle n, char *type):
-    searchServer(n, "search", boost::bind(&Navigator::search, this, _1), false) {
+    searchServer(n, "search", boost::bind(&Navigator::search, this, _1), false)/*,
+    laser_sub(n, LASER(type), 1), pose_sub(n, POSE(type), 1), sync(SyncPolicy(100), laser_sub, pose_sub)*/ {
 
     std::string aux(type);
 
@@ -11,28 +12,41 @@ Navigator::Navigator(ros::NodeHandle n, char *type):
 
     node = n;
 
-    this -> min_range = strcmp(type, "larger_robot") == 0 ? 0.4 : 0.3;
+    this -> min_range = strcmp(type, "larger_robot") == 0 ? MIN_DIST : 0.3;
 
     this -> og = new OccupancyGrid(MAP_LENGTH, MAP_WIDTH, CELL_SIZE, AREA_SIZE, REPULSION);
 
     //Advertising velocity topic
     velocity_pub = node.advertise<geometry_msgs::Twist>(VEL(type), 100);
 
+    //sync.registerCallback(boost::bind(&Navigator::syncCallback, this, _1, _2));
+
     //Subscribing to sensors
     laser_sub = node.subscribe(LASER(type), 1, &Navigator::handleLaser, this);
     pose_sub = node.subscribe(POSE(type), 1, &Navigator::handlePose, this);
 
     laser_ready = false;
+    localization_ready = false;
 
     searchServer.start();
 }
+/*
+void Navigator::syncCallback(const robot_control::laserMeasures::ConstPtr& laser_data, 
+        const geometry_msgs::PoseStamped::ConstPtr& pose_data){
+    ROS_INFO("here");
+}
+*/
+void Navigator::handlePose(const geometry_msgs::PoseStamped::ConstPtr& data){
+    this -> pose.position = data -> pose.position;
+    this -> pose.orientation = data -> pose.orientation;
 
-void Navigator::handlePose(const geometry_msgs::Pose::ConstPtr& data){
-    this -> pose.position = data -> position;
-    this -> pose.orientation = data -> orientation;
+    this -> localization_ready = true;
+    //ROS_INFO("pose %6.4f", data -> header.stamp.toSec());
 }
 
 void Navigator::handleLaser(const robot_control::laserMeasures::ConstPtr& data){
+    //ROS_INFO("laser %6.4f", data -> header.stamp.toSec());
+
     if(data -> range.size() == 0 || data -> angle.size() == 0)
         return;
 
@@ -60,6 +74,7 @@ std::list<LaserPoint> Navigator::remakeRanges(){
     std::list<LaserPoint> laser_list;
 
     while(range_it != range.end()){
+        //ROS_INFO("%3.2f %3.2f", (*angle_it), (*range_it));
         aux.range = (*range_it);
         aux.angle = (*angle_it);
 
@@ -76,6 +91,8 @@ std::list<LaserPoint> Navigator::remakeRanges(){
 
     aux.range = (*range_it);
     aux.angle = (*angle_it);
+
+    //ROS_INFO("%3.2f %3.2f", (*angle_it), (*range_it));
 
     laser_list.push_back(aux);
 
@@ -109,21 +126,36 @@ float Navigator::calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points
     _2DPoint aux;
     std::list<_2DPoint>::iterator it;
     OGVector* ogv;
+    OGVector* ogvTail;
     float x_component;
     float y_component;
     float norm;
+    float influence = og -> OGInfluence(robot -> position.x, robot -> position.y);
 
     x_component = 0;
     y_component = 0;
-    
     //Goal attraction
+
+    //SÓ SOMAR GOAL QUANDO O QROG FOR TRUE
+    /*
+
     aux.x = goal -> x - robot -> position.x;
     aux.y = goal -> y - robot -> position.y;
-    
+        
     norm = pow(pow(aux.x, 2) + pow(aux.y, 2), 0.5);
-    
+        
     x_component = (aux.x * QGOAL)/norm;
     y_component = (aux.y * QGOAL)/norm;
+
+    if(influence > 0.1){
+        x_component *= 0.5;
+        y_component *= 0.5;
+    }
+    //ROS_INFO("og inf %3.2f", influence);
+
+    x_component = aux.x*pow(norm, 2);
+    y_component = aux.y*pow(norm, 2);
+    */
     
 
     //Wall repulsion
@@ -135,31 +167,57 @@ float Navigator::calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points
 
         norm = pow(pow(aux.x, 2) + pow(aux.y, 2), 0.5);
 
-        x_component -= (aux.x * QWALL)/norm;
-        y_component -= (aux.y * QWALL)/norm;
+        //x_component -= (aux.x * QWALL)/norm;
+        //y_component -= (aux.y * QWALL)/norm;
+        
+        x_component -= (((1/norm) - (1/min_range)) * (aux.x/pow(norm, 3))) * QWALL;
+        y_component -= (((1/norm) - (1/min_range)) * (aux.y/pow(norm, 3))) * QWALL;
 
         it++;
     }
 
-    if(og -> OGReady()){
-        //ROS_INFO("using occupancy grid");
 
-        ogv = og -> calculateOGVector(robot -> position);
+    ogv = og -> calculateOGVector(robot -> position);
 
-        norm = pow(pow(ogv -> x, 2) + pow(ogv -> y, 2), 0.5);
+    norm = pow(pow(ogv -> x, 2) + pow(ogv -> y, 2), 0.5);
 
-        if(norm != 0){
-
-            x_component += (ogv -> x * QOG)/norm;
-            y_component += (ogv -> y * QOG)/norm;
-            
-        }
-
-        delete ogv;
+    if(norm != 0){
+        ROS_INFO("og %3.4f %3.4f %d %d %3.2f", (ogv -> x * QOG)/norm, (ogv -> y * QOG)/norm, (int) ogv -> x, (int) ogv -> y, norm);
+        x_component += (ogv -> x * QOG)/norm;
+        y_component += (ogv -> y * QOG)/norm;
+                
+        //x_component += ((1/norm) - (1/min_range)) * (ogv -> x/pow(norm, 3));
+        //y_component += ((1/norm) - (1/min_range)) * (ogv -> y/pow(norm, 3));
+               
     }
+
+    delete ogv;
+
+    ogvTail = og -> calculateTailForce(robot -> position);
+
+    x_component -= ogvTail -> x * QTAIL;
+    y_component -= ogvTail -> y * QTAIL;
+    ROS_INFO("tail %3.4f %3.4f", -ogvTail -> x, -ogvTail -> y);
+
+/*
+    if(influence > 0.3){
+        x_component *= 3;
+        y_component *= 3;
+        ROS_INFO("REALLY trying to get out of here");
+    }
+    else if(influence > 0.1){
+        ROS_INFO("trying to get out of here");
+        //x_component *= 2.0;
+        //y_component *= 2.0;
+        x_component *= 2;
+        y_component *= 2;
+    }
+*/    
     
     if((y_component == 0 && x_component == 0) || isnan(y_component) || isnan(x_component))
         return robot -> yaw;
+
+    ROS_INFO("xy: %3.4f %3.4f", x_component, y_component);
 
     return atan2(y_component, x_component);
 }
@@ -181,10 +239,15 @@ DrivingInfo Navigator::defineDirection(_2DPoint *goal){
 
     angleDiff = Resources::angleDiff(angleForce, robot -> yaw)*MAX_ANG_SPEED/M_PI;
 
-    info.velocity = (front - 0.2)*MAX_LIN_SPEED/7.7;
+
+    info.velocity = (front - 0.3)*MAX_LIN_SPEED/7;
     info.rotation = angleDiff;
 
-    this -> og -> updatePosition(robot -> position.x, robot -> position.y, robot -> yaw);
+    //og -> setRepulsion((9.7*MAX_LIN_SPEED/7.7) - info.velocity);
+
+    //ROS_INFO("%3.2f", info.velocity);
+
+    this -> og -> updatePosition(robot -> position.x, robot -> position.y);
     this -> og -> writeMap(type);
 
     free(robot);
@@ -216,31 +279,34 @@ void Navigator::search(const robot_control::searchGoalConstPtr &search_goal){
     ros::Rate r(10);
     
     //Waits for the laser to set the initial values
-    while(laser_ready == false && ros::ok()){
+    while((laser_ready == false || localization_ready == false) && ros::ok()){
         r.sleep();
     }
 
     while(ros::ok()){
+        //goal -> x = pose.position.x;
+        //goal -> y = pose.position.y;
         og -> getNewGoal(goal);
 
         time(&start_time);
         time(&current_time);
         
-        ROS_INFO("Driving to %3.2f %3.2f", goal -> x, goal -> y);
+    //ROS_INFO("Driving to %3.2f %3.2f", goal -> x, goal -> y);
 
-        while(!REACHED_DESTINATION(goal, pose.position) && !REACHED_TIME_LIMIT(start_time, current_time)){
+        while(!REACHED_DESTINATION(goal, pose.position) && 
+              !REACHED_TIME_LIMIT(start_time, current_time, goal, pose.position)){
             info = this -> defineDirection(goal);
             this -> drive(info);
             r.sleep();
             //ROS_INFO("%3.2f %3.2f %3.2f %3.2f", pose.position.x, pose.position.y, goal -> x, goal -> y);
             time(&current_time);
         }
-
+/*
         if(REACHED_DESTINATION(goal, pose.position))
             ROS_INFO("reached destination");
         else
             ROS_INFO("time's up");
-
+*/
     }
 
     delete goal;

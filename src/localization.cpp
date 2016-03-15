@@ -19,7 +19,7 @@ void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPt
         i++;
     }
 
-    this -> pose = data -> pose[i];
+    this -> pose.pose = data -> pose[i];
 
     tf::Quaternion q(data -> pose[i].orientation.x,
                     data -> pose[i].orientation.y,
@@ -28,10 +28,12 @@ void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPt
 
     q = q.normalized();
 
-    tf::quaternionTFToMsg(q, this -> pose.orientation);
+    this -> pose.header.stamp = ros::Time::now();
+
+    tf::quaternionTFToMsg(q, this -> pose.pose.orientation);
 }
 
-geometry_msgs::Pose Localizator::getPose(){
+geometry_msgs::PoseStamped Localizator::getPose(){
     /*odom_listener.waitForTransform("/odom", "/base_link", ros::Time(0), ros::Duration(1));
     odom_listener.lookupTransform("/odom", "/base_link", ros::Time(0), odom_transform);
 
@@ -55,8 +57,8 @@ geometry_msgs::Pose Localizator::getPose(){
 }
 
 void Localizator::publishPose(char* type){
-    ros::Publisher pose_pub = node.advertise<geometry_msgs::Pose>(POSE(type), 1000);
-    ros::Rate r(5.0);
+    ros::Publisher pose_pub = node.advertise<geometry_msgs::PoseStamped>(POSE(type), 1000);
+    ros::Rate r(20.0);
 
     while(node.ok()){
 

@@ -14,17 +14,18 @@
         <node name="Control" pkg="robot_control" type="control" output="screen" respawn="true" args="larger_robot"/>
     </group>
  -->
-    <node name="Knowledge" pkg="robot_control" type="knowledge" output="screen" respawn="true" args="larger_robot"/>
+    <node name="Knowledge" pkg="robot_control" type="knowledge" output="screen" args="larger_robot" required="true"/>
   
     <group ns="larger_robot">
         <include file="$(find robot_control)/launch/larger_robot.launch" ></include>
-        <node name="Localization" pkg="robot_control" type="localization" output="screen" respawn="true" args="larger_robot"/>
-        <node name="Laser" pkg="robot_control" type="laser" output="screen" respawn="true" args="larger_robot"/>
-        <node name="Mapping" pkg="robot_control" type="mapping" output="screen" respawn="true" args="larger_robot"/>
-        <node name="Navigation" pkg="robot_control" type="navigation" output="screen" respawn="true" args="larger_robot"/>
-        <node name="Control" pkg="robot_control" type="control" output="screen" respawn="true" args="larger_robot"/>
+        <node name="Localization" pkg="robot_control" type="localization" output="screen" args="larger_robot" required="true"/>
+        <node name="Laser" pkg="robot_control" type="laser" output="screen" args="larger_robot" required="true"/>
+        <node name="Mapping" pkg="robot_control" type="mapping" output="screen" args="larger_robot" required="true"/>
+        <node name="Navigation" pkg="robot_control" type="navigation" output="screen" args="larger_robot" required="true"/>
+        <node name="Control" pkg="robot_control" type="control" output="screen" args="larger_robot" required="true"/>
     </group>
     
+    <!--
     <group ns="smaller_robot">
         <include file="$(find robot_control)/launch/smaller_robot.launch" ></include>
         <node name="Localization" pkg="robot_control" type="localization" output="screen" respawn="true" args="smaller_robot"/>
@@ -33,13 +34,12 @@
         <node name="Navigation" pkg="robot_control" type="navigation" output="screen" respawn="true" args="smaller_robot"/>
         <node name="Control" pkg="robot_control" type="control" output="screen" respawn="true" args="smaller_robot"/>
     </group>
-    <!--
     -->
 
 
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="world_name" value="$(find robot_control)/world/containers_real.world"/>
+        <arg name="world_name" value="$(find robot_control)/world/harbor.world"/>
       <arg name="paused" value="false"/>
         <arg name="use_sim_time" value="true"/>
         <arg name="gui" value="true"/>

@@ -17,6 +17,10 @@
 #define EMPTY ' '
 #define ME 'x'
 
+#define DISCRETE_ERROR 0.1
+
+#define MAX_RANGE 8
+
 #define INSIDE(p) (p.x + (this -> length/2) >= 0 && p.y + (this -> width/2) >= 0 && \
 				   p.x < this -> length/2 && p.y < this -> width/2)
 
@@ -37,6 +41,7 @@ public:
     void writeMap();
 
 private:
+	bool checkError(int x, int y);
 	void initMap();
 
 	char** map;

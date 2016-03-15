@@ -1,7 +1,7 @@
 #include "resources.h"
 #include <vector>
 #include <tf/tf.h>
-#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/LaserScan.h>
 #include <list>
 #include <geometry_msgs/Quaternion.h>
@@ -17,6 +17,9 @@
 
 #ifndef _MAPPING_H_
 #define _MAPPING_H_
+
+#define RANGES 480
+#define MEASURES 8
 
 #define INSIDE(p) (p.x + (this -> length/2) >= 0 && p.y + (this -> width/2) >= 0 && \
 				   p.x < this -> length/2 && p.y < this -> width/2)
@@ -37,7 +40,7 @@ private:
 
 	void handleLaser(const robot_control::laserMeasures::ConstPtr& data);
 
-	void handlePose(const geometry_msgs::Pose::ConstPtr& data);
+	void handlePose(const geometry_msgs::PoseStamped::ConstPtr& data);
 
 	void calculateDistances(_2DPoint real_pose);
 

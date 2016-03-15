@@ -29,10 +29,10 @@ Mapper::~Mapper(){
 	free(this -> robot);
 }
 
-void Mapper::handlePose(const geometry_msgs::Pose::ConstPtr& data){
-	this -> robot -> position.x = data -> position.x;
-	this -> robot -> position.y = data -> position.y;
-	this -> robot -> yaw = tf::getYaw(data -> orientation);
+void Mapper::handlePose(const geometry_msgs::PoseStamped::ConstPtr& data){
+	this -> robot -> position.x = data -> pose.position.x;
+	this -> robot -> position.y = data -> pose.position.y;
+	this -> robot -> yaw = tf::getYaw(data -> pose.orientation);
 }
 
 void Mapper::handleLaser(const robot_control::laserMeasures::ConstPtr& data){
@@ -50,17 +50,17 @@ void Mapper::handleLaser(const robot_control::laserMeasures::ConstPtr& data){
 void Mapper::calculateDistances(_2DPoint real_pose){
 	_2DPoint aux;
 	float theta;
+	int interval = RANGES/MEASURES;
+	bool last_measure = true;
 	robot_control::addToMap srv;
 
 	std::vector<float>::iterator range_it = range.begin();
     std::vector<float>::iterator angle_it = angle.begin();
 
 	while(range_it != range.end()){
-		if((*range_it) < 15){
-
 			theta = Resources::angleSum(this -> robot -> yaw, (*angle_it));
 				
-			aux.x = real_pose.x +  (cos(theta) * (*range_it)); 
+			aux.x = real_pose.x + (cos(theta) * (*range_it)); 
 			aux.y = real_pose.y + (sin(theta) * (*range_it));
 
 			srv.request.wall_x = aux.x;
@@ -69,15 +69,13 @@ void Mapper::calculateDistances(_2DPoint real_pose){
 			srv.request.start_x = real_pose.x;
 			srv.request.start_y = real_pose.y;
 
-			srv.request.inc_x = cos(theta)*0.1;
-			srv.request.inc_y = sin(theta)*0.1;
+			srv.request.inc_x = cos(theta)*0.25;
+			srv.request.inc_y = sin(theta)*0.25;
 
 			srv.request.range = (*range_it);
 
-			if(!client.call(srv)){	
-				ROS_INFO("Could not add cell to map.");
-			}
-
+			client.call(srv);
+			
 			//addToMap(aux, FULL, real_pose, cos(theta)*0.1, sin(theta)*0.1, (*range_it));
 
 			/*
@@ -86,10 +84,20 @@ void Mapper::calculateDistances(_2DPoint real_pose){
 
 			addToMap(aux, ME, real_pose, 0, 0, 0);
 			*/
+
+		if(!last_measure)
+			break;
+		
+		for(int i = 0; i < interval; i++){
+			range_it++;
+			angle_it++;
 		}
 
-		range_it++;
-		angle_it++;
+		if(range_it == range.end() && last_measure){
+			last_measure = false;
+			range_it--;
+			angle_it--;	
+		}
 	}
 }
 
@@ -141,7 +149,7 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle node;
 
-    Mapper *mapper = new Mapper(node, 40.0, 40.0, 0.5, argv[1]);
+    Mapper *mapper = new Mapper(node, 40.0, 40.0, 0.25, argv[1]);
 
     ROS_INFO("Mapper started.");
 

@@ -2,7 +2,7 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Quaternion.h>
 #include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
@@ -11,7 +11,6 @@
 #include "laser.h"
 #include "topics.h"
 #include <gazebo_msgs/ModelStates.h>
-
 
 class Localizator {
 public:
@@ -25,9 +24,9 @@ public:
 private:
 	void handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data);
 	
-	geometry_msgs::Pose getPose();
+	geometry_msgs::PoseStamped getPose();
 
-	geometry_msgs::Pose pose;
+	geometry_msgs::PoseStamped pose;
 
 	ros::Subscriber gazebo_pose_sub;
 

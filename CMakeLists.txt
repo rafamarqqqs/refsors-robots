@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   genmsg
   std_msgs
   message_generation
+  message_filters
   actionlib_msgs
   actionlib
 )
