@@ -97,5 +97,7 @@ int main(int argc, char **argv){
 
     localizator -> publishPose(argv[1]);
 
+    delete localizator;
+
     return 0;
 }

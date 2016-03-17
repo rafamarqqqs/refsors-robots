@@ -12,9 +12,9 @@
 #ifndef _KNOWLEDGE_H_
 #define _KNOWLEDGE_H_
 
-#define FULL '#'
-#define UNKNOWN ':'
-#define EMPTY ' '
+#define FULL 1
+#define UNKNOWN 0.5
+#define EMPTY 0
 #define ME 'x'
 
 #define DISCRETE_ERROR 0.1
@@ -33,7 +33,7 @@
 
 class Knowledge {
 public:
-	Knowledge(ros::NodeHandle node, float length, float width, float cell_size);
+	Knowledge(ros::NodeHandle node, double length, double width, double cell_size);
     ~Knowledge();
 
     bool addToMap(robot_control::addToMap::Request& req, robot_control::addToMap::Response& res);
@@ -42,13 +42,14 @@ public:
 
 private:
 	bool checkError(int x, int y);
-	void initMap();
+	void initMaps();
 
-	char** map;
+	float** map;
+	int** map_scans;
 
-	float length;
-	float width;
-	float cell_size;
+	double length;
+	double width;
+	double cell_size;
 
 	ros::ServiceServer service;
     ros::NodeHandle node;

@@ -6,29 +6,29 @@
 class Resources {
 public:
 
-	static float angleSum(float angle_a, float angle_b);
+	static double angleSum(double angle_a, double angle_b);
 
-	static float angleDiff(float angle_a, float angle_b);
+	static double angleDiff(double angle_a, double angle_b);
 
-	static float transformYaw(float yaw);
+	static double transformYaw(double yaw);
 
-	static float normalizeAngle(float angle);
+	static double normalizeAngle(double angle);
 
 };
 
 typedef struct point {
-	float angle;
-	float range;
+	double angle;
+	double range;
 } LaserPoint;
 
 typedef struct _2dpoint {
-    float x;
-    float y;
+    double x;
+    double y;
 } _2DPoint;
 
 typedef struct robot {
 	_2DPoint position;
-	float yaw;
+	double yaw;
 } Robot;
 
 #endif

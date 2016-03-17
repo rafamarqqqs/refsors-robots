@@ -1,6 +1,6 @@
 #include "../include/robot_control/occupancy_grid.h"
 
-OccupancyGrid::OccupancyGrid(float length, float width, float cell_size, int area_size, float rep){
+OccupancyGrid::OccupancyGrid(double length, double width, double cell_size, int area_size, double rep){
 	this -> length = length;
 	this -> width = width;
 	this -> cell_size = cell_size;
@@ -15,7 +15,7 @@ OccupancyGrid::OccupancyGrid(float length, float width, float cell_size, int are
 	initMap();
 }
 
-void OccupancyGrid::setRepulsion(float rep){
+void OccupancyGrid::setRepulsion(double rep){
 	repulsion = rep;
 }
 
@@ -43,11 +43,11 @@ void OccupancyGrid::initAreas(){
 void OccupancyGrid::initMap(){
 	int i, j;
 
-	map = (float **) malloc(sizeof(float *)*TO_CELLS(length));
+	map = (double **) malloc(sizeof(double *)*TO_CELLS(length));
 
 	for(i = 0; i < TO_CELLS(length); i++){
-		map[i] = (float *) malloc(sizeof(float) * TO_CELLS(width));
-		memset(map[i], 0, TO_CELLS(width)*sizeof(float));
+		map[i] = (double *) malloc(sizeof(double) * TO_CELLS(width));
+		memset(map[i], 0, TO_CELLS(width)*sizeof(double));
 	}
 }
 
@@ -67,10 +67,10 @@ OccupancyGrid::~OccupancyGrid(){
 }
 
 bool OccupancyGrid::isInTheSameQuadrant(_2DPoint* goal, Area area){
-	float x = (area.start.x + area.end.x)/2;
-	float y = (area.start.y + area.end.y)/2;
-	float x_middle = 0;
-	float y_middle = 0;
+	double x = (area.start.x + area.end.x)/2;
+	double y = (area.start.y + area.end.y)/2;
+	double x_middle = 0;
+	double y_middle = 0;
 
 	if(x > x_middle && goal -> x > x_middle){
 		if(y > y_middle && goal -> y > y_middle)
@@ -96,14 +96,14 @@ bool OccupancyGrid::isFarAway(_2DPoint* goal, Area area){
 	int x = (area.start.x + area.end.x)/2;
 	int y = (area.start.y + area.end.y)/2;
 
-	float distance = pow(pow(x - goal -> x, 2) + pow(y - goal -> y, 2), 0.5);
+	double distance = pow(pow(x - goal -> x, 2) + pow(y - goal -> y, 2), 0.5);
 
 	return distance > 10 ? true : false;
 }
 
 void OccupancyGrid::getNewGoal(_2DPoint* goal){
-	float x = 0;
-	float y = 0;
+	double x = 0;
+	double y = 0;
 	int y_index;
 	int x_index;
 
@@ -164,22 +164,22 @@ void OccupancyGrid::remakeOccupiedAreas(){
 				}
 			}
 
-			//ROS_INFO("%3.2f", (float) (1.0*occupied)/(1.0*size));
+			//ROS_INFO("%3.2f", (double) (1.0*occupied)/(1.0*size));
 
-			if(((float) (1.0*occupied)/(1.0*size)) >= 0.25)
+			if(((double) (1.0*occupied)/(1.0*size)) >= 0.25)
 				areas[_i][_j].occupied = true;
 		}
 	}
 }
 
-float OccupancyGrid::OGInfluence(float x, float y){
+double OccupancyGrid::OGInfluence(double x, double y){
 	int map_x = (int) (TO_CELLS(x) + BASE_X);
 	int map_y = (int) (TO_CELLS(y) + BASE_Y);
 	int i, j;
-	float total = 0, local_total = 0;
+	double total = 0, local_total = 0;
 	int size = 0, local_size = 0;
-	float local_average, average;
-	float percentage = 0;
+	double local_average, average;
+	double percentage = 0;
 
 	for(i = 0; i < TO_CELLS(length); i++){
 		for(j = 0; j < TO_CELLS(width); j++){
@@ -220,7 +220,7 @@ OGVector* OccupancyGrid::calculateTailForce(_2DPoint robot){
 	vector<_2DPoint>::iterator it;
 	OGVector* ogTail = new OGVector();
 	_2DPoint aux;
-	float norm;
+	double norm;
 	ogTail -> x = 0; 
 	ogTail -> y = 0; 
 
@@ -240,7 +240,7 @@ OGVector* OccupancyGrid::calculateTailForce(_2DPoint robot){
 	return ogTail;
 }
 
-void OccupancyGrid::updatePosition(float x, float y){
+void OccupancyGrid::updatePosition(double x, double y){
 	int map_x = (int) (TO_CELLS(x) + BASE_X);
 	int map_y = (int) (TO_CELLS(y) + BASE_Y);
 	/*
@@ -269,7 +269,7 @@ void OccupancyGrid::updatePosition(float x, float y){
 	updateTail(x, y);
 }
 
-void OccupancyGrid::updateTail(float x, float y){
+void OccupancyGrid::updateTail(double x, double y){
 	if(tail.size() == 0)
 		return;
 
@@ -343,14 +343,14 @@ void OccupancyGrid::writeAreas(std::string type){
 
 
 OGVector* OccupancyGrid::calculateOGVector(_2DPoint robot){
-	float x = robot.x;
-	float y = robot.y;
+	double x = robot.x;
+	double y = robot.y;
 	int map_x = (int) (TO_CELLS(x) + BASE_X);
 	int map_y = (int) (TO_CELLS(y) + BASE_Y);
 	OGVector* ogv;
 	int max = 0;
-	float total;
-	float average;
+	double total;
+	double average;
 	int i, j;
 	int size;
 

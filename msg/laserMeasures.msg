@@ -1,4 +1,4 @@
 Header header
-float32[] range
-float32[] angle
-float32 front
+float64[] range
+float64[] angle
+float64 front

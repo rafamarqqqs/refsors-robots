@@ -38,17 +38,17 @@
 #define MEASURES 480
 
 #define QGOAL 0.8
-#define QWALL 0.3
+#define QWALL 0.8
 #define QOG 0.8
 #define QTAIL 0.4
-#define MAX_LIN_SPEED 0.4
-#define MAX_ANG_SPEED 0.5
+#define MAX_LIN_SPEED 0.7
+#define MAX_ANG_SPEED 0.9
 
 //seconds
 #define TIME_LIMIT (5 * 60)
 
 #define ERROR 4.0
-#define MIN_DIST 6
+#define MIN_DIST 8
 
 #define START_OG_CALCULATION(x, y) (fabs(x) > 0.5 || fabs(y) > 0.5)
 
@@ -61,8 +61,8 @@
                                                  ? true : false)
 */
 typedef struct drivingInfo {
-    float rotation;
-    float velocity;
+    double rotation;
+    double velocity;
 } DrivingInfo;
 
 //typedef message_filters::sync_policies::ApproximateTime<robot_control::laserMeasures, geometry_msgs::PoseStamped> SyncPolicy;
@@ -75,7 +75,7 @@ public:
     virtual ~Navigator();
 
     void search(const robot_control::searchGoalConstPtr &goal);
-    _2DPoint *createGoal(float x, float y);
+    _2DPoint *createGoal(double x, double y);
 
 private:
     DrivingInfo defineDirection(_2DPoint *goal);
@@ -91,7 +91,7 @@ private:
     void driveForward();
     void drive(DrivingInfo info);
     std::list<_2DPoint>* calculateDistances(Robot* robot);
-    float calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, Robot* robot);
+    double calculateAngle(_2DPoint *goal, std::list<_2DPoint>* wall_points, Robot* robot);
 
     std::list<LaserPoint> remakeRanges();
 
@@ -99,12 +99,16 @@ private:
     OccupancyGrid *og;
     geometry_msgs::Pose pose;
 
-    std::vector<float> range;
-    std::vector<float> angle;
+    std::vector<double> range;
+    std::vector<double> angle;
     
-    float front;
+    double front;
 
-    float min_range;
+    float qwall;
+    float qog;
+    float max_lin_speed;
+    float max_ang_speed;
+    float min_dist;
 
     std::string type;
 

@@ -30,13 +30,13 @@ typedef actionlib::SimpleActionServer<robot_control::createMapAction> CreateMapA
 
 class Mapper {
 public:
-	Mapper(ros::NodeHandle n, float length, float width, float cell_size, char *type);
+	Mapper(ros::NodeHandle n, double length, double width, double cell_size, char *type);
 	~Mapper();
 
  	void createMap(const robot_control::createMapGoalConstPtr &goal);
 
 private:
-	void addToMap(_2DPoint point, char value, _2DPoint real_pose, float x_inc, float y_inc, float range);
+	void addToMap(_2DPoint point, char value, _2DPoint real_pose, double x_inc, double y_inc, double range);
 
 	void handleLaser(const robot_control::laserMeasures::ConstPtr& data);
 
@@ -44,15 +44,15 @@ private:
 
 	void calculateDistances(_2DPoint real_pose);
 
-	float length;
-	float width;
-	float cell_size;
+	double length;
+	double width;
+	double cell_size;
 	
 	Robot* robot;
 	
-    std::vector<float> range;
-    std::vector<float> angle;
-    float front;
+    std::vector<double> range;
+    std::vector<double> angle;
+    double front;
 
     bool laser_ready;
 
@@ -63,8 +63,8 @@ private:
 
 	ros::ServiceClient client;
 
-	float real_x;
-	float real_y;
+	double real_x;
+	double real_y;
 
 	CreateMapAction createMapServer;
 

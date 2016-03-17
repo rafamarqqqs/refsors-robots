@@ -14,8 +14,8 @@ using namespace std;
 #ifndef _OCCUPANCY_GRID_H_
 #define _OCCUPANCY_GRID_H_
 
-#define NEARBY 4
-#define DISPLACEMENT 1
+#define NEARBY 8
+#define DISPLACEMENT 5
 
 #define MAX_TAIL_SIZE 0
 
@@ -29,8 +29,8 @@ using namespace std;
 #define TO_CELLS(v) (((int)floor(v/this -> cell_size)))
 
 typedef struct OccupancyGridVector {
-	float x;
-	float y;
+	double x;
+	double y;
 } OGVector;
 
 typedef struct map_point{
@@ -51,33 +51,33 @@ typedef enum lvl {
 } Level;
 
 typedef struct {
-	float x, y;
+	double x, y;
 	Level level;
 } OccupancyTail;
 
 class OccupancyGrid{
 public:
-	OccupancyGrid(float length, float width, float cell_size, int area_size, float rep);
+	OccupancyGrid(double length, double width, double cell_size, int area_size, double rep);
 	~OccupancyGrid();
 
 	OGVector* calculateOGVector(_2DPoint robot);
 	void getNewGoal(_2DPoint *goal);
-	void updatePosition(float x, float y);
+	void updatePosition(double x, double y);
 	void writeMap(std::string type);
-	float OGInfluence(float x, float y);
-	void setRepulsion(float rep);
+	double OGInfluence(double x, double y);
+	void setRepulsion(double rep);
 	OGVector* calculateTailForce(_2DPoint robot);
 	bool isFarAway(_2DPoint* goal, Area area);
 
 private:
-	void updateTail(float x, float y);
+	void updateTail(double x, double y);
 	void writeAreas(std::string type);
 	bool isInTheSameQuadrant(_2DPoint* goal, Area area);
 	void initMap();
 	void initAreas();
 	void remakeOccupiedAreas();
 
-	float** map;
+	double** map;
 
 	Area** areas;
 
@@ -85,12 +85,12 @@ private:
 
 	vector<_2DPoint> tail;
 
-	float area_size;
-	float length;
-	float width;
+	double area_size;
+	double length;
+	double width;
 	bool ready;
-	float cell_size;
-	float repulsion;
+	double cell_size;
+	double repulsion;
 
 };
 

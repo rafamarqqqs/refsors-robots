@@ -1,6 +1,6 @@
 #include "../include/robot_control/mapping.h"
 
-Mapper::Mapper(ros::NodeHandle n, float length, float width, float cell_size, char *type):
+Mapper::Mapper(ros::NodeHandle n, double length, double width, double cell_size, char *type):
     createMapServer(n, "createMap", boost::bind(&Mapper::createMap, (Mapper *) this, _1), false) {
 	int i, j;
 
@@ -49,13 +49,13 @@ void Mapper::handleLaser(const robot_control::laserMeasures::ConstPtr& data){
 
 void Mapper::calculateDistances(_2DPoint real_pose){
 	_2DPoint aux;
-	float theta;
+	double theta;
 	int interval = RANGES/MEASURES;
 	bool last_measure = true;
 	robot_control::addToMap srv;
 
-	std::vector<float>::iterator range_it = range.begin();
-    std::vector<float>::iterator angle_it = angle.begin();
+	std::vector<double>::iterator range_it = range.begin();
+    std::vector<double>::iterator angle_it = angle.begin();
 
 	while(range_it != range.end()){
 			theta = Resources::angleSum(this -> robot -> yaw, (*angle_it));
@@ -102,8 +102,8 @@ void Mapper::calculateDistances(_2DPoint real_pose){
 }
 
 void Mapper::createMap(const robot_control::createMapGoalConstPtr &goal){
-	float last_x = 1000, last_y = 1000;
-	float y_diff, x_diff;
+	double last_x = 1000, last_y = 1000;
+	double y_diff, x_diff;
 
 	//ROS_INFO("mapper waiting for laser");
 
@@ -149,11 +149,13 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle node;
 
-    Mapper *mapper = new Mapper(node, 40.0, 40.0, 0.25, argv[1]);
+    Mapper *mapper = new Mapper(node, 40.0, 40.0, 0.5, argv[1]);
 
     ROS_INFO("Mapper started.");
 
     ros::spin();
+
+    delete mapper;
 
     return 0;
 }

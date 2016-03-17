@@ -25,7 +25,6 @@
         <node name="Control" pkg="robot_control" type="control" output="screen" args="larger_robot" required="true"/>
     </group>
     
-    <!--
     <group ns="smaller_robot">
         <include file="$(find robot_control)/launch/smaller_robot.launch" ></include>
         <node name="Localization" pkg="robot_control" type="localization" output="screen" respawn="true" args="smaller_robot"/>
@@ -34,6 +33,7 @@
         <node name="Navigation" pkg="robot_control" type="navigation" output="screen" respawn="true" args="smaller_robot"/>
         <node name="Control" pkg="robot_control" type="control" output="screen" respawn="true" args="smaller_robot"/>
     </group>
+    <!--
     -->
 
 

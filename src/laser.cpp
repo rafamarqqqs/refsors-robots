@@ -22,6 +22,8 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr& laser_dat
         measures.angle.push_back(ANGLE_MAX - (ANGLE_INCREMENT*i));
     }
 
+    ROS_INFO("%4.4lf", laser_data -> ranges[360]);
+
     measures.front = 15;
 
     for(i = (LASER_MEASURES/2) - 10 ; i < (LASER_MEASURES/2) + 10; i++){
@@ -63,6 +65,8 @@ int main(int argc, char **argv){
     ROS_INFO("Laser started.");
 
     laser -> publishMeasures(argv[1]);
+
+    delete laser;
 
     return 0;
 }
