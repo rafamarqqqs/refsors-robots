@@ -1,9 +1,0 @@
-float64 start_x
-float64 start_y
-float64 wall_x
-float64 wall_y
-float64 inc_x
-float64 inc_y
-float64 range
----
----

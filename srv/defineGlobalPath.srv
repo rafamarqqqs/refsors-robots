@@ -1,0 +1,9 @@
+float64 x
+float64 y
+float64 destiny_x
+float64 destiny_y
+float32 cell_size
+char[] map
+---
+float64[] x_path
+float64[] y_path

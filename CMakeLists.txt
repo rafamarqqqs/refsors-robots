@@ -62,6 +62,8 @@ add_message_files(
 add_service_files(
   FILES
   addToMap.srv
+  defineGlobalPath.srv
+  getPositions.srv
   #createMap.srv
 )
 
@@ -143,25 +145,28 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(${PROJECT_NAME}_node src/random_husky_driver_node.cpp)
 
-#add_executable(navigation src/navigation.cpp src/localization.cpp src/mapping.cpp src/laser.cpp src/resources.cpp)
+#add_executable(navigation src/navigation.cpp src/localization.cpp src/mapping.cpp src/laser.cpp)
 
 add_executable(control src/control.cpp)
-add_executable(navigation src/navigation.cpp src/occupancy_grid.cpp src/resources.cpp)
-add_executable(localization src/localization.cpp src/resources.cpp)
-add_executable(mapping src/mapping.cpp src/resources.cpp)
-add_executable(knowledge src/knowledge.cpp src/resources.cpp)
-add_executable(laser src/laser.cpp src/resources.cpp)
+add_executable(navigation src/navigation.cpp src/occupancy_grid.cpp)
+add_executable(localization src/localization.cpp)
+add_executable(mapping src/mapping.cpp)
+add_executable(knowledge src/knowledge.cpp)
+add_executable(laser src/laser.cpp)
+add_executable(path_planning src/path_planning.cpp)
 
 add_dependencies(control robot_control_generate_messages_cpp)
 add_dependencies(navigation robot_control_generate_messages_cpp)
 add_dependencies(localization robot_control_generate_messages_cpp)
 add_dependencies(laser robot_control_generate_messages_cpp)
 add_dependencies(knowledge robot_control_generate_messages_cpp)
+add_dependencies(path_planning robot_control_generate_messages_cpp)
 
 add_dependencies(control ${robot_control_EXPORTED_TARGETS})
 add_dependencies(navigation ${robot_control_EXPORTED_TARGETS})
 add_dependencies(knowledge ${robot_control_EXPORTED_TARGETS})
 add_dependencies(mapping ${robot_control_EXPORTED_TARGETS})
+add_dependencies(path_planning ${robot_control_EXPORTED_TARGETS})
 
 target_link_libraries(navigation ${catkin_LIBRARIES})
 target_link_libraries(control ${catkin_LIBRARIES})
@@ -169,6 +174,7 @@ target_link_libraries(localization ${catkin_LIBRARIES})
 target_link_libraries(mapping ${catkin_LIBRARIES})
 target_link_libraries(laser ${catkin_LIBRARIES})
 target_link_libraries(knowledge ${catkin_LIBRARIES})
+target_link_libraries(path_planning ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above

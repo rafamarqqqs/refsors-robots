@@ -1,7 +1,7 @@
 #include "../include/robot_control/laser.h"
 
-Laser::Laser(ros::NodeHandle n, char *type){
-    node = n;
+Laser::Laser(ros::NodeHandle n, char *type): node(n), front_size(FRONT_SIZE(type)){
+
     laser_sub = node.subscribe(SCAN(type), 1, &Laser::handleSubscription, this);
 }
 
@@ -22,14 +22,18 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr& laser_dat
         measures.angle.push_back(ANGLE_MAX - (ANGLE_INCREMENT*i));
     }
 
-    ROS_INFO("%4.4lf", laser_data -> ranges[360]);
+    //ROS_INFO("%4.4lf", laser_data -> ranges[360]);
 
-    measures.front = 15;
+    measures.front = 8;
 
-    for(i = (LASER_MEASURES/2) - 10 ; i < (LASER_MEASURES/2) + 10; i++){
+    for(i = (LASER_MEASURES/2) - front_size; i < (LASER_MEASURES/2) + front_size; i++){
         if(laser_data -> ranges[i] < measures.front);
             measures.front = laser_data -> ranges[i];
     }
+}
+
+inline robot_control::laserMeasures Laser::getMeasures(){
+    return this -> measures;
 }
 
 void Laser::publishMeasures(char* type){
@@ -46,9 +50,6 @@ void Laser::publishMeasures(char* type){
     }
 }
 
-robot_control::laserMeasures Laser::getMeasures(){
-    return this -> measures;
-}
 
 int main(int argc, char **argv){
     if(argc < 2){

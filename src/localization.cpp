@@ -1,21 +1,15 @@
 #include "../include/robot_control/localization.h"
 
-Localizator::Localizator(ros::NodeHandle n, char *type){
-    node = n;
+Localizator::Localizator(ros::NodeHandle n, char *type): node(n), robot_name(MOBILE(type)) {
     gazebo_pose_sub = n.subscribe("/gazebo/model_states", 1, &Localizator::handleGazeboModelState, this);
-    robot_name = (char *) malloc(sizeof(char) * (strlen(MOBILE(type)) + 1));
-    strcpy(robot_name, MOBILE(type));
 }
 
-Localizator::~Localizator(){
-    free(robot_name);
-}
+Localizator::~Localizator(){}
 
 void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data){
     int i = 0;
-    std::string model_name(robot_name);
 
-    while(data -> name[i].compare(model_name) != 0){        
+    while(data -> name[i].compare(robot_name) != 0){        
         i++;
     }
 

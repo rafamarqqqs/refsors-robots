@@ -1,30 +1,43 @@
 #include "../include/robot_control/knowledge.h"
 
+using namespace std;
 
 Knowledge::Knowledge(ros::NodeHandle n, double length, double width, double cell_size){
 
     this -> length = length;
     this -> width = width;
     this -> cell_size = cell_size;
+    this -> ids = 0;
+    this -> positions = new vector<_2DPoint>();
+    mapped = false;
 
     initMaps();
 }
 
 Knowledge::~Knowledge(){
-    delete map;
-    delete map_scans;
+    int i, j;
+
+
+
+    writeMap();
+    
+    for(i = 0; i < TO_CELLS(length); i++){
+        free(map[i]);
+        free(map_scans[i]);
+    }
+
+    delete positions;
 }
 
 void Knowledge::initMaps(){
     int i, j;
 
-    map = (float **) malloc(sizeof(float *) * TO_CELLS(length));
-    map_scans = (int **) malloc(sizeof(int *) * TO_CELLS(length));
+    map = (char **) malloc(sizeof(char *) * TO_CELLS(length));
+    map_scans = (unsigned short **) malloc(sizeof(unsigned short *) * TO_CELLS(length));
 
     for(i = 0; i < TO_CELLS(length); i++){
-        map[i] = (float *) malloc(sizeof(float) * TO_CELLS(width));
-        map_scans[i] = (int *) calloc(TO_CELLS(width), sizeof(int));
-        //memset(&(map_scans[i]), 0.5, sizeof(float) * TO_CELLS(width));
+        map[i] = (char *) malloc(sizeof(char) * TO_CELLS(width));
+        map_scans[i] = (unsigned short *) calloc(TO_CELLS(width), sizeof(unsigned short));
     }
     
     for(i = 0; i < TO_CELLS(length); i++){
@@ -34,64 +47,90 @@ void Knowledge::initMaps(){
     }
 }
 
-bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::addToMap::Response& res){
+bool Knowledge::getPositions(robot_control::getPositions::Request& req, robot_control::getPositions::Response& res){
     _2DPoint aux;
+    vector<_2DPoint>::iterator it;
+    int i;
 
-    aux.x = req.wall_x;
-    aux.y = req.wall_y;
+    aux.x = req.my_x;
+    aux.y = req.my_y;
 
-    if(!INSIDE(aux))
+    if(req.has_id == false){
+        req.my_id = res.id = ids;
+        ids++;
+        positions -> push_back(aux);
+    }
+    else
+        positions -> at(req.my_id) = aux;
+
+    for(i = 0, it = positions -> begin(); it != positions -> end(); it++, i++){
+        if(i != req.my_id){
+            res.x.push_back((*it).x);
+            res.y.push_back((*it).y);
+        }
+    }
+
+    return true;
+}
+
+bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::addToMap::Response& res){
+
+    if(!INSIDE(req.wall_x, req.wall_y))
         return false;
 
-    int x = (int) BASE_X + TO_CELLS(aux.x);
-    int y = (int) BASE_Y + TO_CELLS(aux.y);
+    int x = BASE_X + TO_CELLS(req.wall_x);
+    int y = BASE_Y + TO_CELLS(req.wall_y);
     double aux_x = req.start_x;
     double aux_y = req.start_y;
-    double dist = 0;
-    int map_x = 1000, map_y = 1000;
-    double range = 0;
+    double range, aux_average;
     double range_inc = pow(pow(req.inc_x, 2) + pow(req.inc_y, 2), 0.5);
-    double aux_average;
+    int map_x = floor(TO_CELLS(aux_x)) + BASE_X;
+    int map_y = floor(TO_CELLS(aux_y)) + BASE_Y;
 
-    map_x = ((int) TO_CELLS(aux_x)) + BASE_X;
-    map_y = ((int) TO_CELLS(aux_y)) + BASE_Y;
+    range = range_inc;
 
-    //while(COMPARE(req.start_x, aux.x, aux_x) && COMPARE(req.start_y, aux.y, aux_y)){
     while(map_x != x && map_y != y && MAX_RANGE > range){
 
-        map_scans[map_x][map_y]++;
-
-        /*
-        if(map[map_x][map_y] == UNKNOWN)
-            map[map_x][map_y] = EMPTY;
-        else if(map[map_x][map_y] == FULL){
-            wall = true;
-            break;
-        }
-        */
-
-        map[map_x][map_y] = map[map_x][map_y]/(map_scans[map_x][map_y]*1.0);
+        map[map_x][map_y] = (unsigned short) floor(map[map_x][map_y]/(++map_scans[map_x][map_y]));
 
         range += range_inc;
 
         aux_x += req.inc_x;
         aux_y += req.inc_y;
         
-        map_x = ((int) TO_CELLS(aux_x)) + BASE_X;
-        map_y = ((int) TO_CELLS(aux_y)) + BASE_Y;
+        map_x = floor(TO_CELLS(aux_x)) + BASE_X;
+        map_y = floor(TO_CELLS(aux_y)) + BASE_Y;
     }
 
-    if(req.range < MAX_RANGE /*&& map[map_x][map_y] == UNKNOWN && !wall*/){
-        aux_average = map[x][y] * (map_scans[x][y]*1.0);
-
-        map_scans[x][y]++;
-
-        map[x][y] = (aux_average + FULL)/(map_scans[x][y]*1.0);
+    if(req.range < MAX_RANGE){
+        aux_average = map[x][y] * (map_scans[x][y]++);
+        map[x][y] = (unsigned short) floor(aux_average + FULL)/(map_scans[x][y]);
     }
 
-    writeMap();
+    //writeMap();
 
     res.added = true;
+
+    if(req.start_x > 0 && req.start_y < 3 && !mapped){
+        mapped = true;
+        ros::ServiceClient client = node.serviceClient<robot_control::defineGlobalPath>("/PathPlanning/defineGlobalPath");
+
+        robot_control::defineGlobalPath srv;
+
+        srv.request.x = req.start_x;
+        srv.request.y = req.start_y;
+        srv.request.destiny_x = -14;
+        srv.request.destiny_y = 16;
+        srv.request.cell_size = 0.5;
+
+        for(int i = 0; i < TO_CELLS(length); i++){
+            for(int j = 0; j < TO_CELLS(width); j++){
+                srv.request.map.push_back((unsigned char) map[i][j]);
+            }
+        }
+
+        client.call(srv);
+    }
 
     return true;
 }
@@ -104,14 +143,13 @@ void Knowledge::writeMap(){
 
     for(i = 0; i < TO_CELLS(length); i++){
         for(j = 0; j < TO_CELLS(width); j++){
-            if(map[i][j] < 0.2)
+            if(map[i][j] < EMPTY_RANGE)
                 block = ' ';
-            else if(map[i][j] > 0.8)
+            else if(map[i][j] > FULL_RANGE)
                 block = '#';
             else
                 block = ':';
-            //VISUALIZATION PURPOSES, REMOVE WHEN READY
-            file.put(block);
+
             file.put(block);
         }
 
@@ -130,7 +168,10 @@ int main(int argc, char **argv) {
 
     Knowledge *knowledge = new Knowledge(node, 40.0, 40.0, 0.5);
 
-    ros::ServiceServer service = node.advertiseService("/Knowledge/addToMap", &Knowledge::addToMap, knowledge);
+    ros::ServiceServer addToMap_service = node.advertiseService("/Knowledge/addToMap", 
+                                                    &Knowledge::addToMap, knowledge);
+    ros::ServiceServer getPositions_service = node.advertiseService("/Knowledge/getPositions", 
+                                                    &Knowledge::getPositions, knowledge);
 
     ROS_INFO("Knowledge started.");
 

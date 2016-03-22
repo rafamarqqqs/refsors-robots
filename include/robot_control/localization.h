@@ -17,7 +17,6 @@ public:
 	Localizator(ros::NodeHandle n, char* type);
 	virtual ~Localizator();
 
-
 	void publishPose(char* type);
 
 
@@ -32,7 +31,7 @@ private:
 
 	ros::NodeHandle node;
 
-	char* robot_name;
+	std::string robot_name;
 	//tf::StampedTransform odom_transform;
     //tf::TransformListener odom_listener;
 };

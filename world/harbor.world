@@ -1,8 +1,8 @@
-<sdf version='1.4'>
+<sdf version='1.5'>
   <world name='default'>
     <light name='sun' type='directional'>
       <cast_shadows>0</cast_shadows>
-      <pose>0 0 10 0 -0 0</pose>
+      <pose frame=''>0 0 10 0 -0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
       <specular>0.2 0.2 0.2 1</specular>
       <attenuation>
@@ -58,305 +58,300 @@
         </velocity_decay>
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
-        <gravity>1</gravity>
+        <gravity>0</gravity>
       </link>
     </model>
-    <physics type='ode'>
+    <physics name='default_physics' default='0' type='ode'>
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1</real_time_factor>
       <real_time_update_rate>1000</real_time_update_rate>
       <gravity>0 0 -9.8</gravity>
+      <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
     </physics>
     <scene>
       <ambient>0.4 0.4 0.4 1</ambient>
       <background>0.7 0.7 0.7 1</background>
       <shadows>0</shadows>
     </scene>
-    <spherical_coordinates>
-      <surface_model>EARTH_WGS84</surface_model>
-      <latitude_deg>0</latitude_deg>
-      <longitude_deg>0</longitude_deg>
-      <elevation>0</elevation>
-      <heading_deg>0</heading_deg>
-    </spherical_coordinates>
     <state world_name='default'>
-      <sim_time>7342 581000000</sim_time>
-      <real_time>180 394855182</real_time>
-      <wall_time>1458046564 526639458</wall_time>
+      <sim_time>9557 766000000</sim_time>
+      <real_time>391 268549566</real_time>
+      <wall_time>1458485471 934493134</wall_time>
+      <iterations>389887</iterations>
       <model name='container_01'>
-        <pose>16 -11 1.26801 0 -0 1.57</pose>
+        <pose frame=''>11.5644 -11.257 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose>16 -11 1.26801 0 -0 1.57</pose>
+          <pose frame=''>11.5644 -11.257 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_02'>
-        <pose>-2.59716 2 1.26801 0 -0 1.57</pose>
+        <pose frame=''>2.6684 2.71636 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-2.59716 2 1.26801 0 -0 1.57</pose>
+          <pose frame=''>2.6684 2.71636 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_03'>
-        <pose>-9 2 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-4.64284 2.71636 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-9 2 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-4.64284 2.71636 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_04'>
-        <pose>-9 -0.501487 1.26801 0 -0 1.57</pose>
+        <pose frame=''>10.0641 16.1526 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-9 -0.501487 1.26801 0 -0 1.57</pose>
+          <pose frame=''>10.0641 16.1526 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_05'>
-        <pose>9.46231 -8.4874 1.26801 0 -0 1.57</pose>
+        <pose frame=''>16.5688 2.71636 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>9.46231 -8.4874 1.26801 0 -0 1.57</pose>
+          <pose frame=''>16.5688 2.71636 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_06'>
-        <pose>9 3 1.26801 0 -0 1.57</pose>
+        <pose frame=''>9.24288 2.71636 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>9 3 1.26801 0 -0 1.57</pose>
+          <pose frame=''>9.24288 2.71636 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_07'>
-        <pose>9.51908 18 1.26801 0 -0 1.57</pose>
+        <pose frame=''>10.1704 18.7545 1.34432 -3.14159 -0 -1.57159</pose>
         <link name='link'>
-          <pose>9.51908 18 1.26801 0 -0 1.57</pose>
+          <pose frame=''>10.1704 18.7545 1.34432 -3.14159 -0 -1.57159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_08'>
-        <pose>16 15.5481 1.26801 0 -0 1.57</pose>
+        <pose frame=''>16.5688 16.1109 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>16 15.5481 1.26801 0 -0 1.57</pose>
+          <pose frame=''>16.5688 16.1109 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_09'>
-        <pose>16 18 1.26801 0 -0 1.57</pose>
+        <pose frame=''>16.5688 18.7545 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>16 18 1.26801 0 -0 1.57</pose>
+          <pose frame=''>16.5688 18.7545 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_10'>
-        <pose>3 -6 1.26801 0 -0 1.57</pose>
+        <pose frame=''>0.590604 -1.75173 1.26801 0 0 -0.000796</pose>
         <link name='link'>
-          <pose>3 -6 1.26801 0 -0 1.57</pose>
+          <pose frame=''>0.590604 -1.75173 1.26801 0 0 -0.000796</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_12'>
-        <pose>-6.47971 -13.5132 1.26801 0 -0 1.57</pose>
+        <pose frame=''>5.05958 -11.257 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-6.47971 -13.5132 1.26801 0 -0 1.57</pose>
+          <pose frame=''>5.05958 -11.257 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_14'>
-        <pose>-13 -13.5016 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-10.4698 -11.2115 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-13 -13.5016 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-10.4698 -11.2115 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_16'>
-        <pose>9.42741 -6 1.26801 0 -0 1.57</pose>
+        <pose frame=''>0.590604 -9.25858 1.35468 0 0 -0.000796</pose>
         <link name='link'>
-          <pose>9.42741 -6 1.26801 0 -0 1.57</pose>
+          <pose frame=''>0.590604 -9.25858 1.35468 0 0 -0.000796</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_18'>
-        <pose>0 -13.5527 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-8.0294 -13.7962 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>0 -13.5527 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-8.0294 -13.7962 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_2'>
-        <pose>-3 11.5453 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-3.95885 -8.7606 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-3 11.5453 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-3.95885 -8.7606 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_20'>
-        <pose>0 -16 1.26801 0 -0 1.57</pose>
+        <pose frame=''>5.11896 -13.7962 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>0 -16 1.26801 0 -0 1.57</pose>
+          <pose frame=''>5.11896 -13.7962 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_21'>
-        <pose>-6.48822 -16 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-1.37359 -13.7962 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-6.48822 -16 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-1.37359 -13.7962 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_23'>
-        <pose>-16 11.5619 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-16.5984 11.1563 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-16 11.5619 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-16.5984 11.1563 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_25'>
-        <pose>-16 9 1.26801 0 -0 1.57</pose>
+        <pose frame=''>16.5758 0.224712 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-16 9 1.26801 0 -0 1.57</pose>
+          <pose frame=''>16.5758 0.224712 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_3'>
-        <pose>-13 -16 1.35468 0 0 -1.57154</pose>
+        <pose frame=''>3.70664 18.752 1.35468 0 0 -1.57154</pose>
         <link name='link'>
-          <pose>-13 -16 1.35468 0 0 -1.57154</pose>
+          <pose frame=''>3.70664 18.752 1.35468 0 0 -1.57154</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_30'>
-        <pose>16 13 1.26801 0 -0 1.57</pose>
+        <pose frame=''>16.5688 13.5087 1.26801 -3.14159 -0 1.57</pose>
         <link name='link'>
-          <pose>16 13 1.26801 0 -0 1.57</pose>
+          <pose frame=''>16.5688 13.5087 1.26801 -3.14159 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_32'>
-        <pose>16 -6 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-3.95849 -11.257 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose>16 -6 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-3.95849 -11.257 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_34'>
-        <pose>16 -8.49364 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-10.517 -8.7606 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose>16 -8.49364 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-10.517 -8.7606 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_4'>
-        <pose>-9.50348 11.4921 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-10.1233 11.1454 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-9.50348 11.4921 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-10.1233 11.1454 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_6'>
-        <pose>-9.42801 9 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-3.95849 11.1126 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-9.42801 9 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-3.95849 11.1126 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_8'>
-        <pose>-3 9 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-11.0985 2.72828 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose>-3 9 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-11.0985 2.72828 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='ground_plane'>
-        <pose>0 0 0 0 -0 0</pose>
+        <pose frame=''>0 0 0 0 -0 0</pose>
         <link name='link'>
-          <pose>0 0 0 0 -0 0</pose>
+          <pose frame=''>0 0 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='wall_1'>
-        <pose>19.9725 -0.189071 0.990987 0 -0 0</pose>
+        <pose frame=''>19.9725 -0.189071 0.990987 0 -0 0</pose>
         <link name='link'>
-          <pose>19.9725 -0.189071 0.990987 0 -0 0</pose>
+          <pose frame=''>19.9725 -0.189071 0.990987 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='wall_2'>
-        <pose>-0.076077 -20.0521 0.998964 0 0 -1.57334</pose>
+        <pose frame=''>-0.076077 -20.0521 0.998964 0 0 -1.57334</pose>
         <link name='link'>
-          <pose>-0.076077 -20.0521 0.998964 0 0 -1.57334</pose>
+          <pose frame=''>-0.076077 -20.0521 0.998964 0 0 -1.57334</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='wall_3'>
-        <pose>-20.0486 -0.037272 0.990987 0 -0 0</pose>
+        <pose frame=''>-20.0486 -0.037272 0.990987 0 -0 0</pose>
         <link name='link'>
-          <pose>-20.0486 -0.037272 0.990987 0 -0 0</pose>
+          <pose frame=''>-20.0486 -0.037272 0.990987 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='wall_4'>
-        <pose>-0.035928 19.895 0.998964 0 0 -1.57334</pose>
+        <pose frame=''>0.081712 19.9897 1.03172 0 0 -1.57159</pose>
         <link name='link'>
-          <pose>-0.035928 19.895 0.998964 0 0 -1.57334</pose>
+          <pose frame=''>0.081712 19.9897 1.03172 0 0 -1.57159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -365,12 +360,13 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>52.2675 -15.1503 38.0686 -1.64987e-17 0.571402 2.79078</pose>
-        <view_controller>orbit</view_controller>
+        <pose frame=''>0.785405 4.20355 73.7783 -1.57079 1.57079 1.57079</pose>
+        <view_controller>ortho</view_controller>
+        <projection_type>orthographic</projection_type>
       </camera>
     </gui>
     <model name='wall_1'>
-      <pose>19.9 -2 0 0 -0 0</pose>
+      <pose frame=''>19.9 -2 0 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -409,7 +405,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -419,12 +415,12 @@
         </velocity_decay>
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
-        <gravity>1</gravity>
+        <gravity>0</gravity>
       </link>
       <static>1</static>
     </model>
     <model name='wall_3'>
-      <pose>-2 19.9 0 0 -0 -0.5</pose>
+      <pose frame=''>-2 19.9 0 0 -0 -0.5</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -463,7 +459,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -473,12 +469,12 @@
         </velocity_decay>
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
-        <gravity>1</gravity>
+        <gravity>0</gravity>
       </link>
       <static>1</static>
     </model>
     <model name='wall_2'>
-      <pose>-19.9 -2 0 0 -0 0</pose>
+      <pose frame=''>-19.9 -2 0 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -517,7 +513,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -527,12 +523,12 @@
         </velocity_decay>
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
-        <gravity>1</gravity>
+        <gravity>0</gravity>
       </link>
       <static>1</static>
     </model>
     <model name='wall_4'>
-      <pose>-2 -19.9 0 0 -0 -0.5</pose>
+      <pose frame=''>-2 -19.9 0 0 -0 -0.5</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -571,7 +567,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -581,12 +577,12 @@
         </velocity_decay>
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
-        <gravity>1</gravity>
+        <gravity>0</gravity>
       </link>
       <static>1</static>
     </model>
     <model name='container_2'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -625,7 +621,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -640,7 +636,7 @@
       <static>1</static>
     </model>
     <model name='container_3'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -679,7 +675,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -694,7 +690,7 @@
       <static>1</static>
     </model>
     <model name='container_4'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -733,7 +729,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -748,7 +744,7 @@
       <static>1</static>
     </model>
     <model name='container_6'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -787,7 +783,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -802,7 +798,7 @@
       <static>1</static>
     </model>
     <model name='container_8'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -841,7 +837,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -856,7 +852,7 @@
       <static>1</static>
     </model>
     <model name='container_25'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -895,7 +891,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -910,7 +906,7 @@
       <static>1</static>
     </model>
     <model name='container_34'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -949,7 +945,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -964,7 +960,7 @@
       <static>1</static>
     </model>
     <model name='container_32'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1003,7 +999,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1018,7 +1014,7 @@
       <static>1</static>
     </model>
     <model name='container_30'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1057,7 +1053,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1072,7 +1068,7 @@
       <static>1</static>
     </model>
     <model name='container_23'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1111,7 +1107,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1126,7 +1122,7 @@
       <static>1</static>
     </model>
     <model name='container_21'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1165,7 +1161,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1180,7 +1176,7 @@
       <static>1</static>
     </model>
     <model name='container_10'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1219,7 +1215,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1234,7 +1230,7 @@
       <static>1</static>
     </model>
     <model name='container_12'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1273,7 +1269,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1288,7 +1284,7 @@
       <static>1</static>
     </model>
     <model name='container_14'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1327,7 +1323,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1342,7 +1338,7 @@
       <static>1</static>
     </model>
     <model name='container_16'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1381,7 +1377,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1396,7 +1392,7 @@
       <static>1</static>
     </model>
     <model name='container_18'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1435,7 +1431,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1450,7 +1446,7 @@
       <static>1</static>
     </model>
     <model name='container_09'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1489,7 +1485,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1504,7 +1500,7 @@
       <static>1</static>
     </model>
     <model name='container_08'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1543,7 +1539,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1558,7 +1554,7 @@
       <static>1</static>
     </model>
     <model name='container_07'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1597,7 +1593,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1612,7 +1608,7 @@
       <static>1</static>
     </model>
     <model name='container_06'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1651,7 +1647,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1666,7 +1662,7 @@
       <static>1</static>
     </model>
     <model name='container_05'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1705,7 +1701,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1720,7 +1716,7 @@
       <static>1</static>
     </model>
     <model name='container_04'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1759,7 +1755,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1774,7 +1770,7 @@
       <static>1</static>
     </model>
     <model name='container_03'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1813,7 +1809,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1828,7 +1824,7 @@
       <static>1</static>
     </model>
     <model name='container_02'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1867,7 +1863,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1882,7 +1878,7 @@
       <static>1</static>
     </model>
     <model name='container_01'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1921,7 +1917,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1936,7 +1932,7 @@
       <static>1</static>
     </model>
     <model name='container_20'>
-      <pose>8 1 0.5 0 -0 0</pose>
+      <pose frame=''>8 1 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -1975,7 +1971,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/FlatBlack</name>
             </script>
           </material>
         </visual>
@@ -1989,5 +1985,12 @@
       </link>
       <static>1</static>
     </model>
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>0</latitude_deg>
+      <longitude_deg>0</longitude_deg>
+      <elevation>0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
   </world>
 </sdf>

@@ -4,6 +4,8 @@
 #include "resources.h"
 #include "topics.h"
 #include "robot_control/addToMap.h"
+#include "robot_control/getPositions.h"
+#include "robot_control/defineGlobalPath.h"
 #include <actionlib/server/simple_action_server.h>
 #include <fstream>
 #include <stdlib.h> 
@@ -12,24 +14,24 @@
 #ifndef _KNOWLEDGE_H_
 #define _KNOWLEDGE_H_
 
-#define FULL 1
-#define UNKNOWN 0.5
+#define FULL 100
+#define UNKNOWN 50
 #define EMPTY 0
-#define ME 'x'
+
+#define EMPTY_RANGE 30
+#define FULL_RANGE 70
 
 #define DISCRETE_ERROR 0.1
 
 #define MAX_RANGE 8
 
-#define INSIDE(p) (p.x + (this -> length/2) >= 0 && p.y + (this -> width/2) >= 0 && \
-				   p.x < this -> length/2 && p.y < this -> width/2)
+#define INSIDE(x, y) (x + (this -> length/2) >= 0 && y + (this -> width/2) >= 0 && \
+				   x < this -> length/2 && y < this -> width/2)
 
-#define TO_CELLS(v) (((int)floor(v/this -> cell_size)))
+#define TO_CELLS(v) (floor(v/this -> cell_size))
 
 #define BASE_X (floor((this -> length/this -> cell_size) / 2))
 #define BASE_Y (floor((this -> width/this -> cell_size) / 2))
-
-#define COMPARE(start, goal, pos) (start > goal ? (pos > goal) : (pos < goal))
 
 class Knowledge {
 public:
@@ -37,23 +39,26 @@ public:
     ~Knowledge();
 
     bool addToMap(robot_control::addToMap::Request& req, robot_control::addToMap::Response& res);
+    bool getPositions(robot_control::getPositions::Request& req, robot_control::getPositions::Response& res);
 
     void writeMap();
 
 private:
-	bool checkError(int x, int y);
 	void initMaps();
 
-	float** map;
-	int** map_scans;
+	char** map;
+	unsigned short** map_scans;
 
+	int ids;
+	std::vector<_2DPoint>* positions;
+
+	bool mapped;
 	double length;
 	double width;
 	double cell_size;
 
 	ros::ServiceServer service;
     ros::NodeHandle node;
-
 };
 
 #endif

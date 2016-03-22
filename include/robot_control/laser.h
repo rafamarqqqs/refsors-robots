@@ -22,6 +22,7 @@
 #define ANGLE_MAX 1.57
 #define ANGLE_MIN -1.57
 #define ANGLE_INCREMENT (4.71239/LASER_MEASURES)
+#define FRONT_SIZE(type) (strcmp(type, "larger_robot") ? 15 : 9)
 #define RAD_45 0.785398
 
 class Laser {
@@ -34,9 +35,10 @@ public:
     void publishMeasures(char* type);
 
 private:
-    robot_control::laserMeasures getMeasures();
+    inline robot_control::laserMeasures getMeasures();
     robot_control::laserMeasures measures;
     std::list<LaserPoint> ranges;
+    int front_size;
     ros::NodeHandle node;
     ros::Subscriber laser_sub;
 };
