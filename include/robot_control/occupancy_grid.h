@@ -8,6 +8,7 @@
 #include "resources.h"
 #include <algorithm>
 #include <vector>
+#include "robot_control/getNewGoal.h"
 #include <limits.h>
 
 using namespace std;
@@ -16,6 +17,9 @@ using namespace std;
 #define _OCCUPANCY_GRID_H_
 
 #define MAX_TAIL_SIZE 1
+
+#define EMPTY 0
+#define OCCUPIED 1
 
 #define UNDEFINED 1000
 
@@ -46,8 +50,8 @@ typedef struct {
 
 class OccupancyGrid{
 public:
-	OccupancyGrid(double length, double width, double cell_size, int area_size,
-												 double rep, int nearby, int displacement);
+	OccupancyGrid(ros::NodeHandle node, double length, double width, double cell_size, int area_size,
+		double rep, int nearby, int displacement);
 	~OccupancyGrid();
 
 	void calculateOGVector(_2DPoint* robot, double* x, double* y);
@@ -55,16 +59,15 @@ public:
 	void writeMap(std::string type);
 	void getNewGoal(_2DPoint* goal);
 	double OGInfluence(double x, double y);
-	bool isFarAway(_2DPoint* goal, Area area);
 	void calculateTailForce(_2DPoint* robot_pose, double* x, double* y);
 
 private:
-	void remakeOccupiedAreas();
-	void writeAreas(std::string type);
 	void updateTail(double x, double y);
 	void initMap();
 	void initAreas();
-
+	void writeAreas(std::string type);
+	vector<uint8_t> remakeOccupiedAreas();
+	
 	int** map;
 
 	Area** areas;
@@ -75,11 +78,14 @@ private:
 
 	int nearby;
 	int displacement;
-	int area_size;
 	double length;
 	double width;
 	double cell_size;
 	double repulsion;
+	int area_size;
+	
+	ros::NodeHandle node;
+	ros::ServiceClient client;
 };
 
 #endif

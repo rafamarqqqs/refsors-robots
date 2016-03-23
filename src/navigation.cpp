@@ -15,7 +15,7 @@ Navigator::Navigator(ros::NodeHandle n, char* _type):
         max_ang_speed = 1.2;
         min_dist = 8;
         critical_wall_dist = 1.0;
-        this -> og = new OccupancyGrid(MAP_LENGTH, MAP_WIDTH, LARGER_ROBOT_CELL_SIZE, AREA_SIZE, REPULSION, 4, 2);
+        this -> og = new OccupancyGrid(n, MAP_LENGTH, MAP_WIDTH, LARGER_ROBOT_CELL_SIZE, AREA_SIZE, REPULSION, 4, 2);
     }
     else{
         qwall = 0.45;
@@ -26,7 +26,7 @@ Navigator::Navigator(ros::NodeHandle n, char* _type):
         max_ang_speed = 2.5;
         min_dist = 8;
         critical_wall_dist = 0.25;
-        this -> og = new OccupancyGrid(MAP_LENGTH, MAP_WIDTH, SMALLER_ROBOT_CELL_SIZE, AREA_SIZE, REPULSION, 4, 2);
+        this -> og = new OccupancyGrid(n, MAP_LENGTH, MAP_WIDTH, SMALLER_ROBOT_CELL_SIZE, AREA_SIZE, REPULSION, 4, 2);
     }
 
     //Advertising velocity topic

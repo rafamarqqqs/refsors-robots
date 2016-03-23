@@ -2,22 +2,17 @@
 
 using namespace std;
 
-Knowledge::Knowledge(ros::NodeHandle n, double length, double width, double cell_size){
+Knowledge::Knowledge(ros::NodeHandle n, double len, double wid, double cell_s, double area_s):
+    node(n), length(len), width(wid), cell_size(cell_s), area_size(area_s), ids(0), mapped(false){
 
-    this -> length = length;
-    this -> width = width;
-    this -> cell_size = cell_size;
-    this -> ids = 0;
     this -> positions = new vector<_2DPoint>();
-    mapped = false;
 
     initMaps();
+    initAreas();
 }
 
 Knowledge::~Knowledge(){
     int i, j;
-
-
 
     writeMap();
     
@@ -27,6 +22,11 @@ Knowledge::~Knowledge(){
     }
 
     delete positions;
+
+    for(i = 0; i < floor(length/area_size); i++)
+        free(areas[i]);
+
+    free(areas);
 }
 
 void Knowledge::initMaps(){
@@ -45,6 +45,73 @@ void Knowledge::initMaps(){
             map[i][j] = UNKNOWN;
         }
     }
+}
+
+void Knowledge::initAreas(){
+    int i, j;
+
+    areas = (uint8_t **) malloc(sizeof(uint8_t *) * floor(length/area_size));
+
+    for(i = 0; i < floor(length/area_size); i++){
+        areas[i] = (uint8_t *) malloc(sizeof(uint8_t) * floor(width/area_size));
+        
+        for(j = 0; j < floor(width/area_size); j++)
+            areas[i][j] = EMPTY;
+    }
+}
+
+bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_control::getNewGoal::Response& res){
+    vector<uint8_t> occupied_areas = req.occupied_areas;
+    vector<uint8_t>::iterator it;
+    int i = 0, j = 0;
+
+    for(it = occupied_areas.begin(); it != occupied_areas.end(); it++){
+        areas[i][j] = (*it);
+
+        j++;
+
+        if(j == AREA_SIZE){
+            j = 0;
+            i++;
+        }
+    } 
+
+    srand(time(NULL));
+
+    res.new_x = rand() % ((int) floor(length/area_size));
+    res.new_y = rand() % ((int) floor(width/area_size));
+
+    if(req.x == INT_MAX && req.y == INT_MAX){
+        while(areas[res.new_x][res.new_y] == OCCUPIED){
+            res.new_x = rand() % ((int) floor(length/area_size));
+            res.new_y = rand() % ((int) floor(width/area_size));
+        }
+    }
+
+    writeAreas();
+
+    return true;
+}
+
+void Knowledge::writeAreas(){
+    int counter = 0;
+    std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/areas.map");
+
+    for(int i = 0; i < floor(length/area_size); i++){
+        for(int j = 0; j < floor(width/area_size); j++){
+
+        file << "|";
+        
+        file << std::setfill(' ') << (areas[i][j] == OCCUPIED ? '1' : '0');
+        
+        }
+
+        file << "|";
+        file << "\n";
+    }
+
+    file << "\n";
+    file.close();
 }
 
 bool Knowledge::getPositions(robot_control::getPositions::Request& req, robot_control::getPositions::Response& res){
@@ -166,12 +233,16 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle node;
 
-    Knowledge *knowledge = new Knowledge(node, 40.0, 40.0, 0.5);
+    Knowledge *knowledge = new Knowledge(node, LENGTH, WIDTH, CELL_SIZE, AREA_SIZE);
 
     ros::ServiceServer addToMap_service = node.advertiseService("/Knowledge/addToMap", 
                                                     &Knowledge::addToMap, knowledge);
+
     ros::ServiceServer getPositions_service = node.advertiseService("/Knowledge/getPositions", 
                                                     &Knowledge::getPositions, knowledge);
+
+    ros::ServiceServer getNewGoal_service = node.advertiseService("/Knowledge/getNewGoal", 
+                                                    &Knowledge::getNewGoal, knowledge);
 
     ROS_INFO("Knowledge started.");
 

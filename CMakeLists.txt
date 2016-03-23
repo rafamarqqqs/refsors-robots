@@ -54,7 +54,6 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  #Drive.msg
   laserMeasures.msg
 )
 
@@ -64,7 +63,7 @@ add_service_files(
   addToMap.srv
   defineGlobalPath.srv
   getPositions.srv
-  #createMap.srv
+  getNewGoal.srv
 )
 
 ## Generate actions in the 'action' folder

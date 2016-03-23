@@ -106,7 +106,7 @@ private:
 
     std::string type;
 
-    int id;
+    int8_t id;
 
     ros::Publisher velocity_pub;
 

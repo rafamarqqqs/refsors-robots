@@ -1,0 +1,6 @@
+uint8[] occupied_areas
+float64 x
+float64 y
+---
+uint8 new_x
+uint8 new_y

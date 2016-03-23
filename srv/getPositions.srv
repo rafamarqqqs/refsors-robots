@@ -1,8 +1,8 @@
 float64 my_x
 float64 my_y
-int32 my_id
+int8 my_id
 bool has_id
 ---
 float64[] x
 float64[] y
-int32 id
+int8 id
