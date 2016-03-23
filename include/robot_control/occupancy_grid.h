@@ -16,38 +16,6 @@ using namespace std;
 #ifndef _OCCUPANCY_GRID_H_
 #define _OCCUPANCY_GRID_H_
 
-#define MAX_TAIL_SIZE 1
-
-#define EMPTY 0
-#define OCCUPIED 1
-
-#define UNDEFINED 1000
-
-#define IS_INSIDE(x, y) (x >= 0 && y >= 0 && x < TO_CELLS(length) && y < TO_CELLS(width))
-
-#define BASE_X (floor((this -> length/this -> cell_size) / 2))
-#define BASE_Y (floor((this -> width/this -> cell_size) / 2))
-
-#define TO_CELLS(v) (((int)floor(v/this -> cell_size)))
-
-typedef struct area {
-	_2DPoint start;
-	_2DPoint end;
-	_2DPoint destiny;
-	bool occupied;
-} Area;
-
-typedef enum lvl {
-	NEW,
-	RECENT,
-	OLD
-} Level;
-
-typedef struct {
-	double x, y;
-	Level level;
-} OccupancyTail;
-
 class OccupancyGrid{
 public:
 	OccupancyGrid(ros::NodeHandle node, double length, double width, double cell_size, int area_size,

@@ -22,7 +22,7 @@ Navigator::Navigator(ros::NodeHandle n, char* _type):
         qog = 0.8;
         qgoal = 1.6;
         qtail = 0.4;
-        max_lin_speed = 0.9;
+        max_lin_speed = 1.8;
         max_ang_speed = 2.5;
         min_dist = 8;
         critical_wall_dist = 0.25;
@@ -30,11 +30,11 @@ Navigator::Navigator(ros::NodeHandle n, char* _type):
     }
 
     //Advertising velocity topic
-    velocity_pub = node.advertise<geometry_msgs::Twist>(VEL(_type), 100);
+    velocity_pub = node.advertise<geometry_msgs::Twist>(VEL(_type), 1000);
 
     //Subscribing to sensors
-    laser_sub = node.subscribe(LASER(_type), 1, &Navigator::handleLaser, this);
-    pose_sub = node.subscribe(POSE(_type), 1, &Navigator::handlePose, this);
+    laser_sub = node.subscribe(LASER(_type), 100, &Navigator::handleLaser, this);
+    pose_sub = node.subscribe(POSE(_type), 100, &Navigator::handlePose, this);
 
     client = n.serviceClient<robot_control::getPositions>("/Knowledge/getPositions");
 

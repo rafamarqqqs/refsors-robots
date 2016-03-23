@@ -84,8 +84,8 @@ void PathPlanning::defineLocalPath(vector<int>* x_path, vector<int>* y_path){
 bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& req,
                       robot_control::defineGlobalPath::Response& res){
 
-    ROS_INFO("calculating path from %d %d to %d %d", (int)TO_CELLS(req.x, req.cell_size), (int)TO_CELLS(req.y, req.cell_size),
-                                                    (int)TO_CELLS(req.destiny_x, req.cell_size), (int)TO_CELLS(req.destiny_y, req.cell_size));
+    ROS_INFO("calculating path from %d %d to %d %d", (int)TO_UNKNOWN_CELLS(req.x, req.cell_size), (int)TO_UNKNOWN_CELLS(req.y, req.cell_size),
+                                                    (int)TO_UNKNOWN_CELLS(req.destiny_x, req.cell_size), (int)TO_UNKNOWN_CELLS(req.destiny_y, req.cell_size));
 
     vector<unsigned char> map = req.map;
     
@@ -104,12 +104,12 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
     int F, G, H;
 
     // end position
-    end_x = TO_CELLS(req.destiny_x, req.cell_size) + BASE_X(req.cell_size);
-    end_y = TO_CELLS(req.destiny_y, req.cell_size) + BASE_Y(req.cell_size);
+    end_x = TO_UNKNOWN_CELLS(req.destiny_x, req.cell_size) + UNKNOWN_CELL_BASE_X(req.cell_size);
+    end_y = TO_UNKNOWN_CELLS(req.destiny_y, req.cell_size) + UNKNOWN_CELL_BASE_Y(req.cell_size);
     
     // creating start and end nodes
-    node = initNode(TO_CELLS(req.x, req.cell_size) + BASE_X(req.cell_size), 
-                    TO_CELLS(req.y, req.cell_size) + BASE_Y(req.cell_size), 0, NULL);
+    node = initNode(TO_UNKNOWN_CELLS(req.x, req.cell_size) + UNKNOWN_CELL_BASE_X(req.cell_size), 
+                    TO_UNKNOWN_CELLS(req.y, req.cell_size) + UNKNOWN_CELL_BASE_Y(req.cell_size), 0, NULL);
 
     end_node = initNode(end_x, end_y, 0, NULL);
 
@@ -133,7 +133,7 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
 
                 // if it isn't himself, the path is clear and it's not on the closed list
                 if(!(i == 0 && j == 0)
-                   && map.at(((current_node -> x + i) * TO_CELLS(length, req.cell_size)) + current_node -> y + j) == 0
+                   && map.at(((current_node -> x + i) * TO_UNKNOWN_CELLS(length, req.cell_size)) + current_node -> y + j) == 0
                    && find(closed_nodes, current_node -> x + i, current_node -> y + j) == closed_nodes -> end()){
                     
                     it = find(open_nodes, current_node -> x + i, current_node -> y + j);
@@ -178,7 +178,7 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
         x_path.push_back(node -> x);
         y_path.push_back(node -> y);
         // adding to the map for visualizing purposes
-        map.at((node -> x * (TO_CELLS(length, req.cell_size))) + node -> y) = 'x';
+        map.at((node -> x * (TO_UNKNOWN_CELLS(length, req.cell_size))) + node -> y) = 'x';
         node = node -> parent;
     }
 
@@ -189,7 +189,7 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
 
     // adding to the map for visualizing purposes
     for(x = x_path.begin(), y = y_path.begin(); x != x_path.end(); x++, y++)
-        map.at(((*x) * (TO_CELLS(length, req.cell_size))) + (*y)) = 'X';
+        map.at(((*x) * (TO_UNKNOWN_CELLS(length, req.cell_size))) + (*y)) = 'X';
 
     for(it = open_nodes -> begin(); it != open_nodes -> end(); it++)
         free((*it));
@@ -225,7 +225,7 @@ void PathPlanning::writeMap(vector<unsigned char> map){
 
             file.put(block);
 
-        if(i % ((int)TO_CELLS(length, 0.5)) == 0){
+        if(i % ((int)TO_UNKNOWN_CELLS(length, 0.5)) == 0){
             file.put('\n');
             i = 0;
         }

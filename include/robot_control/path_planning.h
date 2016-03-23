@@ -11,24 +11,6 @@
 
 using namespace std;
 
-#define ORTOGONAL_WEIGTH 10
-#define DIAGONAL_WEIGTH 14
-#define LENGTH 40
-#define WIDTH 40
-
-#define CTE 10
-
-#define TO_CELLS(v, c) (floor(v/c))
-
-#define BASE_X(c) (floor((this -> length/c) / 2))
-#define BASE_Y(c) (floor((this -> width/c) / 2))
-
-typedef struct node {
-	int x, y;
-	int F, G, H;
-	node* parent;
-} Node;
-
 inline bool cmpNodes(Node* a, Node* b){
     return a -> F < b -> F;
 }

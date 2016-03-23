@@ -1,30 +1,38 @@
 #include "../include/robot_control/localization.h"
 
-Localizator::Localizator(ros::NodeHandle n, char *type): node(n), robot_name(MOBILE(type)) {
+Localizator::Localizator(ros::NodeHandle n, char *type): node(n), robot_name(MOBILE(type)), position_ready(false) {
     gazebo_pose_sub = n.subscribe("/gazebo/model_states", 1, &Localizator::handleGazeboModelState, this);
 }
 
 Localizator::~Localizator(){}
 
 void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data){
-    int i = 0;
 
-    while(data -> name[i].compare(robot_name) != 0){        
-        i++;
+    if(!position_ready){
+        int i = 0;
+        
+        while(data -> name[i].compare(robot_name) != 0){        
+            i++;
+        }
+
+        id = i;
+        
+        position_ready = true;
     }
 
-    this -> pose.pose = data -> pose[i];
+    this -> pose.pose = data -> pose[id];
 
-    tf::Quaternion q(data -> pose[i].orientation.x,
-                    data -> pose[i].orientation.y,
-                    data -> pose[i].orientation.z,
-                    data -> pose[i].orientation.w);
+    tf::Quaternion q(data -> pose[id].orientation.x,
+                    data -> pose[id].orientation.y,
+                    data -> pose[id].orientation.z,
+                    data -> pose[id].orientation.w);
 
     q = q.normalized();
 
     this -> pose.header.stamp = ros::Time::now();
 
     tf::quaternionTFToMsg(q, this -> pose.pose.orientation);
+
 }
 
 geometry_msgs::PoseStamped Localizator::getPose(){
@@ -54,18 +62,14 @@ void Localizator::publishPose(char* type){
     ros::Publisher pose_pub = node.advertise<geometry_msgs::PoseStamped>(POSE(type), 1000);
     ros::Rate r(20.0);
 
+    // waits until the messages with the positions start arriving
+    while(!position_ready && ros::ok()){
+        ros::spinOnce();
+    }
+
     while(node.ok()){
-
-        ros::spinOnce();               // check for incoming messages
-
-        //next, we'll publish the odometry message over ROS
-        //geometry_msgs::Pose aux;
-
-        //set the position
-
-        //publish the message
+        ros::spinOnce();
         pose_pub.publish(getPose());
-
         r.sleep();
     }
 }
@@ -79,11 +83,6 @@ int main(int argc, char **argv){
     ros::init(argc, argv, "Localization");
 
     ros::NodeHandle n;
-    //tf::TransformListener listener;
-
-    //while(!listener.frameExists("base_link") ||
-    //    !listener.frameExists("odom"));
-
 
     Localizator *localizator = new Localizator(n, argv[1]);
 

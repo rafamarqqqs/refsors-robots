@@ -6,8 +6,8 @@ Mapper::Mapper(ros::NodeHandle n, double len, double wid, char *_type):
 	
 	this -> robot = (Robot *) malloc(sizeof(Robot));
 
-	laser_sub = node.subscribe(LASER(_type), 1, &Mapper::handleLaser, this);
-	pose_sub = node.subscribe(POSE(_type), 1, &Mapper::handlePose, this);
+	laser_sub = node.subscribe(LASER(_type), 100, &Mapper::handleLaser, this);
+	pose_sub = node.subscribe(POSE(_type), 100, &Mapper::handlePose, this);
 
 	client = n.serviceClient<robot_control::addToMap>("/Knowledge/addToMap");
 	
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle node;
 
-    Mapper *mapper = new Mapper(node, 40.0, 40.0, argv[1]);
+    Mapper *mapper = new Mapper(node, MAP_LENGTH, MAP_WIDTH, argv[1]);
 
     ROS_INFO("Mapper started.");
 

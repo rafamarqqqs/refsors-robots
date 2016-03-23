@@ -20,18 +20,6 @@
 #ifndef _MAPPING_H_
 #define _MAPPING_H_
 
-#define RANGES 480
-#define MEASURES 8
-
-#define DISCRETE_ERROR 0.01
-
-#define LASER_STARTED ((range.size() != 0 && angle.size() != 0) ? true : false)
-
-#define INSIDE(p) (p.x + (this -> length/2) >= 0 && p.y + (this -> width/2) >= 0 && \
-				   p.x < this -> length/2 && p.y < this -> width/2)
-
-#define TO_CELLS(v) (((int)floor(v/this -> cell_size)))
-
 typedef actionlib::SimpleActionServer<robot_control::createMapAction> CreateMapAction;
 
 class Mapper {

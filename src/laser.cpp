@@ -1,6 +1,6 @@
 #include "../include/robot_control/laser.h"
 
-Laser::Laser(ros::NodeHandle n, char *type): node(n), front_size(FRONT_SIZE(type)){
+Laser::Laser(ros::NodeHandle n, char *type): node(n), front_size(FRONT_SIZE(type)), min_front(MIN_FRONT(type)) {
 
     laser_sub = node.subscribe(SCAN(type), 1, &Laser::handleSubscription, this);
 }
@@ -24,7 +24,7 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr& laser_dat
 
     //ROS_INFO("%4.4lf", laser_data -> ranges[360]);
 
-    measures.front = 8;
+    measures.front = min_front;
 
     for(i = (LASER_MEASURES/2) - front_size; i < (LASER_MEASURES/2) + front_size; i++){
         if(laser_data -> ranges[i] < measures.front);
@@ -38,7 +38,7 @@ inline robot_control::laserMeasures Laser::getMeasures(){
 
 void Laser::publishMeasures(char* type){
     ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>(LASER(type), 1000);
-    ros::Rate r(20.0);
+    ros::Rate r(15.0);
 
     while(node.ok()){
 

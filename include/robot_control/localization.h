@@ -19,7 +19,6 @@ public:
 
 	void publishPose(char* type);
 
-
 private:
 	void handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data);
 	
@@ -32,6 +31,7 @@ private:
 	ros::NodeHandle node;
 
 	std::string robot_name;
-	//tf::StampedTransform odom_transform;
-    //tf::TransformListener odom_listener;
+
+	bool position_ready;
+	int id;
 };

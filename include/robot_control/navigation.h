@@ -18,51 +18,6 @@
 #ifndef _NAVIGATION_H_
 #define _NAVIGATION_H_
 
-#define RANGES 8
-
-#define MAP_LENGTH 40.0
-#define MAP_WIDTH 40.0
-#define SMALLER_ROBOT_CELL_SIZE 1.0
-#define LARGER_ROBOT_CELL_SIZE 1.0
-#define REPULSION 30
-
-#define AREA_SIZE 8
-
-#define ROBOTS_MIN_DIST 3;
-
-#define LASER_DISPLACEMENT(type) (strcmp(type, "larger_robot") == 0 ? 0.371 : 0.1075)
-
-#define LOCALIZATION_STARTED ((pose.position.x != 0 || pose.position.y != 0) ? true : false)
-#define LASER_STARTED ((range.size() != 0 && angle.size() != 0) ? true : false)
-
-#define MEASURES 480
-
-#define SQUARE(x) (x*x)
-#define TO_THE_FOURTH(x) (x*x*x)
-
-#define QROBOTS 1.0
-#define QGOAL 0.8
-#define QWALL 0.8
-#define QOG 0.8
-#define QTAIL 0.4
-#define MAX_LIN_SPEED 0.7
-#define MAX_ANG_SPEED 0.9
-
-//seconds
-#define TIME_LIMIT (3 * 60)
-
-#define ERROR 3.0
-#define MIN_DIST 8
-
-#define REACHED_DESTINATION(g, p) (fabs(g -> x - p.x) < ERROR && fabs(g -> y - p.y) < ERROR)
-
-#define REACHED_TIME_LIMIT(start, now) ((now - start) > TIME_LIMIT ? true : false)
-
-typedef struct drivingInfo {
-    double rotation;
-    double velocity;
-} DrivingInfo;
-
 typedef actionlib::SimpleActionServer<robot_control::searchAction> SearchAction; 
 
 class Navigator {

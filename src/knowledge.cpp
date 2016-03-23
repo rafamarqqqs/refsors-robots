@@ -3,9 +3,10 @@
 using namespace std;
 
 Knowledge::Knowledge(ros::NodeHandle n, double len, double wid, double cell_s, double area_s):
-    node(n), length(len), width(wid), cell_size(cell_s), area_size(area_s), ids(0), mapped(false){
+    node(n), length(len), width(wid), cell_size(cell_s), area_size(area_s), ids(0), mapped(false), goals(NULL){
 
     this -> positions = new vector<_2DPoint>();
+    this -> goals = new vector<Goal>();
 
     initMaps();
     initAreas();
@@ -22,6 +23,7 @@ Knowledge::~Knowledge(){
     }
 
     delete positions;
+    delete goals;
 
     for(i = 0; i < floor(length/area_size); i++)
         free(areas[i]);
@@ -33,16 +35,16 @@ void Knowledge::initMaps(){
     int i, j;
 
     map = (char **) malloc(sizeof(char *) * TO_CELLS(length));
-    map_scans = (unsigned short **) malloc(sizeof(unsigned short *) * TO_CELLS(length));
+    map_scans = (uint16_t **) malloc(sizeof(uint16_t *) * TO_CELLS(length));
 
     for(i = 0; i < TO_CELLS(length); i++){
         map[i] = (char *) malloc(sizeof(char) * TO_CELLS(width));
-        map_scans[i] = (unsigned short *) calloc(TO_CELLS(width), sizeof(unsigned short));
+        map_scans[i] = (uint16_t *) calloc(TO_CELLS(width), sizeof(uint16_t));
     }
     
     for(i = 0; i < TO_CELLS(length); i++){
         for(j = 0; j < TO_CELLS(width); j++){
-            map[i][j] = UNKNOWN;
+            map[i][j] = MAP_UNKNOWN;
         }
     }
 }
@@ -56,13 +58,26 @@ void Knowledge::initAreas(){
         areas[i] = (uint8_t *) malloc(sizeof(uint8_t) * floor(width/area_size));
         
         for(j = 0; j < floor(width/area_size); j++)
-            areas[i][j] = EMPTY;
+            areas[i][j] = MAP_EMPTY;
     }
+}
+
+inline bool Knowledge::isCurrentGoal(uint8_t x, uint8_t y){
+    vector<Goal>::iterator it;
+    
+    for(it = goals -> begin(); it != goals -> end(); it++){
+        if((*it).x == x && (*it).y == y)
+            return true;
+    }
+
+    return false;
 }
 
 bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_control::getNewGoal::Response& res){
     vector<uint8_t> occupied_areas = req.occupied_areas;
     vector<uint8_t>::iterator it;
+    vector<Goal>::iterator it_g;
+    Goal goal;
     int i = 0, j = 0;
 
     for(it = occupied_areas.begin(); it != occupied_areas.end(); it++){
@@ -82,10 +97,24 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
     res.new_y = rand() % ((int) floor(width/area_size));
 
     if(req.x == INT_MAX && req.y == INT_MAX){
-        while(areas[res.new_x][res.new_y] == OCCUPIED){
+        while(areas[res.new_x][res.new_y] == OCCUPIED && !isCurrentGoal(res.new_x, res.new_y)){
             res.new_x = rand() % ((int) floor(length/area_size));
             res.new_y = rand() % ((int) floor(width/area_size));
         }
+    }
+
+    for(it_g = goals -> begin(); it_g != goals -> end(); it_g++){
+        if((*it_g).x == res.new_x && (*it_g).y == res.new_y){
+            (*it_g).x = res.new_x;
+            (*it_g).y = res.new_y;
+            break;
+        }
+    }
+
+    if(it_g == goals -> end()){
+        goal.x = res.new_x;
+        goal.y = res.new_y;
+        goals -> push_back(goal);
     }
 
     writeAreas();
@@ -93,7 +122,7 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
     return true;
 }
 
-void Knowledge::writeAreas(){
+inline void Knowledge::writeAreas(){
     int counter = 0;
     std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/areas.map");
 
@@ -142,7 +171,7 @@ bool Knowledge::getPositions(robot_control::getPositions::Request& req, robot_co
 
 bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::addToMap::Response& res){
 
-    if(!INSIDE(req.wall_x, req.wall_y))
+    if(!IS_POINT_INSIDE(req.wall_x, req.wall_y))
         return false;
 
     int x = BASE_X + TO_CELLS(req.wall_x);
@@ -158,7 +187,7 @@ bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::a
 
     while(map_x != x && map_y != y && MAX_RANGE > range){
 
-        map[map_x][map_y] = (unsigned short) floor(map[map_x][map_y]/(++map_scans[map_x][map_y]));
+        map[map_x][map_y] = (uint16_t) floor(map[map_x][map_y]/(++map_scans[map_x][map_y]));
 
         range += range_inc;
 
@@ -171,7 +200,7 @@ bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::a
 
     if(req.range < MAX_RANGE){
         aux_average = map[x][y] * (map_scans[x][y]++);
-        map[x][y] = (unsigned short) floor(aux_average + FULL)/(map_scans[x][y]);
+        map[x][y] = (uint16_t) floor(aux_average + MAP_FULL)/(map_scans[x][y]);
     }
 
     //writeMap();
@@ -233,7 +262,7 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle node;
 
-    Knowledge *knowledge = new Knowledge(node, LENGTH, WIDTH, CELL_SIZE, AREA_SIZE);
+    Knowledge *knowledge = new Knowledge(node, MAP_LENGTH, MAP_WIDTH, CELL_SIZE, AREA_SIZE);
 
     ros::ServiceServer addToMap_service = node.advertiseService("/Knowledge/addToMap", 
                                                     &Knowledge::addToMap, knowledge);

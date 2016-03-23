@@ -91,7 +91,7 @@ vector<uint8_t> OccupancyGrid::remakeOccupiedAreas(){
 	                    map_x = (int)floor(TO_CELLS(i)) + BASE_X;
 	                    map_y = (int)floor(TO_CELLS(j)) + BASE_Y;
 
-	                    if(IS_INSIDE(map_x, map_y)){
+	                    if(IS_CELL_INSIDE(map_x, map_y)){
 	                        size++;
 
 	                        if(map[map_x][map_y] != 0)
@@ -126,7 +126,7 @@ double OccupancyGrid::OGInfluence(double x, double y){
 
 	for(i = 0; i < TO_CELLS(length); i++){
 		for(j = 0; j < TO_CELLS(width); j++){
-			if(IS_INSIDE(i, j) && map[i][j] != 0){
+			if(IS_CELL_INSIDE(i, j) && map[i][j] != 0){
 				total += map[i][j];
 				size++;
 			}
@@ -138,7 +138,7 @@ double OccupancyGrid::OGInfluence(double x, double y){
 
 	for(i = map_x - 2; i < map_x + 2; i++){
 		for(j = map_y - 2; j < map_y + 2; j++){
-			if(IS_INSIDE(i, j) && map[i][j] != 0){
+			if(IS_CELL_INSIDE(i, j) && map[i][j] != 0){
 				local_total += map[i][j];
 				local_size++;
 			}
@@ -183,7 +183,7 @@ void OccupancyGrid::updatePosition(double x, double y){
 
 	for(int i = map_x - displacement; i <= map_x + displacement; i++){
 		for(int j = map_y - displacement; j <= map_y + displacement; j++){
-			if(IS_INSIDE(i, j)){
+			if(IS_CELL_INSIDE(i, j)){
 				map[i][j] += repulsion;
 			}
 		}
@@ -253,7 +253,7 @@ void OccupancyGrid::calculateOGVector(_2DPoint* robot_pose, double* x, double* y
 
 	// NW
 	for(i = 1, j = 1; i < nearby; i++, j++){
-		if(IS_INSIDE(map_x + i, map_y + j)){
+		if(IS_CELL_INSIDE(map_x + i, map_y + j)){
 			total += map[map_x + i][map_y + j];
 			size++;
 		}
@@ -274,7 +274,7 @@ void OccupancyGrid::calculateOGVector(_2DPoint* robot_pose, double* x, double* y
 
 	// N
 	for(i = 1; i < nearby; i++){
-		if(IS_INSIDE(map_x + i, map_y)){
+		if(IS_CELL_INSIDE(map_x + i, map_y)){
 			total += map[map_x + i][map_y];
 			size++;
 		}
@@ -296,7 +296,7 @@ void OccupancyGrid::calculateOGVector(_2DPoint* robot_pose, double* x, double* y
 
 	// NE
 	for(i = 1, j = 1; i < nearby; i++, j++){
-		if(IS_INSIDE(map_x + i, map_y - j)){
+		if(IS_CELL_INSIDE(map_x + i, map_y - j)){
 			total += map[map_x + i][map_y - j];
 			size++;
 		}
@@ -318,7 +318,7 @@ void OccupancyGrid::calculateOGVector(_2DPoint* robot_pose, double* x, double* y
 
 	// E
 	for(i = 1; i < nearby; i++){
-		if(IS_INSIDE(map_x, map_y - i)){
+		if(IS_CELL_INSIDE(map_x, map_y - i)){
 			total += map[map_x][map_y - i];
 			size++;
 		}
@@ -340,7 +340,7 @@ void OccupancyGrid::calculateOGVector(_2DPoint* robot_pose, double* x, double* y
 
 	// SE
 	for(i = 1, j = 1; i < nearby; i++, j++){
-		if(IS_INSIDE(map_x - i, map_y - j)){
+		if(IS_CELL_INSIDE(map_x - i, map_y - j)){
 			total += map[map_x - i][map_y - j];
 			size++;
 		}
@@ -361,7 +361,7 @@ void OccupancyGrid::calculateOGVector(_2DPoint* robot_pose, double* x, double* y
 
 	// S
 	for(i = 1; i < nearby; i++){
-		if(IS_INSIDE(map_x - i, map_y)){
+		if(IS_CELL_INSIDE(map_x - i, map_y)){
 			total += map[map_x - i][map_y];
 			size++;
 		}
@@ -382,7 +382,7 @@ void OccupancyGrid::calculateOGVector(_2DPoint* robot_pose, double* x, double* y
 
 	// SW
 	for(i = 1, j = 1; i < nearby; i++, j++){
-		if(IS_INSIDE(map_x - i, map_y + j)){
+		if(IS_CELL_INSIDE(map_x - i, map_y + j)){
 			total += map[map_x - i][map_y + j];
 			size++;
 		}
@@ -403,7 +403,7 @@ void OccupancyGrid::calculateOGVector(_2DPoint* robot_pose, double* x, double* y
 
 	// W
 	for(i = 1; i < nearby; i++){
-		if(IS_INSIDE(map_x, map_y + i)){
+		if(IS_CELL_INSIDE(map_x, map_y + i)){
 			total += map[map_x][map_y + i];
 			size++;
 		}
