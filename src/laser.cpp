@@ -37,10 +37,10 @@ inline robot_control::laserMeasures Laser::getMeasures(){
 }
 
 void Laser::publishMeasures(char* type){
-    ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>(LASER(type), 1000);
-    ros::Rate r(15.0);
+    ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>(LASER(type), 100);
+    ros::Rate r(10.0);
 
-    while(node.ok()){
+    while(node.ok() && ros::ok()){
 
         ros::spinOnce();
 

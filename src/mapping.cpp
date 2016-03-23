@@ -44,7 +44,7 @@ void Mapper::calculateDistances(double real_x_pose, double real_y_pose){
 	std::vector<double>::iterator range_it = range.begin();
     std::vector<double>::iterator angle_it = angle.begin();
 
-	while(range_it != range.end()){
+	while(range_it != range.end() && ros::ok()){
 		theta = Resources::angleSum(this -> robot -> yaw, (*angle_it));
 				
 		srv.request.wall_x = real_x_pose + (cos(theta) * (*range_it));;
@@ -53,8 +53,8 @@ void Mapper::calculateDistances(double real_x_pose, double real_y_pose){
 		srv.request.start_x = real_x_pose;
 		srv.request.start_y = real_y_pose;
 
-		srv.request.inc_x = cos(theta)*0.25;
-		srv.request.inc_y = sin(theta)*0.25;
+		srv.request.inc_x = cos(theta)*0.1;
+		srv.request.inc_y = sin(theta)*0.1;
 
 		srv.request.range = (*range_it);
 

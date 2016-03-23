@@ -47,7 +47,7 @@ void PathPlanning::defineLocalPath(vector<int>* x_path, vector<int>* y_path){
 
     // cicle trough the path erasing nodes "in the same line"
     // x_path.size() == y_path.size() always
-    while(x != x_path -> end()){
+    while(x != x_path -> end() && ros::ok()){
 
         // if the proportion changes, don't erase the last node before the one that made the proportion change
         // and change the proportion to the node that changed it
@@ -117,7 +117,7 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
     open_nodes -> push_back(node);
 
     // while the end node isn't on the closed list
-    while(find(closed_nodes, end_x, end_y) == closed_nodes -> end()){
+    while(find(closed_nodes, end_x, end_y) == closed_nodes -> end() && ros::ok()){
         
         // sort the array
         sort(open_nodes -> begin(), open_nodes -> end(), cmpNodes);
@@ -173,7 +173,7 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
     node = *(find(closed_nodes, end_x, end_y));
 
     // go backwards until the starting node (destination position)
-    while(node != NULL){
+    while(node != NULL && ros::ok()){
         // create and x y path
         x_path.push_back(node -> x);
         y_path.push_back(node -> y);

@@ -10,7 +10,7 @@
 #define ANGLE_MIN -1.57
 #define ANGLE_INCREMENT (4.71239/LASER_MEASURES)
 #define FRONT_SIZE(type) (strcmp(type, "larger_robot") ? 15 : 9)
-#define MIN_FRONT(type) (strcmp(type, "larger_robot") ? 8 : 4)
+#define MIN_FRONT(type) (strcmp(type, "larger_robot") ? 8 : 3)
 #define RAD_45 0.785398
 
 #define MAP_FULL 100
@@ -55,7 +55,7 @@
 
 #define AREA_SIZE 8
 
-#define ROBOTS_MIN_DIST 3;
+#define ROBOTS_MIN_DIST 1.5;
 
 #define LOCALIZATION_STARTED ((pose.position.x != 0 || pose.position.y != 0) ? true : false)
 #define LASER_STARTED ((range.size() != 0 && angle.size() != 0) ? true : false)
@@ -63,7 +63,7 @@
 #define SQUARE(x) (x*x)
 #define TO_THE_FOURTH(x) (x*x*x)
 
-#define QROBOTS 1.0
+#define QROBOTS 0.5
 #define QGOAL 0.8
 #define QWALL 0.8
 #define QOG 0.8
@@ -74,7 +74,6 @@
 #define TIME_LIMIT (3 * 60)
 
 #define ERROR 3.0
-#define MIN_DIST 8
 
 #define REACHED_DESTINATION(g, p) (fabs(g -> x - p.x) < ERROR && fabs(g -> y - p.y) < ERROR)
 

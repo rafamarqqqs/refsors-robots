@@ -74,11 +74,15 @@ inline bool Knowledge::isCurrentGoal(uint8_t x, uint8_t y){
 }
 
 bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_control::getNewGoal::Response& res){
+    goal_mtx.lock();
+
     vector<uint8_t> occupied_areas = req.occupied_areas;
     vector<uint8_t>::iterator it;
     vector<Goal>::iterator it_g;
     Goal goal;
+    int last_goal_x = req.x, last_goal_y = req.y;
     int i = 0, j = 0;
+
 
     for(it = occupied_areas.begin(); it != occupied_areas.end(); it++){
         areas[i][j] = (*it);
@@ -93,18 +97,18 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
 
     srand(time(NULL));
 
-    res.new_x = rand() % ((int) floor(length/area_size));
-    res.new_y = rand() % ((int) floor(width/area_size));
+    res.new_x = rand() % ((uint8_t) floor(length/area_size));
+    res.new_y = rand() % ((uint8_t) floor(width/area_size));
 
-    if(req.x == INT_MAX && req.y == INT_MAX){
-        while(areas[res.new_x][res.new_y] == OCCUPIED && !isCurrentGoal(res.new_x, res.new_y)){
-            res.new_x = rand() % ((int) floor(length/area_size));
-            res.new_y = rand() % ((int) floor(width/area_size));
+    //if(req.x == INT_MAX && req.y == INT_MAX){
+        while((areas[res.new_x][res.new_y] == OCCUPIED || isCurrentGoal(res.new_x, res.new_y)) && ros::ok()){
+            res.new_x = rand() % ((uint8_t) floor(length/area_size));
+            res.new_y = rand() % ((uint8_t) floor(width/area_size));
         }
-    }
+    //}
 
     for(it_g = goals -> begin(); it_g != goals -> end(); it_g++){
-        if((*it_g).x == res.new_x && (*it_g).y == res.new_y){
+        if((*it_g).x == last_goal_x && (*it_g).y == last_goal_y){
             (*it_g).x = res.new_x;
             (*it_g).y = res.new_y;
             break;
@@ -118,6 +122,8 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
     }
 
     writeAreas();
+
+    goal_mtx.unlock();
 
     return true;
 }
@@ -144,6 +150,9 @@ inline void Knowledge::writeAreas(){
 }
 
 bool Knowledge::getPositions(robot_control::getPositions::Request& req, robot_control::getPositions::Response& res){
+    
+    pose_mtx.lock();
+    
     _2DPoint aux;
     vector<_2DPoint>::iterator it;
     int i;
@@ -165,6 +174,8 @@ bool Knowledge::getPositions(robot_control::getPositions::Request& req, robot_co
             res.y.push_back((*it).y);
         }
     }
+    
+    pose_mtx.unlock();
 
     return true;
 }
@@ -173,6 +184,8 @@ bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::a
 
     if(!IS_POINT_INSIDE(req.wall_x, req.wall_y))
         return false;
+
+    map_mtx.lock();
 
     int x = BASE_X + TO_CELLS(req.wall_x);
     int y = BASE_Y + TO_CELLS(req.wall_y);
@@ -185,7 +198,7 @@ bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::a
 
     range = range_inc;
 
-    while(map_x != x && map_y != y && MAX_RANGE > range){
+    while(map_x != x && map_y != y && MAX_RANGE > range && ros::ok()){
 
         map[map_x][map_y] = (uint16_t) floor(map[map_x][map_y]/(++map_scans[map_x][map_y]));
 
@@ -207,7 +220,7 @@ bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::a
 
     res.added = true;
 
-    if(req.start_x > 0 && req.start_y < 3 && !mapped){
+    if(req.start_x > 5 && req.start_y < 3 && !mapped){
         mapped = true;
         ros::ServiceClient client = node.serviceClient<robot_control::defineGlobalPath>("/PathPlanning/defineGlobalPath");
 
@@ -227,6 +240,8 @@ bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::a
 
         client.call(srv);
     }
+
+    map_mtx.unlock();
 
     return true;
 }

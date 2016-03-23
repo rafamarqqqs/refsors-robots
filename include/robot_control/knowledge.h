@@ -13,6 +13,7 @@
 #include <stdlib.h> 
 #include <cmath>
 #include <vector>
+#include <mutex>
 
 using namespace std;
 
@@ -29,6 +30,11 @@ public:
     bool getNewGoal(robot_control::getNewGoal::Request& req, robot_control::getNewGoal::Response& res);
 
 private:
+
+	mutex goal_mtx;
+	mutex pose_mtx;
+	mutex map_mtx;
+
     void writeMap();
 	inline bool isCurrentGoal(uint8_t x, uint8_t y);
     inline void writeAreas();

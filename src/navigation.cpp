@@ -22,7 +22,7 @@ Navigator::Navigator(ros::NodeHandle n, char* _type):
         qog = 0.8;
         qgoal = 1.6;
         qtail = 0.4;
-        max_lin_speed = 1.8;
+        max_lin_speed = 1.0;
         max_ang_speed = 2.5;
         min_dist = 8;
         critical_wall_dist = 0.25;
@@ -30,11 +30,11 @@ Navigator::Navigator(ros::NodeHandle n, char* _type):
     }
 
     //Advertising velocity topic
-    velocity_pub = node.advertise<geometry_msgs::Twist>(VEL(_type), 1000);
+    velocity_pub = node.advertise<geometry_msgs::Twist>(VEL(_type), 1);
 
     //Subscribing to sensors
-    laser_sub = node.subscribe(LASER(_type), 100, &Navigator::handleLaser, this);
-    pose_sub = node.subscribe(POSE(_type), 100, &Navigator::handlePose, this);
+    laser_sub = node.subscribe(LASER(_type), 1, &Navigator::handleLaser, this);
+    pose_sub = node.subscribe(POSE(_type), 1, &Navigator::handlePose, this);
 
     client = n.serviceClient<robot_control::getPositions>("/Knowledge/getPositions");
 
@@ -70,7 +70,7 @@ std::list<LaserPoint>* Navigator::remakeRanges(){
 
     std::list<LaserPoint>* laser_list = new std::list<LaserPoint>();
 
-    while(range_it != range.end()){
+    while(range_it != range.end() && ros::ok()){
         //ROS_INFO("%3.2f %3.2f", (*angle_it), (*range_it));
         aux.range = (*range_it);
         aux.angle = (*angle_it);
@@ -101,7 +101,7 @@ std::list<_2DPoint>* Navigator::calculateDistances(Robot *robot){
     std::list<LaserPoint>::iterator it = ranges -> begin();
     std::list<_2DPoint>* wall_points = new std::list<_2DPoint>();
 
-    while(it != ranges -> end()){
+    while(it != ranges -> end() && ros::ok()){
         if((*it).range < min_dist){
             _2DPoint aux;
             double angle;
@@ -145,7 +145,7 @@ double Navigator::calculateAngle(_2DPoint* goal, std::list<_2DPoint>* wall_point
     /* wall repulsion */
     it = wall_points -> begin();
 
-    while(it != wall_points -> end()){
+    while(it != wall_points -> end() && ros::ok()){
         aux.x = (*it).x - robot -> position.x;
         aux.y = (*it).y - robot -> position.y;
 
@@ -294,7 +294,7 @@ void Navigator::search(const robot_control::searchGoalConstPtr &search_goal){
         ROS_INFO("%s Driving to %3.2f %3.2f", type.c_str(), goal -> x, goal -> y);
 
         while(!REACHED_DESTINATION(goal, pose.position) && 
-              !REACHED_TIME_LIMIT(start_time.toSec(), current_time.toSec())){
+              !REACHED_TIME_LIMIT(start_time.toSec(), current_time.toSec()) && ros::ok()){
 
             drive(defineDirection(goal));
 

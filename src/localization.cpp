@@ -8,10 +8,13 @@ Localizator::~Localizator(){}
 
 void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data){
 
+    if(data == NULL)
+        return;
+
     if(!position_ready){
         int i = 0;
         
-        while(data -> name[i].compare(robot_name) != 0){        
+        while(data -> name[i].compare(robot_name) != 0 && ros::ok()){        
             i++;
         }
 
@@ -59,15 +62,15 @@ geometry_msgs::PoseStamped Localizator::getPose(){
 }
 
 void Localizator::publishPose(char* type){
-    ros::Publisher pose_pub = node.advertise<geometry_msgs::PoseStamped>(POSE(type), 1000);
-    ros::Rate r(20.0);
+    ros::Publisher pose_pub = node.advertise<geometry_msgs::PoseStamped>(POSE(type), 100);
+    ros::Rate r(10.0);
 
     // waits until the messages with the positions start arriving
     while(!position_ready && ros::ok()){
         ros::spinOnce();
     }
 
-    while(node.ok()){
+    while(node.ok() && ros::ok()){
         ros::spinOnce();
         pose_pub.publish(getPose());
         r.sleep();
