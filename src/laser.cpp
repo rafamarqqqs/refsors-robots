@@ -2,7 +2,7 @@
 
 Laser::Laser(ros::NodeHandle n, char *type): node(n), front_size(FRONT_SIZE(type)), min_front(MIN_FRONT(type)) {
 
-    laser_sub = node.subscribe(SCAN(type), 1, &Laser::handleSubscription, this);
+    laser_sub = node.subscribe(SCAN_TOPIC(type), 1, &Laser::handleSubscription, this);
 }
 
 Laser::~Laser(){}
@@ -16,7 +16,7 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr& laser_dat
     //480 (2PI/3 - PI)/angle increment
 
     measures.header = laser_data -> header;
-
+    //ROS_INFO("%3.2f", (laser_data -> angle_increment*360)/(2*M_PI) * 119);
     for(i = 0; i < 480; i++){
         measures.range.push_back(laser_data -> ranges[i+120]);
         measures.angle.push_back(ANGLE_MAX - (ANGLE_INCREMENT*i));
@@ -37,8 +37,8 @@ inline robot_control::laserMeasures Laser::getMeasures(){
 }
 
 void Laser::publishMeasures(char* type){
-    ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>(LASER(type), 100);
-    ros::Rate r(10.0);
+    ros::Publisher laser_pub = node.advertise<robot_control::laserMeasures>(LASER_TOPIC(type), 1);
+    ros::Rate r(20.0);
 
     while(node.ok() && ros::ok()){
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv){
         return -1;
     }
 
-    ros::init(argc, argv, "Laser");
+    ros::init(argc, argv, LASER_NODE);
 
     ros::NodeHandle n;
 

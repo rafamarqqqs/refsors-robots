@@ -28,6 +28,8 @@ private:
 
 	ros::Subscriber gazebo_pose_sub;
 
+	double laser_displacement;
+
 	ros::NodeHandle node;
 
 	std::string robot_name;

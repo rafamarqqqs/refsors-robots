@@ -7,7 +7,7 @@ OccupancyGrid::OccupancyGrid(ros::NodeHandle n, double len, double wid, double c
 	initMap();
 	initAreas();
 
-	client = n.serviceClient<robot_control::getNewGoal>("/Knowledge/getNewGoal");
+	client = n.serviceClient<robot_control::getNewGoal>(GET_NEW_GOAL_SERVICE);
 }
 
 void OccupancyGrid::initMap(){
@@ -61,26 +61,49 @@ OccupancyGrid::~OccupancyGrid(){
 
 void OccupancyGrid::getNewGoal(_2DPoint* goal){
 	robot_control::getNewGoal srv;
+	int len = floor(length/area_size);
+	int wid = floor(width/area_size);
 
-	srv.request.x = goal -> x;
-	srv.request.y = goal -> y;
+	if(goal -> x != INT_MAX){
+		for(int i = 0; i < len; i++){
+	        for(int j = 0; j < wid; j++){
+	        	if(areas[i][j].destiny.x == goal -> x && areas[i][j].destiny.y == goal -> y){
+					srv.request.x = i;
+					srv.request.y = j;
+					break;
+	        	}
+	        }
+	    }
+	}
+	else{
+		srv.request.x = -1;
+		srv.request.y = -1;
+	}
+
 	srv.request.occupied_areas = remakeOccupiedAreas();
 
 	client.call(srv);
 
 	goal -> x = areas[srv.response.new_x][srv.response.new_y].destiny.x;
-	goal -> y = areas[srv.response.new_x][srv.response.new_y].destiny.y * (-1.0);
+	goal -> y = areas[srv.response.new_x][srv.response.new_y].destiny.y;
+
+	ROS_INFO("Clearing occupancy grid");
+
+	for(int i = 0; i < TO_CELLS(length); i++){
+		memset(map[i], 0, TO_CELLS(width)*sizeof(int));
+	}
 }
 
 
-vector<uint8_t> OccupancyGrid::remakeOccupiedAreas(){
+inline vector<uint8_t> OccupancyGrid::remakeOccupiedAreas(){
     int size;
     int occupied;
     int map_x, map_y;
+    int len = floor(length/area_size), wid = floor(width/area_size);
     vector<uint8_t> occupied_areas;
 
-    for(int _i = 0; _i < floor(length/area_size); _i++){
-        for(int _j = 0; _j < floor(width/area_size); _j++){
+    for(int _i = 0; _i < len; _i++){
+        for(int _j = 0; _j < wid; _j++){
 
             occupied = size = 0;
 
@@ -100,7 +123,7 @@ vector<uint8_t> OccupancyGrid::remakeOccupiedAreas(){
 	                }
 	            }
 
-	            if(size != 0 && ((double) (1.0*occupied)/(1.0*size)) >= 0.25){
+	            if(size != 0 && ((double) (1.0*occupied)/(1.0*size)) >= OCCUPIED_FACTOR){
 	                areas[_i][_j].occupied = true;
         			occupied_areas.push_back(OCCUPIED);
 	            }
@@ -108,7 +131,7 @@ vector<uint8_t> OccupancyGrid::remakeOccupiedAreas(){
         			occupied_areas.push_back(EMPTY);
         	}
         	else
-        		occupied_areas.push_back(EMPTY);
+        		occupied_areas.push_back(OCCUPIED);
         }
     }
 
@@ -159,16 +182,16 @@ double OccupancyGrid::OGInfluence(double x, double y){
 		return 0;
 }
 
-void OccupancyGrid::calculateTailForce(_2DPoint* robot_pose, double* x, double* y){
+void OccupancyGrid::calculateTailForce(_2DPoint robot_pose, double* x, double* y){
 	vector<_2DPoint>::iterator it;
 	_2DPoint aux;
 	double norm;
-	*x = 0; 
-	*y = 0; 
+	*x = 0.0; 
+	*y = 0.0; 
 
 	for(it = tail.begin(); it != tail.end(); it++){
-		aux.x = (*it).x - robot_pose -> x;
-		aux.y = (*it).y - robot_pose -> y;
+		aux.x = (*it).x - robot_pose.x;
+		aux.y = (*it).y - robot_pose.y;
 
 		norm = pow(pow(aux.x, 2) + pow(aux.y, 2), 0.5);
 
@@ -192,7 +215,7 @@ void OccupancyGrid::updatePosition(double x, double y){
 	updateTail(x, y);
 }
 
-void OccupancyGrid::updateTail(double x, double y){
+inline void OccupancyGrid::updateTail(double x, double y){
 	if(tail.size() == 0)
 		return;
 
@@ -239,9 +262,9 @@ void OccupancyGrid::writeMap(std::string type){
 	file.close();
 }
 
-void OccupancyGrid::calculateOGVector(_2DPoint* robot_pose, double* x, double* y){
-	int map_x = (int) (TO_CELLS(robot_pose -> x) + BASE_X);
-	int map_y = (int) (TO_CELLS(robot_pose -> y) + BASE_Y);
+void OccupancyGrid::calculateOGVector(_2DPoint robot_pose, double* x, double* y){
+	int map_x = (int) (TO_CELLS(robot_pose.x) + BASE_X);
+	int map_y = (int) (TO_CELLS(robot_pose.y) + BASE_Y);
 	int max = 0;
 	double total;
 	double average;

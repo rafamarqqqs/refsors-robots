@@ -5,9 +5,9 @@
 #include "resources.h"
 #include "topics.h"
 #include "robot_control/addToMap.h"
+#include "robot_control/getMap.h"
 #include "robot_control/getPositions.h"
 #include "robot_control/getNewGoal.h"
-#include "robot_control/defineGlobalPath.h"
 #include <actionlib/server/simple_action_server.h>
 #include <fstream>
 #include <stdlib.h> 
@@ -26,6 +26,7 @@ public:
     ~Knowledge();
 
     bool addToMap(robot_control::addToMap::Request& req, robot_control::addToMap::Response& res);
+    bool getMap(robot_control::getMap::Request& req, robot_control::getMap::Response& res);
     bool getPositions(robot_control::getPositions::Request& req, robot_control::getPositions::Response& res);
     bool getNewGoal(robot_control::getNewGoal::Request& req, robot_control::getNewGoal::Response& res);
 
@@ -36,17 +37,18 @@ private:
 	mutex map_mtx;
 
     void writeMap();
-	inline bool isCurrentGoal(uint8_t x, uint8_t y);
+    inline bool isInTheSameQuadrant(int x, int y, int new_x, int new_y);
+	inline bool isCurrentGoal(int x, int y);
     inline void writeAreas();
 	void initMaps();
 	void initAreas();
 
-	uint8_t** areas;
+	int** areas;
 
 	vector<Goal>* goals;
 
 	char** map;
-	uint16_t** map_scans;
+	int** map_scans;
 
 	int8_t ids;
 	std::vector<_2DPoint>* positions;

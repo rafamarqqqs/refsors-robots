@@ -1,0 +1,3 @@
+float32 cell_size
+---
+uint8[] map

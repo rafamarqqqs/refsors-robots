@@ -22,19 +22,19 @@ public:
 		double rep, int nearby, int displacement);
 	~OccupancyGrid();
 
-	void calculateOGVector(_2DPoint* robot, double* x, double* y);
+	void calculateOGVector(_2DPoint robot_pose, double* x, double* y);
 	void updatePosition(double x, double y);
 	void writeMap(std::string type);
 	void getNewGoal(_2DPoint* goal);
 	double OGInfluence(double x, double y);
-	void calculateTailForce(_2DPoint* robot_pose, double* x, double* y);
+	void calculateTailForce(_2DPoint robot_pose, double* x, double* y);
 
 private:
-	void updateTail(double x, double y);
+	inline void updateTail(double x, double y);
 	void initMap();
 	void initAreas();
 	void writeAreas(std::string type);
-	vector<uint8_t> remakeOccupiedAreas();
+	inline vector<uint8_t> remakeOccupiedAreas();
 	
 	int** map;
 

@@ -1,15 +1,15 @@
 #include "../include/robot_control/mapping.h"
 
 Mapper::Mapper(ros::NodeHandle n, double len, double wid, char *_type):
-    createMapServer(n, "createMap", boost::bind(&Mapper::createMap, (Mapper *) this, _1), false),
+    createMapServer(n, CREATE_MAP_ACTION, boost::bind(&Mapper::createMap, (Mapper *) this, _1), false),
     type(_type), node(n), length(len), width(wid) {
 	
 	this -> robot = (Robot *) malloc(sizeof(Robot));
 
-	laser_sub = node.subscribe(LASER(_type), 100, &Mapper::handleLaser, this);
-	pose_sub = node.subscribe(POSE(_type), 100, &Mapper::handlePose, this);
+	laser_sub = node.subscribe(LASER_TOPIC(_type), 100, &Mapper::handleLaser, this);
+	pose_sub = node.subscribe(POSE_TOPIC(_type), 100, &Mapper::handlePose, this);
 
-	client = n.serviceClient<robot_control::addToMap>("/Knowledge/addToMap");
+	client = n.serviceClient<robot_control::addToMap>(ADD_TO_MAP_SERVICE);
 	
 	createMapServer.start();
 }
@@ -32,11 +32,14 @@ void Mapper::handleLaser(const robot_control::laserMeasures::ConstPtr& data){
 
 
 void Mapper::calculateDistances(double real_x_pose, double real_y_pose){
+	
+    //if(fabs(robot -> roll) > DISCRETE_ERROR || fabs(robot -> pitch) > DISCRETE_ERROR){
+    //	return;
+    //}
 
-    if(fabs(robot -> roll) > DISCRETE_ERROR || fabs(robot -> pitch) > DISCRETE_ERROR)
-    	return;
+	//ROS_INFO("%lf %lf", robot -> roll, robot -> pitch);
 
-	int interval = RANGES/MEASURES;
+	int interval = LASER_PI_MEASURES/MAP_MEASURES;
 	bool last_measure = true;
 	robot_control::addToMap srv;
 	double theta;
@@ -45,21 +48,29 @@ void Mapper::calculateDistances(double real_x_pose, double real_y_pose){
     std::vector<double>::iterator angle_it = angle.begin();
 
 	while(range_it != range.end() && ros::ok()){
-		theta = Resources::angleSum(this -> robot -> yaw, (*angle_it));
-				
-		srv.request.wall_x = real_x_pose + (cos(theta) * (*range_it));;
-		srv.request.wall_y = real_y_pose + (sin(theta) * (*range_it));;
+		
+		(*range_it) = (*range_it)*cos(robot -> pitch);
 
-		srv.request.start_x = real_x_pose;
-		srv.request.start_y = real_y_pose;
-
-		srv.request.inc_x = cos(theta)*0.1;
-		srv.request.inc_y = sin(theta)*0.1;
-
-		srv.request.range = (*range_it);
-
-		client.call(srv);
+		if(*range_it > LASER_MIN_RANGE && *range_it < LASER_MAX_RANGE){
 			
+			theta = Resources::angleSum(this -> robot -> yaw, (*angle_it));
+					
+			srv.request.wall_x = real_x_pose + (cos(theta) * (*range_it));;
+			srv.request.wall_y = real_y_pose + (sin(theta) * (*range_it));;
+
+			srv.request.start_x = real_x_pose;
+			srv.request.start_y = real_y_pose;
+
+			srv.request.inc_x = cos(theta)*0.05;
+			srv.request.inc_y = sin(theta)*0.05;
+
+			srv.request.range = (*range_it);
+
+			//ROS_INFO("%3.2f %3.2f\n", (*angle_it), (*range_it));
+
+			client.call(srv);
+		}
+
 		if(!last_measure)
 			break;
 		
@@ -82,26 +93,27 @@ void Mapper::createMap(const robot_control::createMapGoalConstPtr &goal){
 
 	ros::Rate r(10);
 
-    ROS_INFO("navigator waiting for laser");
-    while(!LASER_STARTED && ros::ok()){
+    while((!LASER_STARTED || !LOCALIZATION_STARTED) && ros::ok()){
         r.sleep();
     }
 
+    ros::getGlobalCallbackQueue() -> clear();
+
 	while(ros::ok()){
+		x_diff = fabs(this -> robot -> position.x - last_x);
+		y_diff = fabs(this -> robot -> position.y - last_y);
 
-		//x_diff = fabs(this -> robot -> position.x - last_x);
-		//y_diff = fabs(this -> robot -> position.y - last_y);
-
-		//if(x_diff >= 0.25 || y_diff >= 0.25){
-
+		if(x_diff >= 0.2 || y_diff >= 0.2){
+		/*
+*/
 			calculateDistances(robot -> position.x, robot -> position.y);
+			last_x = this -> robot -> position.x;
+			last_y = this -> robot -> position.y;
 
-			//last_x = this -> robot -> position.x;
-			//last_y = this -> robot -> position.y;
-
-			//writeMap();
-		//}
-
+		//	writeMap();
+		}
+/*
+*/
 		r.sleep();
 	}
 }
@@ -113,7 +125,7 @@ int main(int argc, char **argv) {
     }
 
     //Initializes ROS, and sets up a node
-    ros::init(argc, argv, "Mapping");
+    ros::init(argc, argv, MAPPING_NODE);
 
     ros::NodeHandle node;
 

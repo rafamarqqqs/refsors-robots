@@ -84,8 +84,10 @@ void PathPlanning::defineLocalPath(vector<int>* x_path, vector<int>* y_path){
 bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& req,
                       robot_control::defineGlobalPath::Response& res){
 
-    ROS_INFO("calculating path from %d %d to %d %d", (int)TO_UNKNOWN_CELLS(req.x, req.cell_size), (int)TO_UNKNOWN_CELLS(req.y, req.cell_size),
-                                                    (int)TO_UNKNOWN_CELLS(req.destiny_x, req.cell_size), (int)TO_UNKNOWN_CELLS(req.destiny_y, req.cell_size));
+    ROS_INFO("calculating path from %d %d to %d %d", (int)TO_UNKNOWN_CELLS(req.x, req.cell_size)  + UNKNOWN_CELL_BASE_X(req.cell_size), 
+                                                    (int)TO_UNKNOWN_CELLS(req.y, req.cell_size)  + UNKNOWN_CELL_BASE_Y(req.cell_size),
+                                                    (int)TO_UNKNOWN_CELLS(req.destiny_x, req.cell_size)  + UNKNOWN_CELL_BASE_X(req.cell_size), 
+                                                    (int)TO_UNKNOWN_CELLS(req.destiny_y, req.cell_size) + UNKNOWN_CELL_BASE_Y(req.cell_size));
 
     vector<unsigned char> map = req.map;
     
@@ -132,8 +134,8 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
             for(j = -1; j <= 1; j++){
 
                 // if it isn't himself, the path is clear and it's not on the closed list
-                if(!(i == 0 && j == 0)
-                   && map.at(((current_node -> x + i) * TO_UNKNOWN_CELLS(length, req.cell_size)) + current_node -> y + j) == 0
+                if(IS_UNKNOWN_CELL_INSIDE(current_node -> x + i, current_node -> y + j, req.cell_size) && !(i == 0 && j == 0)
+                   && map.at(((current_node -> x + i) * TO_UNKNOWN_CELLS(length, req.cell_size)) + current_node -> y + j) < EMPTY_RANGE
                    && find(closed_nodes, current_node -> x + i, current_node -> y + j) == closed_nodes -> end()){
                     
                     it = find(open_nodes, current_node -> x + i, current_node -> y + j);
@@ -209,7 +211,7 @@ void PathPlanning::writeMap(vector<unsigned char> map){
     char block;
     vector<unsigned char>::iterator it;
 
-    std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/containers_path_planning.map");
+    std::ofstream file(PATH_PLANNING_MAP);
 
     for(it = map.begin(); it != map.end(); it++){
             if((*it) == 'X')
@@ -239,13 +241,13 @@ void PathPlanning::writeMap(vector<unsigned char> map){
 int main(int argc, char **argv) {
 
     //Initializes ROS, and sets up a node
-    ros::init(argc, argv, "Path planning");
+    ros::init(argc, argv, PATH_PLANNING_NODE);
 
     ros::NodeHandle node;
 
-    PathPlanning* path_planner = new PathPlanning(node, 40.0, 40.0);
+    PathPlanning* path_planner = new PathPlanning(node, MAP_LENGTH, MAP_WIDTH);
 
-    ros::ServiceServer service = node.advertiseService("/PathPlanning/defineGlobalPath", 
+    ros::ServiceServer service = node.advertiseService(DEFINE_GLOBAL_PATH_SERVICE, 
                                                     &PathPlanning::defineGlobalPath, path_planner);
 
     ROS_INFO("Path planning started.");

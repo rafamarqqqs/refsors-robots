@@ -64,6 +64,7 @@ add_service_files(
   defineGlobalPath.srv
   getPositions.srv
   getNewGoal.srv
+  getMap.srv
 )
 
 ## Generate actions in the 'action' folder

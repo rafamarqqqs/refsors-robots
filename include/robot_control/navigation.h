@@ -9,6 +9,7 @@
 #include "topics.h"
 #include <limits.h>
 #include <gazebo_msgs/ModelStates.h>
+#include <geometry_msgs/Quaternion.h>
 #include <actionlib/server/simple_action_server.h>
 #include "robot_control/getPositions.h"
 #include "robot_control/laserMeasures.h"
@@ -28,38 +29,47 @@ public:
     void search(const robot_control::searchGoalConstPtr &goal);
 
 private:
-    inline DrivingInfo* defineDirection(_2DPoint* goal);
+    inline void defineDirection();
 
     void handlePose(const geometry_msgs::PoseStamped::ConstPtr& data);
 
     void handleLaser(const robot_control::laserMeasures::ConstPtr& data);
 
+    inline void getGoalAttraction(double* x_component, double* y_component);
+
+    inline void getWallsRepulsion(double* x_component, double* y_component, std::list<_2DPoint>* wall_points);
+    inline void getRobotsRepulsion(double* x_component, double* y_component);
     inline void stop();
     inline void driveForward();
-    inline void drive(DrivingInfo* info);
-    inline std::list<_2DPoint>* calculateDistances(Robot* robot);
-    inline double calculateAngle(_2DPoint* goal, std::list<_2DPoint>* wall_points, Robot* robot);
+    inline void drive();
+    inline std::list<_2DPoint>* calculateDistances();
+    inline double calculateAngle(std::list<_2DPoint>* wall_points);
 
     inline std::list<LaserPoint>* remakeRanges();
 
-    //Laser* laser;
     OccupancyGrid *og;
-    geometry_msgs::Pose pose;
+
+    Robot* robot;
 
     std::vector<double> range;
     std::vector<double> angle;
     
-    float qwall;
-    float qgoal;
-    float qog;
-    float qtail;
-    float max_lin_speed;
-    float max_ang_speed;
-    float min_dist;
-    float critical_wall_dist;
+    double qwall;
+    double qrobots;
+    double qgoal;
+    double qog;
+    double qtail;
+    double max_lin_speed;
+    double max_ang_speed;
+    double min_dist;
+    double critical_wall_dist;
     double front;
 
+    _2DPoint* goal;
+
     std::string type;
+
+    DrivingInfo* driving_info;
 
     int8_t id;
 
