@@ -10,7 +10,7 @@
 #define ANGLE_MAX 1.57
 #define ANGLE_MIN -1.57
 #define ANGLE_INCREMENT (4.71239/LASER_MEASURES)
-#define FRONT_SIZE(type) (strcmp(type, "larger_robot") ? 15 : 12)
+#define FRONT_SIZE(type) (strcmp(type, "larger_robot") ? 15 : 9)
 #define MIN_FRONT(type) (strcmp(type, "larger_robot") ? 8 : 2.5)
 #define RAD_45 0.785398
 
@@ -24,19 +24,18 @@
 #define FULL_RANGE 66
 //#define FULL_RANGE 80
 
-#define MAX_SCANS 150
+#define MAX_SCANS 100
 
-#define LASER_MAX_RANGE 10
+#define LASER_MAX_RANGE 9
 #define LASER_MIN_RANGE 0.15
 
 #define CELL_SIZE 0.5
-
-#define DISCRETE_ERROR 0.1
 
 #define MAX_RANGE 8
 
 #define LASER_PI_MEASURES 480
 
+//#define MAP_MEASURES 20
 #define MAP_MEASURES 10
 #define NAV_MEASURES 8
 
@@ -60,7 +59,7 @@
 #define EMPTY 0
 #define OCCUPIED 1
 
-#define OCCUPIED_FACTOR 0.4
+#define OCCUPIED_FACTOR 0.5
 
 #define UNDEFINED 1000
 
@@ -88,11 +87,12 @@
 #define MAX_LIN_SPEED 0.7
 #define MAX_ANG_SPEED 0.9
 
-#define TIME_LIMIT (1 * 60)
+#define TIME_LIMIT (1 * 90)
 
-#define ERROR 3.0
+#define SEARCH_ERROR 3.0
+#define NAVIGATION_ERROR 1.0
 
-#define REACHED_DESTINATION(g, p) (fabs(g -> x - p.x) < ERROR && fabs(g -> y - p.y) < ERROR)
+#define REACHED_DESTINATION(g, p, error) (fabs(g -> x - p.x) < error && fabs(g -> y - p.y) < error)
 
 #define REACHED_TIME_LIMIT(start, now) ((now - start) > TIME_LIMIT ? true : false)
 #define REACHED_GLOBAL_TIME_LIMIT(start, now) ((now - start) > 5*60 ? true : false)

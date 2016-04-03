@@ -87,13 +87,18 @@ void OccupancyGrid::getNewGoal(_2DPoint* goal){
 	goal -> x = areas[srv.response.new_x][srv.response.new_y].destiny.x;
 	goal -> y = areas[srv.response.new_x][srv.response.new_y].destiny.y;
 
+	clearOccupancyGrid();
+
+}
+
+void OccupancyGrid::clearOccupancyGrid(){
+
 	ROS_INFO("Clearing occupancy grid");
 
 	for(int i = 0; i < TO_CELLS(length); i++){
 		memset(map[i], 0, TO_CELLS(width)*sizeof(int));
 	}
 }
-
 
 inline vector<uint8_t> OccupancyGrid::remakeOccupiedAreas(){
     int size;

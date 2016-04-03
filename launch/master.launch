@@ -11,12 +11,11 @@
         <arg name="debug" value="false"/>
     </include>
 
-    <node name="Knowledge" pkg="robot_control" type="knowledge" output="screen" args="larger_robot" required="true"/>
-    <node name="PathPlanning" pkg="robot_control" type="path_planning" output="screen" args="larger_robot" required="true"/>
     
     <group ns="larger_robot">
         <include file="$(find robot_control)/launch/larger_robot.launch" ></include>
         <node name="Localization" pkg="robot_control" type="localization" output="screen" args="larger_robot" required="true"/>
+        <node name="ImageProcessing" pkg="robot_control" type="image_processing" output="screen" args="larger_robot" required="true"/>
         <node name="Laser" pkg="robot_control" type="laser" output="screen" args="larger_robot" required="true"/>
         <node name="Mapping" pkg="robot_control" type="mapping" output="screen" args="larger_robot" required="true"/>
         <node name="Navigation" pkg="robot_control" type="navigation" output="screen" args="larger_robot" required="true"/>
@@ -28,6 +27,7 @@
     <group ns="smaller_robot">
         <include file="$(find robot_control)/launch/smaller_robot.launch" ></include>
         <node name="Localization" pkg="robot_control" type="localization" output="screen" required="true" args="smaller_robot"/>
+        <node name="ImageProcessing" pkg="robot_control" type="image_processing" output="screen" args="smaller_robot" required="true"/>
         <node name="Laser" pkg="robot_control" type="laser" output="screen" required="true" args="smaller_robot"/>
         <node name="Mapping" pkg="robot_control" type="mapping" output="screen" required="true" args="smaller_robot"/>
         <node name="Navigation" pkg="robot_control" type="navigation" output="screen" required="true" args="smaller_robot"/>
@@ -35,5 +35,8 @@
     </group>
     <!--
     -->
+    <node name="Application" pkg="robot_control" type="application" output="screen" required="true"/>
+    <node name="Knowledge" pkg="robot_control" type="knowledge" output="screen" required="true"/>
+    <node name="PathPlanning" pkg="robot_control" type="path_planning" output="screen" required="true"/>
 
 </launch>

@@ -74,10 +74,19 @@
       <shadows>0</shadows>
     </scene>
     <state world_name='default'>
-      <sim_time>10518 889000000</sim_time>
-      <real_time>210 683874205</real_time>
-      <wall_time>1459080579 384152746</wall_time>
-      <iterations>210157</iterations>
+      <sim_time>10951 421000000</sim_time>
+      <real_time>95 764729663</real_time>
+      <wall_time>1459659594 190847470</wall_time>
+      <iterations>95412</iterations>
+      <model name='bomb'>
+        <pose frame=''>11 -5 0.499997 3e-06 -3e-06 0</pose>
+        <link name='link'>
+          <pose frame=''>11 -5 0.499997 3e-06 -3e-06 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 -9.8 0 -0 0</acceleration>
+          <wrench>0 0 -9.8 0 -0 0</wrench>
+        </link>
+      </model>
       <model name='container_01'>
         <pose frame=''>16.4957 -11.4541 1.35468 0 -0 1.57</pose>
         <link name='link'>
@@ -232,9 +241,9 @@
         </link>
       </model>
       <model name='container_23'>
-        <pose frame=''>-16.5675 11 1.26801 0 -0 1.57</pose>
+        <pose frame=''>-16.4892 11.0687 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose frame=''>-16.5675 11 1.26801 0 -0 1.57</pose>
+          <pose frame=''>-16.4892 11.0687 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -286,18 +295,18 @@
         </link>
       </model>
       <model name='container_4'>
-        <pose frame=''>-9 11 1.35468 0 -0 1.57</pose>
+        <pose frame=''>-9.24517 11.0202 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose frame=''>-9 11 1.35468 0 -0 1.57</pose>
+          <pose frame=''>-9.24517 11.0202 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_6'>
-        <pose frame=''>-2.43266 11 1.35468 0 -0 1.57</pose>
+        <pose frame=''>-2.78145 11.0271 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose frame=''>-2.43266 11 1.35468 0 -0 1.57</pose>
+          <pose frame=''>-2.78145 11.0271 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -360,7 +369,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>2.10134 -1.3153 63.0068 6e-06 1.5658 1.56285</pose>
+        <pose frame=''>-0.301158 0.106138 56.8385 2.4e-05 1.5658 1.56285</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -1992,5 +2001,56 @@
       <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
+    <model name='bomb'>
+      <pose frame=''>5 16 0.5 0 -0 0</pose>
+      <link name='link'>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.145833</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.145833</iyy>
+            <iyz>0</iyz>
+            <izz>0.125</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1</length>
+            </cylinder>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <script>
+              <name>Gazebo/Red</name>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+      </link>
+    </model>
   </world>
 </sdf>

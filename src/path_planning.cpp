@@ -189,7 +189,17 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
 
     vector<int>::iterator x, y;
 
+    vector<int>::reverse_iterator _y;
+    vector<int>::reverse_iterator _x;
+
     // adding to the map for visualizing purposes
+    for(_x = x_path.rbegin(), _y = y_path.rbegin();
+        _x != x_path.rend(); _x++, _y++){
+
+        res.x_path.push_back(((*_x)*req.cell_size) - (MAP_LENGTH/2));
+        res.y_path.push_back(((*_y)*req.cell_size) - (MAP_WIDTH/2));
+    }
+
     for(x = x_path.begin(), y = y_path.begin(); x != x_path.end(); x++, y++)
         map.at(((*x) * (TO_UNKNOWN_CELLS(length, req.cell_size))) + (*y)) = 'X';
 
@@ -198,7 +208,7 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
     for(it = closed_nodes -> begin(); it != closed_nodes -> end(); it++)
         free((*it));
 
-    writeMap(map);
+    writeMap(map, req.cell_size);
 
     delete open_nodes;
     delete closed_nodes;
@@ -206,7 +216,7 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
     return true;
 }
 
-void PathPlanning::writeMap(vector<unsigned char> map){
+void PathPlanning::writeMap(vector<unsigned char> map, float req_cell_size){
     int i = 1;
     char block;
     vector<unsigned char>::iterator it;
@@ -227,7 +237,7 @@ void PathPlanning::writeMap(vector<unsigned char> map){
 
             file.put(block);
 
-        if(i % ((int)TO_UNKNOWN_CELLS(length, 0.5)) == 0){
+        if(i % ((int)TO_UNKNOWN_CELLS(length, req_cell_size)) == 0){
             file.put('\n');
             i = 0;
         }

@@ -8,6 +8,8 @@
 
 #define VEL_TOPIC(type) (strcmp(type, LARGER_ROBOT) == 0 ? "/larger_robot/cmd_vel" : "/smaller_robot/cmd_vel")
 #define SCAN_TOPIC(type) (strcmp(type, LARGER_ROBOT) == 0 ? "/larger_robot/scan" : "/smaller_robot/front/scan")
+#define CAMERA_TOPIC(type) (strcmp(type, LARGER_ROBOT) == 0 ? "/larger_robot/camera/rgb/image_raw" : \
+																"/smaller_robot/front/left/image_raw")
 #define LASER_TOPIC(type) (strcmp(type, LARGER_ROBOT) == 0 ? "/larger_robot/laser_measures" : "/smaller_robot/laser_measures")
 #define POSE_TOPIC(type) (strcmp(type, LARGER_ROBOT) == 0 ? "/larger_robot/pose" : "/smaller_robot/pose")
 #define MODEL_NAME(type) (strcmp(type, LARGER_ROBOT) == 0 ? "husky" : "jackal")
@@ -35,8 +37,16 @@
 
 #define NAVIGATION_NODE "Navigation"
 #define SEARCH_ACTION "Navigation/search"
+#define DRIVE_TO_ACTION "Navigation/driveTo"
 
 #define CONTROL_NODE "Control"
+#define CONTROL_SEARCH_ACTION "Control/search"
+#define EXIT_ACTION "Control/exit"
+
+#define IMAGE_PROCESSING_NODE "ImageProcessing"
+#define PROCESS_IMAGE_ACTION "ImageProcessing/processImage"
+
+#define APPLICATION_NODE "Application"
 
 /*
 #define VEL(type) "/Pioneer3AT/cmd_vel"

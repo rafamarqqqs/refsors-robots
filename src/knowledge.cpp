@@ -69,19 +69,19 @@ inline bool Knowledge::isCurrentGoal(int x, int y){
     
     for(it = goals -> begin(); it != goals -> end(); it++){
         if((*it).x == x && (*it).y == y){
-            ROS_INFO("same goal");
+      //      ROS_INFO("same goal");
             return true;
         }
     }
 
     return false;
 }
-
+/*
 inline bool Knowledge::isInTheSameQuadrant(int x, int y, int new_x, int new_y){
     int middle_x = ((int) floor(length/area_size))/2;
     int middle_y = ((int) floor(width/area_size))/2;
 
-    ROS_INFO("quads (%d, %d) (%d, %d)", x, y, new_x, new_y);
+    //ROS_INFO("quads (%d, %d) (%d, %d)", x, y, new_x, new_y);
 
     if(x <= middle_x && y <= middle_y && new_x <= middle_x && new_y <= middle_y)
         return true;
@@ -93,6 +93,50 @@ inline bool Knowledge::isInTheSameQuadrant(int x, int y, int new_x, int new_y){
         return true;
 
     return false;
+}
+*/
+
+inline void Knowledge::getLeastExploredQuadrant(int* x_displacement, int* y_displacement, int length, int width){
+    int selected = 1;
+    int quadrant = 1;
+    int max = 0;
+    int counter = 0;
+
+    for(int i = 0; i < 2; i++){
+        for(int j = 0; j < 2; j++){
+            for(int _i = 0; _i < TO_CELLS(length)/2; _i++){
+                for(int _j = 0; _j < TO_CELLS(width)/2; _j++){
+                    if(map[_i + (i*(TO_CELLS(length)/2))][_j + (j*(TO_CELLS(width)/2))] > EMPTY_RANGE)
+                        counter++;
+                }
+            }
+
+            if(counter > max){
+                selected = quadrant;
+                max = counter;
+            }
+
+            counter = 0;
+            quadrant++;
+        }
+    }
+
+    if(selected == 1){
+        *x_displacement = 0;
+        *y_displacement = 0;
+    }
+    else if(selected == 2){
+        *x_displacement = length;
+        *y_displacement = 0;
+    }
+    else if(selected == 3){
+        *x_displacement = 0;
+        *y_displacement = width;
+    }
+    else if(selected == 4){
+        *x_displacement = length;
+        *y_displacement = width;
+    }
 }
 
 bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_control::getNewGoal::Response& res){
@@ -107,6 +151,7 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
     int n_l_areas = (int) floor(length/area_size);
     int n_w_areas = (int) floor(width/area_size);
     int tries = 0;
+    int x_displacement, y_displacement;
 
     it = occupied_areas.begin();
 
@@ -117,23 +162,30 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
         }
     }
 
+    getLeastExploredQuadrant(&x_displacement, &y_displacement, n_l_areas/2, n_w_areas/2);
+
     srand(time(NULL));
-    res.new_x = rand() % n_l_areas;
-    res.new_y = rand() % n_w_areas;
+    res.new_x = (rand() % (n_l_areas/2)) + x_displacement;
+    res.new_y = (rand() % (n_w_areas/2)) + y_displacement;
 
     while((areas[res.new_x][res.new_y] == OCCUPIED || isCurrentGoal(res.new_x, res.new_y) 
-        || isInTheSameQuadrant(req.x, req.y, res.new_x, res.new_y)) && tries < n_l_areas*n_w_areas && ros::ok()){
+        /*|| isInTheSameQuadrant(req.x, req.y, res.new_x, res.new_y)*/) && tries < n_l_areas*n_w_areas && ros::ok()){
 
-        res.new_x = (res.new_x + 1) % n_l_areas;
+        res.new_x = ((res.new_x + 1) % (n_l_areas/2)) + x_displacement;
         
         if(res.new_x == 0)
-            res.new_y = (res.new_y + 1) % n_w_areas;
+            res.new_y = ((res.new_y + 1) % (n_w_areas/2)) + y_displacement;
         
         tries++;
     }
 
-    if(tries == n_w_areas*n_l_areas)
+    ROS_INFO("%d %d -> %d %d", req.x, req.y, res.new_x, res.new_y);
+
+    if(tries == n_w_areas*n_l_areas){
+        res.new_x = rand() % n_l_areas;
+        res.new_y = rand() % n_w_areas;
         ROS_INFO("max tries");
+    }
 
     ROS_INFO("Current goals: %d", (int) goals -> size());
     for(it_g = goals -> begin(); it_g != goals -> end(); it_g++){
@@ -163,7 +215,7 @@ inline void Knowledge::writeAreas(){
     std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/areas.map");
 
     for(int i = floor(length/area_size) - 1; i >= 0 ; i--){
-        for(int j = floor(width/area_size) - 1; j >= 0 ; j--){
+        for(int j = 0; j < floor(width/area_size) ; j++){
 
             file << "|";
             file << std::setfill(' ') << (areas[i][j] == OCCUPIED ? '1' : '0');
@@ -209,11 +261,29 @@ bool Knowledge::getPositions(robot_control::getPositions::Request& req, robot_co
 }
 
 bool Knowledge::getMap(robot_control::getMap::Request& req, robot_control::getMap::Response& res){
-    for(int i = 0; i < TO_CELLS(length); i++){
-        for(int j = 0; j < TO_CELLS(width); j++){
-            res.map.push_back((unsigned char) map[i][j]);
+    int cell_diff = (int)(req.cell_size/cell_size);
+    bool occupied;
+
+    std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/new.map");
+
+    for(int i = 0; i < TO_CELLS(length); i+=cell_diff){
+        for(int j = 0; j < TO_CELLS(width); j+=cell_diff){
+            occupied = false;
+    
+            for(int _i = 0; _i < cell_diff; _i++){
+                for(int _j = 0; _j < cell_diff; _j++){
+                    if(map[i + _i][j + _j] > EMPTY_RANGE)
+                        occupied = true;
+                }
+            }
+            
+            res.map.push_back(occupied == false ? ' ' : '#');
+            file.put(occupied == false ? ' ' : '#');
         }
+        file.put('\n');
     }
+
+    file.close();
 
     return true;
 }
@@ -225,23 +295,16 @@ bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::a
 
     map_mtx.lock();
 
-
     int x = BASE_X + TO_CELLS(req.wall_x);
     int y = BASE_Y + TO_CELLS(req.wall_y);
     double aux_x = req.start_x + req.inc_x;
     double aux_y = req.start_y + req.inc_y;
     double aux_average;
-    //double range_inc = pow(SQUARE(req.inc_x) + SQUARE(req.inc_y), 0.5);
-    //double range = range_inc;
     int map_x = TO_CELLS(aux_x) + BASE_X;
     int map_y = TO_CELLS(aux_y) + BASE_Y;
     int last_map_x = INT_MAX, last_map_y = INT_MAX;
 
-    /*
-    */
-    //ROS_INFO("1");
     while((map_x != x && map_y != y) && IS_CELL_INSIDE(map_x, map_y) && ros::ok()){
-        //ROS_INFO("2");
 
         if((last_map_x != map_x || last_map_y != map_y) && map_scans[map_x][map_y] < MAX_SCANS ? true : map[map_x][map_y] < FULL_RANGE
             && map[map_x][map_y] != WALKABLE){
@@ -250,10 +313,6 @@ bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::a
             last_map_x = map_x;
             last_map_y = map_y;
         }
-        //ROS_INFO("3");
-
-        //range += range_inc;
-
 
         aux_x += req.inc_x;
         aux_y += req.inc_y;
@@ -262,40 +321,15 @@ bool Knowledge::addToMap(robot_control::addToMap::Request& req, robot_control::a
         map_y = TO_CELLS(aux_y) + BASE_Y;
     }
 
-    //if(req.range < MAX_RANGE){
-        if(IS_CELL_INSIDE(x, y) && map_scans[x][y] < MAX_SCANS ? true : map[x][y] > EMPTY_RANGE
-         && map[map_x][map_y] != WALKABLE){
-            aux_average = map[x][y] * (map_scans[x][y]);
-            map_scans[x][y]++;
-            map[x][y] = floor(aux_average + MAP_FULL)/(map_scans[x][y]);
-        }
-    //}
+    if(IS_CELL_INSIDE(x, y) && map_scans[x][y] < MAX_SCANS ? true : map[x][y] > EMPTY_RANGE
+       && map[map_x][map_y] != WALKABLE){
 
-    //writeMap();
+        aux_average = map[x][y] * (map_scans[x][y]);
+        map_scans[x][y]++;
+        map[x][y] = floor(aux_average + MAP_FULL)/(map_scans[x][y]);
+    }
 
     res.added = true;
-
-    /*if(req.start_x > 3 && req.start_y < 3 && !mapped){
-        mapped = true;
-        ros::ServiceClient client = node.serviceClient<robot_control::defineGlobalPath>(DEFINE_GLOBAL_PATH_SERVICE);
-
-        robot_control::defineGlobalPath srv;
-
-        srv.request.x = req.start_x;
-        srv.request.y = req.start_y;
-        srv.request.destiny_x = -14;
-        srv.request.destiny_y = 16;
-        srv.request.cell_size = 0.5;
-
-        for(int i = 0; i < TO_CELLS(length); i++){
-            for(int j = 0; j < TO_CELLS(width); j++){
-                srv.request.map.push_back((unsigned char) map[i][j]);
-            }
-        }
-        ROS_INFO("calling service");
-        client.call(srv);
-        ROS_INFO("done");
-    }*/
 
     map_mtx.unlock();
 

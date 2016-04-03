@@ -37,7 +37,8 @@ private:
 	mutex map_mtx;
 
     void writeMap();
-    inline bool isInTheSameQuadrant(int x, int y, int new_x, int new_y);
+    inline void getLeastExploredQuadrant(int* x_displacement, int* y_displacement, int length, int width);
+    //inline bool isInTheSameQuadrant(int x, int y, int new_x, int new_y);
 	inline bool isCurrentGoal(int x, int y);
     inline void writeAreas();
 	void initMaps();

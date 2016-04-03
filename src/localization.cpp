@@ -22,19 +22,10 @@ void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPt
                 return;
         }
 
-
         id = i;
-    
-        // localization is not ready yet
-        if(abs(data -> pose[id].position.x) < DISCRETE_ERROR ||
-           abs(data -> pose[id].position.y) < DISCRETE_ERROR && position_ready == false)
-            return;
-
-        position_ready = true;
     }
 
     this -> pose.pose = data -> pose[id];
-
 
     tf::Quaternion q(data -> pose[id].orientation.x,
                     data -> pose[id].orientation.y,
@@ -46,7 +37,7 @@ void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPt
     double yaw = tf::getYaw(q);
 
     this -> pose.pose.position.x += laser_displacement * cos(yaw);
-    this -> pose.pose.position.x += laser_displacement * sin(yaw);
+    this -> pose.pose.position.y += laser_displacement * sin(yaw);
 
     this -> pose.header.stamp = ros::Time::now();
 
@@ -80,11 +71,6 @@ geometry_msgs::PoseStamped Localizator::getPose(){
 void Localizator::publishPose(char* type){
     ros::Publisher pose_pub = node.advertise<geometry_msgs::PoseStamped>(POSE_TOPIC(type), 1);
     ros::Rate r(20.0);
-
-    // waits until the messages with the positions start arriving
-    while(!position_ready && ros::ok()){
-        ros::spinOnce();
-    }
 
     while(node.ok() && ros::ok()){
         ros::spinOnce();

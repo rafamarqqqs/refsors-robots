@@ -13,6 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   message_filters
   actionlib_msgs
   actionlib
+  image_transport
+  OpenCV
+  cv_bridge
 )
 
 ## System dependencies are found with CMake's conventions
@@ -73,6 +76,9 @@ add_action_files(
   FILES 
   search.action
   createMap.action
+  driveTo.action
+  exit.action
+  processImage.action
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -128,6 +134,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   src/libraries
 )
@@ -154,6 +161,8 @@ add_executable(mapping src/mapping.cpp)
 add_executable(knowledge src/knowledge.cpp)
 add_executable(laser src/laser.cpp)
 add_executable(path_planning src/path_planning.cpp)
+add_executable(image_processing src/image_processing.cpp)
+add_executable(application src/application.cpp)
 
 add_dependencies(control robot_control_generate_messages_cpp)
 add_dependencies(navigation robot_control_generate_messages_cpp)
@@ -161,12 +170,16 @@ add_dependencies(localization robot_control_generate_messages_cpp)
 add_dependencies(laser robot_control_generate_messages_cpp)
 add_dependencies(knowledge robot_control_generate_messages_cpp)
 add_dependencies(path_planning robot_control_generate_messages_cpp)
+add_dependencies(image_processing robot_control_generate_messages_cpp)
+add_dependencies(application robot_control_generate_messages_cpp)
 
 add_dependencies(control ${robot_control_EXPORTED_TARGETS})
 add_dependencies(navigation ${robot_control_EXPORTED_TARGETS})
 add_dependencies(knowledge ${robot_control_EXPORTED_TARGETS})
 add_dependencies(mapping ${robot_control_EXPORTED_TARGETS})
 add_dependencies(path_planning ${robot_control_EXPORTED_TARGETS})
+add_dependencies(image_processing ${robot_control_EXPORTED_TARGETS})
+add_dependencies(application ${robot_control_EXPORTED_TARGETS})
 
 target_link_libraries(navigation ${catkin_LIBRARIES})
 target_link_libraries(control ${catkin_LIBRARIES})
@@ -175,6 +188,9 @@ target_link_libraries(mapping ${catkin_LIBRARIES})
 target_link_libraries(laser ${catkin_LIBRARIES})
 target_link_libraries(knowledge ${catkin_LIBRARIES})
 target_link_libraries(path_planning ${catkin_LIBRARIES})
+target_link_libraries(image_processing ${OpenCV_LIBRARIES})
+target_link_libraries(image_processing ${catkin_LIBRARIES})
+target_link_libraries(application ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above

@@ -27,7 +27,7 @@ public:
 private:
 	void defineLocalPath(vector<int>* x_path, vector<int>* y_path);
 	inline vector<Node*>::iterator find(vector<Node*>* vec, int x, int y);
-	void writeMap(vector<unsigned char> map);
+	void writeMap(vector<unsigned char> map, float cell_size);
 	inline Node* initNode(int x, int y, int g, Node* parent);
 
 	double end_x, end_y;

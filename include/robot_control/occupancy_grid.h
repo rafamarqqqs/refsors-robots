@@ -28,6 +28,7 @@ public:
 	void getNewGoal(_2DPoint* goal);
 	double OGInfluence(double x, double y);
 	void calculateTailForce(_2DPoint robot_pose, double* x, double* y);
+	void clearOccupancyGrid();
 
 private:
 	inline void updateTail(double x, double y);

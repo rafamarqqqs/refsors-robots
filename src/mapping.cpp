@@ -87,11 +87,11 @@ void Mapper::calculateDistances(double real_x_pose, double real_y_pose){
 	}
 }
 
-void Mapper::createMap(const robot_control::createMapGoalConstPtr &goal){
+void Mapper::createMap(const robot_control::createMapGoalConstPtr& goal){
 	double last_x = 1000, last_y = 1000;
 	double y_diff, x_diff;
 
-	ros::Rate r(10);
+	ros::Rate r(5);
 
     while((!LASER_STARTED || !LOCALIZATION_STARTED) && ros::ok()){
         r.sleep();
@@ -103,7 +103,7 @@ void Mapper::createMap(const robot_control::createMapGoalConstPtr &goal){
 		x_diff = fabs(this -> robot -> position.x - last_x);
 		y_diff = fabs(this -> robot -> position.y - last_y);
 
-		if(x_diff >= 0.2 || y_diff >= 0.2){
+		if(x_diff >= 0.1 || y_diff >= 0.1){
 		/*
 */
 			calculateDistances(robot -> position.x, robot -> position.y);

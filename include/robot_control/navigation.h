@@ -14,12 +14,14 @@
 #include "robot_control/getPositions.h"
 #include "robot_control/laserMeasures.h"
 #include "robot_control/searchAction.h"
+#include "robot_control/driveToAction.h"
 #include <vector>
 
 #ifndef _NAVIGATION_H_
 #define _NAVIGATION_H_
 
-typedef actionlib::SimpleActionServer<robot_control::searchAction> SearchAction; 
+typedef actionlib::SimpleActionServer<robot_control::searchAction> SearchAction;
+typedef actionlib::SimpleActionServer<robot_control::driveToAction> DriveToAction; 
 
 class Navigator {
 public:
@@ -27,6 +29,8 @@ public:
     virtual ~Navigator();
 
     void search(const robot_control::searchGoalConstPtr &goal);
+    void searchPreempted();
+    void driveTo(const robot_control::driveToGoalConstPtr &goal);
 
 private:
     inline void defineDirection();
@@ -64,8 +68,10 @@ private:
     double min_dist;
     double critical_wall_dist;
     double front;
-
+    double navigation_error;
     _2DPoint* goal;
+
+    bool found;
 
     std::string type;
 
@@ -76,6 +82,7 @@ private:
     ros::Publisher velocity_pub;
 
     SearchAction searchServer;
+    DriveToAction driveToServer;
 
     ros::Subscriber laser_sub;
     ros::Subscriber pose_sub;
