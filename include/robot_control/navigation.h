@@ -15,12 +15,15 @@
 #include "robot_control/laserMeasures.h"
 #include "robot_control/searchAction.h"
 #include "robot_control/driveToAction.h"
+#include "robot_control/alignWithBombAction.h"
+#include "robot_control/getBombDisplacement.h"
 #include <vector>
 
 #ifndef _NAVIGATION_H_
 #define _NAVIGATION_H_
 
 typedef actionlib::SimpleActionServer<robot_control::searchAction> SearchAction;
+typedef actionlib::SimpleActionServer<robot_control::alignWithBombAction> AlignWithBombAction;
 typedef actionlib::SimpleActionServer<robot_control::driveToAction> DriveToAction; 
 
 class Navigator {
@@ -28,9 +31,11 @@ public:
     Navigator(ros::NodeHandle node, char *type);
     virtual ~Navigator();
 
-    void search(const robot_control::searchGoalConstPtr &goal);
+    void search(const robot_control::searchGoalConstPtr& goal);
     void searchPreempted();
-    void driveTo(const robot_control::driveToGoalConstPtr &goal);
+    void driveToPreempted();
+    void driveTo(const robot_control::driveToGoalConstPtr& goal);
+    void alignWithBomb(const robot_control::alignWithBombGoalConstPtr& goal);
 
 private:
     inline void defineDirection();
@@ -69,9 +74,11 @@ private:
     double critical_wall_dist;
     double front;
     double navigation_error;
+    double min_repulsion;
     _2DPoint* goal;
 
     bool found;
+    bool driving;
 
     std::string type;
 
@@ -83,6 +90,7 @@ private:
 
     SearchAction searchServer;
     DriveToAction driveToServer;
+    AlignWithBombAction alignWithBombServer;
 
     ros::Subscriber laser_sub;
     ros::Subscriber pose_sub;

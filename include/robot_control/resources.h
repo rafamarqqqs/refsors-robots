@@ -24,19 +24,19 @@
 #define FULL_RANGE 66
 //#define FULL_RANGE 80
 
-#define MAX_SCANS 100
+#define MAX_SCANS 1000
 
 #define LASER_MAX_RANGE 9
 #define LASER_MIN_RANGE 0.15
 
-#define CELL_SIZE 0.5
+#define CELL_SIZE 0.25
 
 #define MAX_RANGE 8
 
 #define LASER_PI_MEASURES 480
 
 //#define MAP_MEASURES 20
-#define MAP_MEASURES 10
+#define MAP_MEASURES 20
 #define NAV_MEASURES 8
 
 #define IS_POINT_INSIDE(x, y) (x + (this -> length/2) >= 0 && y + (this -> width/2) >= 0 && \
@@ -54,30 +54,34 @@
 #define BASE_X ((int)floor((length/cell_size) / 2))
 #define BASE_Y ((int)floor((width/cell_size) / 2))
 
-#define MAX_TAIL_SIZE 3
+#define MAX_TAIL_SIZE 2
 
 #define EMPTY 0
 #define OCCUPIED 1
 
-#define OCCUPIED_FACTOR 0.5
+#define OCCUPIED_FACTOR 0.4
 
 #define UNDEFINED 1000
+
+#define DISCRETE_ERROR 0.5
 
 #define MAP_LENGTH 40.0
 #define MAP_WIDTH 40.0
 #define SMALLER_ROBOT_CELL_SIZE 1.0
 #define LARGER_ROBOT_CELL_SIZE 1.0
-#define REPULSION 30
+#define REPULSION 10
 
 #define AREA_SIZE 8
 
-#define ROBOTS_MIN_DIST 1.5;
+#define ROBOTS_MIN_DIST 1.7;
 
 #define LOCALIZATION_STARTED ((robot -> position.x != 0 || robot -> position.y != 0) ? true : false)
 #define LASER_STARTED ((range.size() != 0 && angle.size() != 0) ? true : false)
 
 #define SQUARE(x) (x*x)
-#define TO_THE_FOURTH(x) (x*x)
+
+//to the fourth == square is working !!!!! remember to change it back if this doesn't works
+#define TO_THE_FOURTH(x) (x*x*x)
 
 #define QROBOTS 0.5
 #define QGOAL 0.8
@@ -89,7 +93,7 @@
 
 #define TIME_LIMIT (1 * 90)
 
-#define SEARCH_ERROR 3.0
+#define SEARCH_ERROR 2.0
 #define NAVIGATION_ERROR 1.0
 
 #define REACHED_DESTINATION(g, p, error) (fabs(g -> x - p.x) < error && fabs(g -> y - p.y) < error)

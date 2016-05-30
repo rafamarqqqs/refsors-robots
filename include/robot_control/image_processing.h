@@ -8,6 +8,7 @@
 #include <sensor_msgs/Image.h>
 #include <actionlib/server/simple_action_server.h>
 #include "robot_control/processImageAction.h"
+#include "robot_control/getBombDisplacement.h"
 
 typedef actionlib::SimpleActionServer<robot_control::processImageAction> ProcessImageAction; 
 
@@ -18,10 +19,14 @@ public:
 
 	void handleImage(const sensor_msgs::ImageConstPtr& img);
 	bool processImage(const robot_control::processImageGoalConstPtr& image_goal);
+	bool getBombDisplacement(robot_control::getBombDisplacement::Request& req,
+                      robot_control::getBombDisplacement::Response& res);
 
 private:
+	cv_bridge::CvImagePtr cv_ptr;
 	ros::NodeHandle node;
 	ProcessImageAction processImageServer;
 	ros::Subscriber camera_sub;
 	int found;
+	bool bomb_found;
 };

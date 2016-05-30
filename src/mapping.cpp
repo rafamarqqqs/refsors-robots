@@ -33,9 +33,10 @@ void Mapper::handleLaser(const robot_control::laserMeasures::ConstPtr& data){
 
 void Mapper::calculateDistances(double real_x_pose, double real_y_pose){
 	
-    //if(fabs(robot -> roll) > DISCRETE_ERROR || fabs(robot -> pitch) > DISCRETE_ERROR){
-    //	return;
-    //}
+    if(fabs(robot -> roll) > DISCRETE_ERROR || fabs(robot -> pitch) > DISCRETE_ERROR){
+    	//ROS_INFO("Robot too unbalanced, discarding map measures...");
+    	return;
+    }
 
 	//ROS_INFO("%lf %lf", robot -> roll, robot -> pitch);
 

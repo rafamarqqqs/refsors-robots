@@ -76,25 +76,33 @@ inline bool Knowledge::isCurrentGoal(int x, int y){
 
     return false;
 }
-/*
-inline bool Knowledge::isInTheSameQuadrant(int x, int y, int new_x, int new_y){
+
+inline bool Knowledge::isInTheSameQuadrant(int x, int y){
     int middle_x = ((int) floor(length/area_size))/2;
     int middle_y = ((int) floor(width/area_size))/2;
 
-    //ROS_INFO("quads (%d, %d) (%d, %d)", x, y, new_x, new_y);
-
-    if(x <= middle_x && y <= middle_y && new_x <= middle_x && new_y <= middle_y)
-        return true;
-    if(x <= middle_x && y >= middle_y && new_x <= middle_x && new_y >= middle_y)
-        return true;
-    if(x >= middle_x && y >= middle_y && new_x >= middle_x && new_y >= middle_y)
-        return true;
-    if(x >= middle_x && y <= middle_y && new_x >= middle_x && new_y <= middle_y)
-        return true;
-
+    
+    vector<Goal>::iterator it;
+    
+    for(it = goals -> begin(); it != goals -> end(); it++){
+        ROS_INFO("quads (%d, %d) (%d, %d) middle: %d %d", x, y, (*it).x, (*it).y, middle_x, middle_y);
+        
+        if(x <= middle_x && y <= middle_y && (*it).x <= middle_x && (*it).y <= middle_y){
+            return true;
+        }
+        if(x <= middle_x && y >= middle_y && (*it).x <= middle_x && (*it).y >= middle_y){
+            return true;
+        }
+        if(x >= middle_x && y >= middle_y && (*it).x >= middle_x && (*it).y >= middle_y){
+            return true;
+        }
+        if(x >= middle_x && y <= middle_y && (*it).x >= middle_x && (*it).y <= middle_y){
+            return true;
+        }
+    }
+    ROS_INFO("Goal not in the same quadrant as other current goals");
     return false;
 }
-*/
 
 inline void Knowledge::getLeastExploredQuadrant(int* x_displacement, int* y_displacement, int length, int width){
     int selected = 1;
@@ -169,12 +177,10 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
     res.new_y = (rand() % (n_w_areas/2)) + y_displacement;
 
     while((areas[res.new_x][res.new_y] == OCCUPIED || isCurrentGoal(res.new_x, res.new_y) 
-        /*|| isInTheSameQuadrant(req.x, req.y, res.new_x, res.new_y)*/) && tries < n_l_areas*n_w_areas && ros::ok()){
+        || isInTheSameQuadrant(res.new_x, res.new_y)) && tries < n_l_areas*n_w_areas && ros::ok()){
 
-        res.new_x = ((res.new_x + 1) % (n_l_areas/2)) + x_displacement;
-        
-        if(res.new_x == 0)
-            res.new_y = ((res.new_y + 1) % (n_w_areas/2)) + y_displacement;
+        res.new_x = (rand() % (n_l_areas/2)) + x_displacement;
+        res.new_y = (rand() % (n_w_areas/2)) + y_displacement;
         
         tries++;
     }
@@ -262,23 +268,29 @@ bool Knowledge::getPositions(robot_control::getPositions::Request& req, robot_co
 
 bool Knowledge::getMap(robot_control::getMap::Request& req, robot_control::getMap::Response& res){
     int cell_diff = (int)(req.cell_size/cell_size);
-    bool occupied;
+    int occupied;
+    double rate;
+    double total = SQUARE(cell_diff);
 
-    std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/new.map");
+    string aux = to_string(req.cell_size);
+
+    std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/new" + aux + ".map");
 
     for(int i = 0; i < TO_CELLS(length); i+=cell_diff){
         for(int j = 0; j < TO_CELLS(width); j+=cell_diff){
-            occupied = false;
+            occupied = 0;
     
             for(int _i = 0; _i < cell_diff; _i++){
                 for(int _j = 0; _j < cell_diff; _j++){
                     if(map[i + _i][j + _j] > EMPTY_RANGE)
-                        occupied = true;
+                        occupied++;
                 }
             }
+
+            rate = occupied/total;
             
-            res.map.push_back(occupied == false ? ' ' : '#');
-            file.put(occupied == false ? ' ' : '#');
+            res.map.push_back(occupied < 0.4 ? ' ' : '#');
+            file.put(occupied < 0.4 ? ' ' : '#');
         }
         file.put('\n');
     }
@@ -367,7 +379,7 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle node;
 
-    Knowledge *knowledge = new Knowledge(node, MAP_LENGTH, MAP_WIDTH, CELL_SIZE, AREA_SIZE);
+    Knowledge* knowledge = new Knowledge(node, MAP_LENGTH, MAP_WIDTH, CELL_SIZE, AREA_SIZE);
 
     ros::ServiceServer getMap_service = node.advertiseService(GET_MAP_SERVICE, &Knowledge::getMap, knowledge);
 

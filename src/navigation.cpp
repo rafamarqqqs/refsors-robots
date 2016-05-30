@@ -5,35 +5,34 @@
 Navigator::Navigator(ros::NodeHandle n, char* _type):
     searchServer(n, SEARCH_ACTION, boost::bind(&Navigator::search, this, _1), false),
     driveToServer(n, DRIVE_TO_ACTION, boost::bind(&Navigator::driveTo, this, _1), false),
-    type(_type), node(n), id(-1), found(false) {
+    alignWithBombServer(n, ALIGN_WITH_BOMB_ACTION, boost::bind(&Navigator::alignWithBomb, this, _1), false),
+    type(_type), node(n), id(-1) {
 
     if(strcmp(_type, LARGER_ROBOT) == 0){
-        qwall = 1.0;
-        qog = 0.7;
-        qgoal = 0.7;
-        qtail = 0.0;
-        qrobots = 1.5;
-        max_lin_speed = 0.6;
-        max_ang_speed = 0.9;
+        qwall = 1.3;
+        qog = 1.5;
+        qgoal = 1.3;
+        qtail = 0.4;
+        qrobots = 2.0;
+        max_lin_speed = 0.53;
+        max_ang_speed = 0.79;
         navigation_error = 1.0;
-        //max_lin_speed = 0.6;
-        //max_ang_speed = 1.0;
-        min_dist = 6;
+        min_dist = 5;
+        min_repulsion = 0.6;
         critical_wall_dist = 1.0;
-        this -> og = new OccupancyGrid(n, MAP_LENGTH, MAP_WIDTH, LARGER_ROBOT_CELL_SIZE, AREA_SIZE, REPULSION, 3, 3);
+        this -> og = new OccupancyGrid(n, MAP_LENGTH, MAP_WIDTH, LARGER_ROBOT_CELL_SIZE, AREA_SIZE, REPULSION, 4, 4);
     }
     else{
-        qwall = 0.43;
-        qog = 0.4;
-        qgoal = 1.25;
-        qtail = 0.75;
-        qrobots = 1.5;
-        max_lin_speed = 0.85;
-        max_ang_speed = 1.8;
+        qwall = 0.53;
+        qog = 0.7;
+        qgoal = 1.53;
+        qtail = 0.73;
+        qrobots = 2.0;
+        max_lin_speed = 0.67;
+        max_ang_speed = 1.35;
         navigation_error = 1.0;
-        //max_lin_speed = 1.2;
-        //max_ang_speed = 1.8;
-        min_dist = 0.65;
+        min_dist = 0.71;
+        min_repulsion = 0.8;
         critical_wall_dist = 1.0;
         this -> og = new OccupancyGrid(n, MAP_LENGTH, MAP_WIDTH, SMALLER_ROBOT_CELL_SIZE, AREA_SIZE, REPULSION, 2, 2);
     }
@@ -54,6 +53,7 @@ Navigator::Navigator(ros::NodeHandle n, char* _type):
     searchServer.registerPreemptCallback(boost::bind(&Navigator::searchPreempted, this));
 
     searchServer.start();
+    alignWithBombServer.start();
     driveToServer.start();
 }
 
@@ -249,7 +249,8 @@ inline double Navigator::calculateAngle(std::list<_2DPoint>* wall_points){
     /* occupancy grid force */
     og -> calculateOGVector(robot -> position, &aux.x, &aux.y);
 
-    if(og -> OGInfluence(robot -> position.x, robot -> position.y) > 0.7){
+    if(og -> OGInfluence(robot -> position.x, robot -> position.y) > min_repulsion){
+
         norm = pow(SQUARE(aux.x) + SQUARE(aux.y), 0.5);
 
         if(norm != 0){
@@ -322,18 +323,24 @@ inline void Navigator::drive(){
 }
 
 void Navigator::driveTo(const robot_control::driveToGoalConstPtr &driveTo_goal){
-    vector<double> aux_x = driveTo_goal -> x;
-    vector<double> aux_y = driveTo_goal -> y;
+    robot_control::driveToResult result;
+    vector<double> aux_x = driveTo_goal -> x_path;
+    vector<double> aux_y = driveTo_goal -> y_path;
     vector<double>::iterator it_x;
     vector<double>::iterator it_y;
 
-    ros::Rate r(5);
+    ros::Rate r(10);
 
-    this -> qog = 0.5;
+    driving = true;
+    /*
     this -> qwall = 0.5;
     this -> qrobots = 0.0;
     this -> qtail = 0.1;
     this -> qgoal = 1.0;
+    this -> qog = 0.0;
+    */
+
+    og -> clearOccupancyGrid();
 
     for(it_x = aux_x.begin(),
         it_y = aux_y.begin(); it_x != aux_x.end(); it_x++, it_y++){
@@ -343,7 +350,7 @@ void Navigator::driveTo(const robot_control::driveToGoalConstPtr &driveTo_goal){
         this -> goal -> x = *it_x;
         this -> goal -> y = *it_y;
         
-        while(!REACHED_DESTINATION(this -> goal, robot ->position, navigation_error) && ros::ok()){
+        while(driving == true && !REACHED_DESTINATION(this -> goal, robot -> position, navigation_error) && ros::ok()){
 
             defineDirection();
             drive();
@@ -351,24 +358,105 @@ void Navigator::driveTo(const robot_control::driveToGoalConstPtr &driveTo_goal){
             r.sleep();
         }
     }
+    
+    ROS_INFO("Position %lf %lf", robot -> position.x, robot -> position.y);
 
     this -> stop();
 
-    driveToServer.setSucceeded();
+    ROS_INFO("Angle diff %lf", Resources::angleDiff(robot -> yaw, driveTo_goal -> yaw));
+
+    while(Resources::angleDiff(robot -> yaw, driveTo_goal -> yaw) > 0.1){
+        driving_info -> rotation = Resources::angleDiff(robot -> yaw, driveTo_goal -> yaw) > 0 ? 0.5 : -0.5;
+        drive();
+        r.sleep();
+        ROS_INFO("Angle diff %lf", Resources::angleDiff(robot -> yaw, driveTo_goal -> yaw));
+    }
+
+    this -> stop();
+
+    result.x = robot -> position.x;
+    result.y = robot -> position.y;
+
+    driveToServer.setSucceeded(result);
+
+}
+
+void Navigator::driveToPreempted(){
+    robot_control::driveToResult result;
+
+    ROS_INFO("Canceling drive...");
+    driving = false;
+    /*
+    result.x = robot -> position.x;
+    result.y = robot -> position.y;
+
+    driveToServer.setSucceeded(result);
+    */
 }
 
 void Navigator::searchPreempted(){
+    ROS_INFO("Canceling search...");
     found = true;    
+}
+
+void Navigator::alignWithBomb(const robot_control::alignWithBombGoalConstPtr& align_goal){
+    robot_control::getBombDisplacement align_srv;
+    ros::ServiceClient align_client = node.serviceClient<robot_control::getBombDisplacement>(GET_BOMB_DISPLACEMENT_SERVICE);
+    bool centered = false;
+    robot_control::alignWithBombResult result;
+
+    ros::Rate r(10);
+
+    driving_info -> velocity = 0;
+
+    while(!centered){
+        align_client.call(align_srv);
+
+        ROS_INFO("displacement: %lf", align_srv.response.displacement);
+
+        if(fabs(align_srv.response.displacement) < 5)
+            break;
+
+        if(align_srv.response.displacement < 0)
+            driving_info -> rotation = 0.05;
+        else
+            driving_info -> rotation = -0.05;
+
+        drive();
+        r.sleep();
+    }
+
+    driving_info -> rotation = 0;
+    driving_info -> velocity = 0.5;
+
+
+    ROS_INFO("Front: %lf", robot -> front);
+    
+    while(robot -> front > 1){
+        ROS_INFO("Front: %lf", robot -> front);
+        drive();
+        r.sleep();
+    }
+
+    stop();
+
+    result.x = robot -> position.x;
+    result.y = robot -> position.y;
+    result.yaw = robot -> yaw;
+
+    alignWithBombServer.setSucceeded(result);
 }
 
 void Navigator::search(const robot_control::searchGoalConstPtr &search_goal){
     ros::Time start_time;
     robot_control::searchResult result;
     
+    found = false;    
+
     goal -> x = INT_MAX;
     goal -> y = INT_MAX;
 
-    ros::Rate r(5);
+    ros::Rate r(10);
     
     //Waits for the laser to set the initial values
     while((!LASER_STARTED || !LOCALIZATION_STARTED) && ros::ok()){
@@ -405,6 +493,7 @@ void Navigator::search(const robot_control::searchGoalConstPtr &search_goal){
 
     result.x = robot -> position.x;
     result.y = robot -> position.y;
+    result.yaw = robot -> yaw;
 
     searchServer.setSucceeded(result);
 }

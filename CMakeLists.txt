@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(robot_control)
 
+set(CMAKE_CXX_FLAGS "-std=c++11")
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -65,6 +67,7 @@ add_service_files(
   FILES
   addToMap.srv
   defineGlobalPath.srv
+  getBombDisplacement.srv
   getPositions.srv
   getNewGoal.srv
   getMap.srv
@@ -76,6 +79,7 @@ add_action_files(
   FILES 
   search.action
   createMap.action
+  alignWithBomb.action
   driveTo.action
   exit.action
   processImage.action

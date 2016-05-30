@@ -164,8 +164,8 @@ double OccupancyGrid::OGInfluence(double x, double y){
 	if(size != 0)
 		average = total/(size*1.0);
 
-	for(i = map_x - 2; i < map_x + 2; i++){
-		for(j = map_y - 2; j < map_y + 2; j++){
+	for(i = map_x - 4; i < map_x + 4; i++){
+		for(j = map_y - 4; j < map_y + 4; j++){
 			if(IS_CELL_INSIDE(i, j) && map[i][j] != 0){
 				local_total += map[i][j];
 				local_size++;
@@ -247,10 +247,10 @@ inline void OccupancyGrid::updateTail(double x, double y){
 	last_y = y;
 }
 
-void OccupancyGrid::writeMap(std::string type){
+void OccupancyGrid::writeMap(std::string t){
 	int i, j;
-
-	std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/occupancy_grid_" + type + ".map");
+	
+	std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/occupancy_grid_" + t + ".map");
 
 	for(i = 0; i < TO_CELLS(length); i++){
 		for(j = 0; j < TO_CELLS(width); j++){

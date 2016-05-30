@@ -48,7 +48,7 @@
           <material>
             <script>
               <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
+              <name>Gazebo/White</name>
             </script>
           </material>
         </visual>
@@ -74,14 +74,14 @@
       <shadows>0</shadows>
     </scene>
     <state world_name='default'>
-      <sim_time>10951 421000000</sim_time>
-      <real_time>95 764729663</real_time>
-      <wall_time>1459659594 190847470</wall_time>
-      <iterations>95412</iterations>
+      <sim_time>11779 923000000</sim_time>
+      <real_time>45 337348656</real_time>
+      <wall_time>1463966425 455620384</wall_time>
+      <iterations>45077</iterations>
       <model name='bomb'>
-        <pose frame=''>11 -5 0.499997 3e-06 -3e-06 0</pose>
+        <pose frame=''>10.7484 9.03122 0.287749 0 -0 0</pose>
         <link name='link'>
-          <pose frame=''>11 -5 0.499997 3e-06 -3e-06 0</pose>
+          <pose frame=''>10.7484 9.03122 0.287749 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 -9.8 0 -0 0</acceleration>
           <wrench>0 0 -9.8 0 -0 0</wrench>
@@ -124,18 +124,18 @@
         </link>
       </model>
       <model name='container_05'>
-        <pose frame=''>14.4614 3 1.26801 0 -0 1.57</pose>
+        <pose frame=''>14.1273 2.9837 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose frame=''>14.4614 3 1.26801 0 -0 1.57</pose>
+          <pose frame=''>14.1273 2.9837 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='container_06'>
-        <pose frame=''>8 3 1 0 -0 1.57</pose>
+        <pose frame=''>7.67105 2.97537 1.26801 0 -0 1.57</pose>
         <link name='link'>
-          <pose frame=''>8 3 1 0 -0 1.57</pose>
+          <pose frame=''>7.67105 2.97537 1.26801 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -304,9 +304,9 @@
         </link>
       </model>
       <model name='container_6'>
-        <pose frame=''>-2.78145 11.0271 1.35468 0 -0 1.57</pose>
+        <pose frame=''>-2.7355 11.0272 1.35468 0 -0 1.57</pose>
         <link name='link'>
-          <pose frame=''>-2.78145 11.0271 1.35468 0 -0 1.57</pose>
+          <pose frame=''>-2.7355 11.0272 1.35468 0 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -369,9 +369,9 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>-0.301158 0.106138 56.8385 2.4e-05 1.5658 1.56285</pose>
-        <view_controller>orbit</view_controller>
-        <projection_type>perspective</projection_type>
+        <pose frame=''>0.397092 4.27355 56.1644 0.119411 1.56218 -3.02087</pose>
+        <view_controller>ortho</view_controller>
+        <projection_type>orthographic</projection_type>
       </camera>
     </gui>
     <model name='wall_1'>
@@ -2002,7 +2002,7 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
     <model name='bomb'>
-      <pose frame=''>5 16 0.5 0 -0 0</pose>
+      <pose frame=''>10 -3 0.5 0 -0 0</pose>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -2018,8 +2018,8 @@
         <collision name='collision'>
           <geometry>
             <cylinder>
-              <radius>0.5</radius>
-              <length>1</length>
+              <radius>0.277419</radius>
+              <length>0.575516</length>
             </cylinder>
           </geometry>
           <max_contacts>10</max_contacts>
@@ -2036,8 +2036,8 @@
         <visual name='visual'>
           <geometry>
             <cylinder>
-              <radius>0.5</radius>
-              <length>1</length>
+              <radius>0.277419</radius>
+              <length>0.575516</length>
             </cylinder>
           </geometry>
           <material>
@@ -2045,6 +2045,11 @@
               <name>Gazebo/Red</name>
               <uri>file://media/materials/scripts/gazebo.material</uri>
             </script>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <emissive>0 0 0 1</emissive>
+            <shader type='pixel'/>
           </material>
         </visual>
         <self_collide>0</self_collide>

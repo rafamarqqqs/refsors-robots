@@ -1,3 +1,4 @@
 ---
-bool succeeded
+float64 x
+float64 y
 ---

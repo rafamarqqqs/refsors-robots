@@ -123,6 +123,11 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
         
         // sort the array
         sort(open_nodes -> begin(), open_nodes -> end(), cmpNodes);
+
+        if(open_nodes -> empty()){
+            ROS_INFO("Could not find path");
+            return false;
+        }
         
         // put the node with the minimum F value on the closed list and remove it from the open list
         closed_nodes -> push_back(open_nodes -> front());
@@ -171,6 +176,8 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
         }
     }
 
+    ROS_INFO("Path found");
+
     // get pointer to the end node (starting position)
     node = *(find(closed_nodes, end_x, end_y));
 
@@ -216,12 +223,16 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
     return true;
 }
 
-void PathPlanning::writeMap(vector<unsigned char> map, float req_cell_size){
+void PathPlanning::writeMap(vector<unsigned char> map, double req_cell_size){
     int i = 1;
     char block;
     vector<unsigned char>::iterator it;
-
-    std::ofstream file(PATH_PLANNING_MAP);
+    std::ofstream file;
+    
+    if(req_cell_size == 0.5)
+        file.open("/home/rafael/SORS_Application/src/robot_control/maps/Path_planning_0.5.map", std::ofstream::trunc);
+    else
+        file.open("/home/rafael/SORS_Application/src/robot_control/maps/Path_planning_1.0.map", std::ofstream::trunc);
 
     for(it = map.begin(); it != map.end(); it++){
             if((*it) == 'X')

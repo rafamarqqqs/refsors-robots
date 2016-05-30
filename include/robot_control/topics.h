@@ -38,13 +38,16 @@
 #define NAVIGATION_NODE "Navigation"
 #define SEARCH_ACTION "Navigation/search"
 #define DRIVE_TO_ACTION "Navigation/driveTo"
+#define ALIGN_WITH_BOMB_ACTION "Navigation/alignWithBomb"
 
 #define CONTROL_NODE "Control"
 #define CONTROL_SEARCH_ACTION "Control/search"
+#define CONTROL_DRIVE_TO_ACTION "Control/driveTo"
 #define EXIT_ACTION "Control/exit"
 
 #define IMAGE_PROCESSING_NODE "ImageProcessing"
 #define PROCESS_IMAGE_ACTION "ImageProcessing/processImage"
+#define GET_BOMB_DISPLACEMENT_SERVICE "ImageProcessing/getBombDisplacement"
 
 #define APPLICATION_NODE "Application"
 

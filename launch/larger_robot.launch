@@ -1,7 +1,7 @@
 	 	
 <launch>
 	<arg name="laser_enabled" default="true"/>
-	<arg name="ur5_enabled" default="false"/>
+	<arg name="ur5_enabled" default="true"/>
 	<arg name="kinect_enabled" default="true"/>
 
 	<include file="$(find husky_gazebo)/launch/spawn_husky.launch">
