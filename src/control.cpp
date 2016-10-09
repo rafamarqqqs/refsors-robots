@@ -28,7 +28,7 @@ Control::Control(ros::NodeHandle n, char* type): search_client(SEARCH_ACTION, tr
 
 Control::~Control(){}
 
-bool Control::exit(const robot_control::exitGoalConstPtr& goal){
+void Control::exit(const robot_control::exitGoalConstPtr& goal){
 	ros::ServiceClient get_map_client = node.serviceClient<robot_control::getMap>(GET_MAP_SERVICE);
 	ros::ServiceClient global_path_client = node.serviceClient<robot_control::defineGlobalPath>(DEFINE_GLOBAL_PATH_SERVICE);
 
@@ -50,34 +50,32 @@ bool Control::exit(const robot_control::exitGoalConstPtr& goal){
     path_srv.request.cell_size = cell_size;
     path_srv.request.map = map_srv.response.map;
 
-    ROS_INFO("Calculating path...");
+    //ROS_INFO("Calculating path...");
     
     if(global_path_client.call(path_srv)){
-	    ROS_INFO("Done");
+	  //  ROS_INFO("Done");
 
 	    driveTo_goal.x_path = path_srv.response.x_path;
 	    driveTo_goal.y_path = path_srv.response.y_path;
     }
     else{
-	    ROS_INFO("Could not find path");
+	    //ROS_INFO("Could not find path");
     	driveTo_goal.x_path.push_back(this -> start_x);
 	    driveTo_goal.y_path.push_back(this -> start_y);	
     }
 
     driveTo_client.sendGoal(driveTo_goal);
 
-    ROS_INFO("Exiting...");
+    //ROS_INFO("Exiting...");
 
     while(!driveTo_client.waitForResult(ros::Duration(1.0)) && ros::ok());
     
-    ROS_INFO("Exited");
+    //ROS_INFO("Exited");
 
     exitServer.setSucceeded(result);
-
-    return true;
 }
 
-bool Control::driveToBombPosition(const robot_control::driveToGoalConstPtr& goal){
+void Control::driveToBombPosition(const robot_control::driveToGoalConstPtr& goal){
 	robot_control::driveToGoal driveTo_goal;
 	robot_control::driveToResult result;
 	robot_control::processImageGoal image_goal;
@@ -92,14 +90,14 @@ bool Control::driveToBombPosition(const robot_control::driveToGoalConstPtr& goal
 	driveTo_client.waitForServer();
 	driveTo_client.sendGoal(driveTo_goal);
     
-	ROS_INFO("Driving to bomb position...");
+	//ROS_INFO("Driving to bomb position...");
 
-    while(found == false && !image_client.waitForResult(ros::Duration(1.0) && ros::ok())
+    while(found == false && !image_client.waitForResult(ros::Duration(1.0)) && ros::ok()
     	  && !driveTo_client.waitForResult(ros::Duration(1.0)));
 
     found = false;
 
-	ROS_INFO("Arrived");
+	//ROS_INFO("Arrived");
 
 	image_client.cancelGoal();
 	driveTo_client.cancelGoal();
@@ -109,18 +107,16 @@ bool Control::driveToBombPosition(const robot_control::driveToGoalConstPtr& goal
 	result.x = this -> x = ans -> x;
 	result.y = this -> y = ans -> y;
 
-	ROS_INFO("Drive to bomb position ended: %lf %lf", result.x, result.y);
+	//ROS_INFO("Drive to bomb position ended: %lf %lf", result.x, result.y);
     
     driveToServer.setSucceeded(result);
-
-    return true;
 }
 
 void Control::preemptSearch(){
 	found = true;
 }
 
-bool Control::search(const robot_control::searchGoalConstPtr& goal){
+void Control::search(const robot_control::searchGoalConstPtr& goal){
 	robot_control::searchGoal search_goal;
 	robot_control::processImageGoal image_goal;
 	robot_control::searchResult result;
@@ -134,7 +130,7 @@ bool Control::search(const robot_control::searchGoalConstPtr& goal){
 	image_client.sendGoal(image_goal);
 	search_client.sendGoal(search_goal);
 
-	ROS_INFO("Searching");
+	//ROS_INFO("Searching");
 	
 	//the search will be canceled by the application when one of the robots find the bomb
 	//so we don't need to check found == false here
@@ -178,21 +174,19 @@ bool Control::search(const robot_control::searchGoalConstPtr& goal){
 		result.yaw = this -> yaw = search_ans -> yaw;	
 	}
 
-	ROS_INFO("Bomb found");
+	//ROS_INFO("Bomb found");
 
 
-	ROS_INFO("search ended: %lf %lf", result.x, result.y);
+	//ROS_INFO("search ended: %lf %lf", result.x, result.y);
 
     searchServer.setSucceeded(result);
-
-	return true;
 }
 
 void Control::startMapping(){
 	robot_control::createMapGoal map_goal;
 	map_client.waitForServer();
 	map_client.sendGoal(map_goal);
-	ROS_INFO("Mapping");
+	//ROS_INFO("Mapping");
 }
 
 int main(int argc, char *argv[]){

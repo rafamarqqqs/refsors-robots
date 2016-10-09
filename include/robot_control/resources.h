@@ -10,7 +10,7 @@
 #define ANGLE_MAX 1.57
 #define ANGLE_MIN -1.57
 #define ANGLE_INCREMENT (4.71239/LASER_MEASURES)
-#define FRONT_SIZE(type) (strcmp(type, "larger_robot") ? 15 : 9)
+#define FRONT_SIZE(type) (strcmp(type, "larger_robot") ? 25 : 15)
 #define MIN_FRONT(type) (strcmp(type, "larger_robot") ? 8 : 2.5)
 #define RAD_45 0.785398
 
@@ -59,7 +59,7 @@
 #define EMPTY 0
 #define OCCUPIED 1
 
-#define OCCUPIED_FACTOR 0.4
+#define OCCUPIED_FACTOR 0.35
 
 #define UNDEFINED 1000
 
@@ -68,7 +68,7 @@
 #define MAP_LENGTH 40.0
 #define MAP_WIDTH 40.0
 #define SMALLER_ROBOT_CELL_SIZE 1.0
-#define LARGER_ROBOT_CELL_SIZE 1.0
+#define LARGER_ROBOT_CELL_SIZE 2.0
 #define REPULSION 10
 
 #define AREA_SIZE 8
@@ -81,7 +81,7 @@
 #define SQUARE(x) (x*x)
 
 //to the fourth == square is working !!!!! remember to change it back if this doesn't works
-#define TO_THE_FOURTH(x) (x*x*x)
+#define TO_THE_FOURTH(x) (x*x)
 
 #define QROBOTS 0.5
 #define QGOAL 0.8
@@ -91,10 +91,7 @@
 #define MAX_LIN_SPEED 0.7
 #define MAX_ANG_SPEED 0.9
 
-#define TIME_LIMIT (1 * 90)
-
-#define SEARCH_ERROR 2.0
-#define NAVIGATION_ERROR 1.0
+#define TIME_LIMIT (2 * 60)
 
 #define REACHED_DESTINATION(g, p, error) (fabs(g -> x - p.x) < error && fabs(g -> y - p.y) < error)
 

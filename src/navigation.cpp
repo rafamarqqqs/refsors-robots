@@ -9,28 +9,32 @@ Navigator::Navigator(ros::NodeHandle n, char* _type):
     type(_type), node(n), id(-1) {
 
     if(strcmp(_type, LARGER_ROBOT) == 0){
-        qwall = 1.3;
-        qog = 1.5;
-        qgoal = 1.3;
-        qtail = 0.4;
+        qwall = 0.8;
+        qog = 1.0;
+        qgoal = 1.2;
+        qtail = 0.1;
         qrobots = 2.0;
-        max_lin_speed = 0.53;
-        max_ang_speed = 0.79;
-        navigation_error = 1.0;
-        min_dist = 5;
-        min_repulsion = 0.6;
+        max_lin_speed = 0.33;
+        max_ang_speed = 0.85;
+        max_angle = (2*M_PI)/7;
+        navigation_error = 2.0;
+        search_error = 3.0;
+        min_dist = 10;
+        min_repulsion = 0.8;
         critical_wall_dist = 1.0;
-        this -> og = new OccupancyGrid(n, MAP_LENGTH, MAP_WIDTH, LARGER_ROBOT_CELL_SIZE, AREA_SIZE, REPULSION, 4, 4);
+        this -> og = new OccupancyGrid(n, MAP_LENGTH, MAP_WIDTH, LARGER_ROBOT_CELL_SIZE, AREA_SIZE, REPULSION, 3, 3);
     }
     else{
-        qwall = 0.53;
-        qog = 0.7;
-        qgoal = 1.53;
-        qtail = 0.73;
+        qwall = 0.73;
+        qog = 0.6;
+        qgoal = 1.43;
+        qtail = 0;
         qrobots = 2.0;
-        max_lin_speed = 0.67;
-        max_ang_speed = 1.35;
+        max_lin_speed = 0.57;
+        max_ang_speed = 1.55;
+        max_angle = M_PI/2.5;
         navigation_error = 1.0;
+        search_error = 2.0;
         min_dist = 0.71;
         min_repulsion = 0.8;
         critical_wall_dist = 1.0;
@@ -225,7 +229,7 @@ inline void Navigator::getRobotsRepulsion(double* x_component, double* y_compone
                             (aux.y/pow(norm, 2)));            
 
             robots_min_dist++;
-            ROS_INFO("Robots: %6.4lf %6.4lf", (aux.x/norm) * qrobots, (aux.y/norm) * qrobots);
+            //ROS_INFO("Robots: %6.4lf %6.4lf", (aux.x/norm) * qrobots, (aux.y/norm) * qrobots);
         }
     }
 }
@@ -272,7 +276,7 @@ inline double Navigator::calculateAngle(std::list<_2DPoint>* wall_points){
     /* repulsion to other robots */
     getRobotsRepulsion(&x_component, &y_component);
 
-    //ROS_INFO("robot rep %4.4lf %4.4lf", x_component, y_component);
+    //ROS_INFO("%4.4lf %4.4lf", x_component, y_component);
     
     /* no forces acting */
     if((y_component == 0 && x_component == 0) || std::isnan(y_component) || std::isnan(x_component))
@@ -299,8 +303,10 @@ inline void Navigator::defineDirection(){
 
     driving_info -> velocity = (robot -> front - 0.15)*max_lin_speed/5.9;
 
-    if(fabs(angle_diff) > M_PI/2)
-        driving_info -> rotation = M_PI/2;
+    //CHANGE TO M_PI/2 
+
+    if(fabs(angle_diff) > max_angle)
+        driving_info -> rotation = max_angle;
     else
         driving_info -> rotation = angle_diff;
 
@@ -345,7 +351,7 @@ void Navigator::driveTo(const robot_control::driveToGoalConstPtr &driveTo_goal){
     for(it_x = aux_x.begin(),
         it_y = aux_y.begin(); it_x != aux_x.end(); it_x++, it_y++){
 
-        ROS_INFO("Driving to %lf %lf", (*it_x), (*it_y));
+        //ROS_INFO("Driving to %lf %lf", (*it_x), (*it_y));
 
         this -> goal -> x = *it_x;
         this -> goal -> y = *it_y;
@@ -359,17 +365,17 @@ void Navigator::driveTo(const robot_control::driveToGoalConstPtr &driveTo_goal){
         }
     }
     
-    ROS_INFO("Position %lf %lf", robot -> position.x, robot -> position.y);
+    //ROS_INFO("Position %lf %lf", robot -> position.x, robot -> position.y);
 
     this -> stop();
 
-    ROS_INFO("Angle diff %lf", Resources::angleDiff(robot -> yaw, driveTo_goal -> yaw));
+    //ROS_INFO("Angle diff %lf", Resources::angleDiff(robot -> yaw, driveTo_goal -> yaw));
 
     while(Resources::angleDiff(robot -> yaw, driveTo_goal -> yaw) > 0.1){
         driving_info -> rotation = Resources::angleDiff(robot -> yaw, driveTo_goal -> yaw) > 0 ? 0.5 : -0.5;
         drive();
         r.sleep();
-        ROS_INFO("Angle diff %lf", Resources::angleDiff(robot -> yaw, driveTo_goal -> yaw));
+        //ROS_INFO("Angle diff %lf", Resources::angleDiff(robot -> yaw, driveTo_goal -> yaw));
     }
 
     this -> stop();
@@ -384,7 +390,7 @@ void Navigator::driveTo(const robot_control::driveToGoalConstPtr &driveTo_goal){
 void Navigator::driveToPreempted(){
     robot_control::driveToResult result;
 
-    ROS_INFO("Canceling drive...");
+    //ROS_INFO("Canceling drive...");
     driving = false;
     /*
     result.x = robot -> position.x;
@@ -405,17 +411,24 @@ void Navigator::alignWithBomb(const robot_control::alignWithBombGoalConstPtr& al
     bool centered = false;
     robot_control::alignWithBombResult result;
 
+    found = false;
+/*
+    double angle_force;
+    double angle_diff;
+    double x_component, y_component;
+*/
     ros::Rate r(10);
 
     driving_info -> velocity = 0;
 
-    while(!centered){
+    while(found == false && !centered){
         align_client.call(align_srv);
 
-        ROS_INFO("displacement: %lf", align_srv.response.displacement);
+//        ROS_INFO("displacement: %lf", align_srv.response.displacement);
 
         if(fabs(align_srv.response.displacement) < 5)
             break;
+
 
         if(align_srv.response.displacement < 0)
             driving_info -> rotation = 0.05;
@@ -429,11 +442,16 @@ void Navigator::alignWithBomb(const robot_control::alignWithBombGoalConstPtr& al
     driving_info -> rotation = 0;
     driving_info -> velocity = 0.5;
 
+/*    getWallsRepulsion(&x_component, &y_component, calculateDistances());
 
-    ROS_INFO("Front: %lf", robot -> front);
+    angle_force = atan2(y_component, x_component);
+        
+    angle_diff = Resources::angleDiff(angle_force, robot -> yaw)*max_ang_speed/(M_PI);
+*/
+//    ROS_INFO("Front: %lf", robot -> front);
     
-    while(robot -> front > 1){
-        ROS_INFO("Front: %lf", robot -> front);
+    while(found == false && robot -> front > 1){
+  //      ROS_INFO("Front: %lf", robot -> front);
         drive();
         r.sleep();
     }
@@ -474,7 +492,7 @@ void Navigator::search(const robot_control::searchGoalConstPtr &search_goal){
         
         ROS_INFO("%s Driving to %3.2f %3.2f", type.c_str(), goal -> x, goal -> y);
 
-        while(found == false && !REACHED_DESTINATION(goal, robot ->position, SEARCH_ERROR) && 
+        while(found == false && !REACHED_DESTINATION(goal, robot ->position, search_error) && 
               !REACHED_TIME_LIMIT(start_time.toSec(), ros::Time::now().toSec()) && ros::ok()){
 
             defineDirection();
@@ -483,7 +501,8 @@ void Navigator::search(const robot_control::searchGoalConstPtr &search_goal){
             r.sleep();
             //ROS_INFO("%s %3.2f %3.2f %3.2f %3.2f\n", type.c_str(), robot ->position.x, robot ->position.y, goal -> x, goal -> y);
         }
-        if(REACHED_DESTINATION(goal, robot -> position, SEARCH_ERROR))
+
+        if(REACHED_DESTINATION(goal, robot -> position, search_error))
             ROS_INFO("Reached destination");
         else
             ROS_INFO("Time's up");
@@ -496,6 +515,7 @@ void Navigator::search(const robot_control::searchGoalConstPtr &search_goal){
     result.yaw = robot -> yaw;
 
     searchServer.setSucceeded(result);
+    ROS_INFO("search ok");
 }
 
 int main(int argc, char **argv) {

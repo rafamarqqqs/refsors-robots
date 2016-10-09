@@ -69,7 +69,6 @@ inline bool Knowledge::isCurrentGoal(int x, int y){
     
     for(it = goals -> begin(); it != goals -> end(); it++){
         if((*it).x == x && (*it).y == y){
-      //      ROS_INFO("same goal");
             return true;
         }
     }
@@ -85,7 +84,6 @@ inline bool Knowledge::isInTheSameQuadrant(int x, int y){
     vector<Goal>::iterator it;
     
     for(it = goals -> begin(); it != goals -> end(); it++){
-        ROS_INFO("quads (%d, %d) (%d, %d) middle: %d %d", x, y, (*it).x, (*it).y, middle_x, middle_y);
         
         if(x <= middle_x && y <= middle_y && (*it).x <= middle_x && (*it).y <= middle_y){
             return true;
@@ -100,51 +98,79 @@ inline bool Knowledge::isInTheSameQuadrant(int x, int y){
             return true;
         }
     }
-    ROS_INFO("Goal not in the same quadrant as other current goals");
+
     return false;
 }
 
 inline void Knowledge::getLeastExploredQuadrant(int* x_displacement, int* y_displacement, int length, int width){
-    int selected = 1;
-    int quadrant = 1;
-    int max = 0;
+    int max = -1;
     int counter = 0;
+    int i, j;
 
-    for(int i = 0; i < 2; i++){
-        for(int j = 0; j < 2; j++){
-            for(int _i = 0; _i < TO_CELLS(length)/2; _i++){
-                for(int _j = 0; _j < TO_CELLS(width)/2; _j++){
-                    if(map[_i + (i*(TO_CELLS(length)/2))][_j + (j*(TO_CELLS(width)/2))] > EMPTY_RANGE)
-                        counter++;
-                }
+    for(i = 0; i < length/2; i++){
+        for(j = 0; j < width/2; j++){
+            if(areas[i][j] == OCCUPIED){
+                counter++;
             }
-
-            if(counter > max){
-                selected = quadrant;
-                max = counter;
-            }
-
-            counter = 0;
-            quadrant++;
         }
     }
 
-    if(selected == 1){
+    if(counter > max){
+        max = counter;
         *x_displacement = 0;
         *y_displacement = 0;
     }
-    else if(selected == 2){
-        *x_displacement = length;
+
+    counter = 0;
+    
+    for(i = length/2; i < length; i++){
+        for(j = 0; j < width/2; j++){
+            if(areas[i][j] == OCCUPIED){
+                counter++;
+            }
+        }
+    }
+
+    if(counter > max){
+        max = counter;
+        *x_displacement = length/2;
         *y_displacement = 0;
     }
-    else if(selected == 3){
+    
+    counter = 0;
+
+    for(i = 0; i < length/2; i++){
+        for(j = width/2; j < width; j++){
+            if(areas[i][j] == OCCUPIED){
+                counter++;
+            }
+        }
+    }
+
+    if(counter > max){
+        max = counter;
         *x_displacement = 0;
-        *y_displacement = width;
+        *y_displacement = width/2;
     }
-    else if(selected == 4){
-        *x_displacement = length;
-        *y_displacement = width;
+
+    counter = 0;
+
+    for(i = length/2; i < length; i++){
+        for(j = width/2; j < width; j++){
+            if(areas[i][j] == OCCUPIED){
+                counter++;
+            }
+        }
     }
+
+    if(counter > max){
+        max = counter;
+        *x_displacement = length/2;
+        *y_displacement = width/2;
+    }
+
+    ROS_INFO("Displacement %d %d", *x_displacement, *y_displacement);
+
 }
 
 bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_control::getNewGoal::Response& res){
@@ -170,14 +196,19 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
         }
     }
 
-    getLeastExploredQuadrant(&x_displacement, &y_displacement, n_l_areas/2, n_w_areas/2);
+    getLeastExploredQuadrant(&x_displacement, &y_displacement, n_l_areas, n_w_areas);
 
     srand(time(NULL));
+
+    ROS_INFO("x disp, y disp, nl, nw = %d %d %d %d", x_displacement, y_displacement, n_l_areas, n_w_areas);
+
     res.new_x = (rand() % (n_l_areas/2)) + x_displacement;
     res.new_y = (rand() % (n_w_areas/2)) + y_displacement;
 
+    ROS_INFO("new x y = %d %d", res.new_x, res.new_y);
+
     while((areas[res.new_x][res.new_y] == OCCUPIED || isCurrentGoal(res.new_x, res.new_y) 
-        || isInTheSameQuadrant(res.new_x, res.new_y)) && tries < n_l_areas*n_w_areas && ros::ok()){
+        /*|| isInTheSameQuadrant(res.new_x, res.new_y)*/) && tries < n_l_areas*n_w_areas && ros::ok()){
 
         res.new_x = (rand() % (n_l_areas/2)) + x_displacement;
         res.new_y = (rand() % (n_w_areas/2)) + y_displacement;
@@ -185,7 +216,7 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
         tries++;
     }
 
-    ROS_INFO("%d %d -> %d %d", req.x, req.y, res.new_x, res.new_y);
+    ROS_INFO("x y (after select) = %d %d", res.new_x, res.new_y);
 
     if(tries == n_w_areas*n_l_areas){
         res.new_x = rand() % n_l_areas;
@@ -193,9 +224,7 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
         ROS_INFO("max tries");
     }
 
-    ROS_INFO("Current goals: %d", (int) goals -> size());
     for(it_g = goals -> begin(); it_g != goals -> end(); it_g++){
-        //ROS_INFO("* %d %d", (*it_g).x, (*it_g).y);
         if((*it_g).x == last_goal_x && (*it_g).y == last_goal_y){
             (*it_g).x = res.new_x;
             (*it_g).y = res.new_y;

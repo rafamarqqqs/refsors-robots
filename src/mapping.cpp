@@ -18,6 +18,7 @@ Mapper::~Mapper(){
 	free(this -> robot);
 }
 
+// how to you know if 
 void Mapper::handlePose(const geometry_msgs::PoseStamped::ConstPtr& data){
 	this -> robot -> position.x = data -> pose.position.x;
 	this -> robot -> position.y = data -> pose.position.y;

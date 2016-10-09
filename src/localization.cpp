@@ -7,7 +7,7 @@ Localizator::Localizator(ros::NodeHandle n, char *type): node(n), robot_name(MOD
 
 Localizator::~Localizator(){}
 
-void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data){
+inline void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPtr& data){
 
     if(data == NULL)
         return;
@@ -45,30 +45,11 @@ void Localizator::handleGazeboModelState(const gazebo_msgs::ModelStates::ConstPt
 
 }
 
-geometry_msgs::PoseStamped Localizator::getPose(){
-    /*odom_listener.waitForTransform("/odom", "/base_link", ros::Time(0), ros::Duration(1));
-    odom_listener.lookupTransform("/odom", "/base_link", ros::Time(0), odom_transform);
-
-    this -> pose.position.x = odom_transform.getOrigin().x();
-    this -> pose.position.y = odom_transform.getOrigin().y();
-    
-    tf::Quaternion q(odom_transform.getRotation().x(),
-                    odom_transform.getRotation().y(),
-                    odom_transform.getRotation().z(),
-                    odom_transform.getRotation().w());
-
-    q = q.normalized();
-
-    ROS_INFO("%3.2f %3.2f %3.2f", pose.position.x, pose.position.y, tf::getYaw(q));
-
-    tf::quaternionTFToMsg(q, this -> pose.orientation);
-    */
-
-
+inline geometry_msgs::PoseStamped Localizator::getPose(){
     return this -> pose;
 }
 
-void Localizator::publishPose(char* type){
+inline void Localizator::publishPose(char* type){
     ros::Publisher pose_pub = node.advertise<geometry_msgs::PoseStamped>(POSE_TOPIC(type), 1);
     ros::Rate r(20.0);
 
@@ -80,6 +61,7 @@ void Localizator::publishPose(char* type){
 }
 
 int main(int argc, char **argv){
+    
     if(argc < 2){
         ROS_INFO("Robot type not specified. Shuting down...");
         return -1;

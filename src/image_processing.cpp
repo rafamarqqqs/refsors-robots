@@ -9,7 +9,7 @@ ImageProcessing::ImageProcessing(ros::NodeHandle n, char* type): node(n), found(
 
 ImageProcessing::~ImageProcessing(){}
 
-bool ImageProcessing::processImage(const robot_control::processImageGoalConstPtr& image_goal){
+void ImageProcessing::processImage(const robot_control::processImageGoalConstPtr& image_goal){
 	ros::Rate r(20.0);
 
 	bomb_found = false;
@@ -21,15 +21,13 @@ bool ImageProcessing::processImage(const robot_control::processImageGoalConstPtr
 		r.sleep();
 	}
 
-	ROS_INFO("found !");
+	//ROS_INFO("found !");
 
 	robot_control::processImageResult result;
 
 	result.succeeded = true;
 
     processImageServer.setSucceeded(result);
-
-    return true;
 }
 
 bool ImageProcessing::getBombDisplacement(robot_control::getBombDisplacement::Request& req,
@@ -75,7 +73,7 @@ bool ImageProcessing::getBombDisplacement(robot_control::getBombDisplacement::Re
 		}
 	}
 
-	ROS_INFO("min = %d | max = %d || disp = %lf", min, max, (((double)(max + min))/2.0) - ((double) img_binary_1.cols/2));
+	//ROS_INFO("min = %d | max = %d || disp = %lf", min, max, (((double)(max + min))/2.0) - ((double) img_binary_1.cols/2));
 
 	res.displacement = (((double)(max + min))/2.0) - (((double) img_binary_1.cols/2));
 }
@@ -126,8 +124,9 @@ void ImageProcessing::handleImage(const sensor_msgs::ImageConstPtr& img){
 	if(red_pixels){
 		found++;
 		//ROS_INFO("red image %d", found);
-		ROS_INFO("Percentage: %.4lf %%", 100.0 * ((double) red_pixels/(img_binary_1.rows*img_binary_1.cols)));
-		if(found >= 10 && ((double) red_pixels/(img_binary_1.rows*img_binary_1.cols)) > 0.002){
+		if(found >= 10 && ((double) red_pixels/(img_binary_1.rows*img_binary_1.cols)) > 0.01){
+			if(!bomb_found)
+				ROS_INFO("Percentage: %.4lf %%", 100.0 * ((double) red_pixels/(img_binary_1.rows*img_binary_1.cols)));
 			bomb_found = true;
 			//cv::imshow("binary image 1", img_binary_1);
 			//cv::imshow("binary image 0", img_binary_0);

@@ -70,10 +70,12 @@ private:
     double qtail;
     double max_lin_speed;
     double max_ang_speed;
+    double max_angle;
     double min_dist;
     double critical_wall_dist;
     double front;
     double navigation_error;
+    double search_error;
     double min_repulsion;
     _2DPoint* goal;
 

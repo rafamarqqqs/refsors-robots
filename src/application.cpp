@@ -1,64 +1,22 @@
-#include <ros/ros.h>
-#include <actionlib/client/simple_action_client.h>
+#include "../include/robot_control/application.h"
 
-#include "../include/robot_control/topics.h"
+Application::Application(ros::NodeHandle n, string larger_robot_search, string larger_robot_exit, 
+		string larger_robot_driveTo, string smaller_robot_search, string smaller_robot_exit):
 
-#include "robot_control/driveToAction.h"
-#include "robot_control/driveToResult.h"
+	search_client_large(larger_robot_search, true),
+	exit_client_large(larger_robot_exit, true),
+	driveTo_client_large(larger_robot_driveTo, true),
+	search_client_small(smaller_robot_search, true),
+	exit_client_small(smaller_robot_exit, true){
 
-#include "robot_control/searchAction.h"
-#include "robot_control/searchResult.h"
+	this -> node = n;
+}
 
-#include "robot_control/exitAction.h"
-#include "robot_control/exitResult.h"
+Application::~Application(){}
 
-#include "robot_control/alignWithBombAction.h"
-
-#include <string>
-
-using namespace std;
-
-int main(int argc, char** argv){
-
-	ros::init(argc, argv, APPLICATION_NODE);
+void Application::startMission(){
 
 	string aux;
-
-	aux = "/larger_robot/";
-	aux += CONTROL_SEARCH_ACTION;
-	ROS_INFO("%s", aux.c_str());
-	
-	actionlib::SimpleActionClient<robot_control::searchAction> 
-				search_client_large(aux.c_str(), true);
-
-	aux = "/larger_robot/";
-	aux += EXIT_ACTION;
-	ROS_INFO("%s", aux.c_str());
-
-	actionlib::SimpleActionClient<robot_control::exitAction> 
-						exit_client_large(aux.c_str(), true);
-
-	aux = "/larger_robot/";
-	aux += CONTROL_DRIVE_TO_ACTION;
-	ROS_INFO("%s", aux.c_str());
-
-	actionlib::SimpleActionClient<robot_control::driveToAction> 
-						driveTo_client_large(aux.c_str(), true);
-
-	aux = "/smaller_robot/";
-	aux += CONTROL_SEARCH_ACTION;
-	ROS_INFO("%s", aux.c_str());
-	
-	actionlib::SimpleActionClient<robot_control::searchAction> 
-				search_client_small(aux.c_str(), true);
-
-	aux = "/smaller_robot/";
-	aux += EXIT_ACTION;
-	ROS_INFO("%s", aux.c_str());
-
-	actionlib::SimpleActionClient<robot_control::exitAction> 
-						exit_client_small(aux.c_str(), true);
-
 
 	robot_control::searchGoal large_search_goal;
 	robot_control::searchGoal small_search_goal;
@@ -68,15 +26,12 @@ int main(int argc, char** argv){
 	
 	robot_control::driveToGoal large_driveTo_goal;
 
-	ROS_INFO("Getting conections...");
 	search_client_large.waitForServer();
 	exit_client_large.waitForServer();
-	
+
 	search_client_small.waitForServer();
 	exit_client_small.waitForServer();
 
-	ROS_INFO("Control connected");
-	
 	search_client_large.sendGoal(large_search_goal);
 	search_client_small.sendGoal(small_search_goal);
 
@@ -103,7 +58,7 @@ int main(int argc, char** argv){
 			large_driveTo_goal.x_path.push_back(ans -> x);
 			large_driveTo_goal.y_path.push_back(ans -> y);
 			
-			ROS_INFO("Larger robot driving to bomb location...");
+			ROS_INFO("Smaller robot found the robot. Larger robot driving to bomb location...");
 			search_client_large.cancelGoal();
 			while(!search_client_large.waitForResult(ros::Duration(1.0)));
 			driveTo_client_large.sendGoal(large_driveTo_goal);
@@ -115,7 +70,7 @@ int main(int argc, char** argv){
 
 			ROS_INFO("Waiting for larger robot to arrive at bomb location...");
 			while(!driveTo_client_large.waitForResult(ros::Duration(1.0)));
-			ROS_INFO("Arrived at bomb location");
+			ROS_INFO("Arrived at bomb location...");
 
 
 			aux = "/larger_robot/";
@@ -124,24 +79,20 @@ int main(int argc, char** argv){
 			actionlib::SimpleActionClient<robot_control::alignWithBombAction> 
 						align_client(aux.c_str(), true);
 
-			ROS_INFO("Waiting for align server...");
-			
 			align_client.waitForServer();
 
-			ROS_INFO("Aligning with bomb");
+			ROS_INFO("Aligning with bomb...");
 
 			robot_control::alignWithBombGoal align_goal;
 
 			align_client.sendGoal(align_goal);
 			while(!align_client.waitForResult(ros::Duration(1.0)));
-			ROS_INFO("picking up bomb");
 			
 			break;
 		}
 	}
 
-
-	ROS_INFO("Larger robot should approach the bomb now !!!");
+	ROS_INFO("Picking up bomb...");
 	
 	ROS_INFO("Exiting larger robot...");
 
@@ -151,8 +102,40 @@ int main(int argc, char** argv){
 		  !exit_client_large.waitForResult(ros::Duration(1.0)));
 
 	ROS_INFO("Mission ended successfully !");
+	
+}
 
+int main(int argc, char** argv){
+
+	ros::init(argc, argv, APPLICATION_NODE);
+
+	ros::NodeHandle node;
+	
+	ROS_INFO("Application started.");
+
+	string larger_robot_search = "/larger_robot/";
+	larger_robot_search += CONTROL_SEARCH_ACTION;
+	
+	string larger_robot_exit = "/larger_robot/";
+	larger_robot_exit += EXIT_ACTION;
+
+	string larger_robot_driveTo = "/larger_robot/";
+	larger_robot_driveTo += CONTROL_DRIVE_TO_ACTION;
+
+	string smaller_robot_search = "/smaller_robot/";
+	smaller_robot_search += CONTROL_SEARCH_ACTION;
+
+	string smaller_robot_exit = "/smaller_robot/";
+	smaller_robot_exit += EXIT_ACTION;
+
+	Application* app = new Application(node, larger_robot_search, larger_robot_exit, larger_robot_driveTo, 
+									smaller_robot_search, smaller_robot_exit);
+
+	app -> startMission();
+	
 	ros::spin();
+
+	delete app;
 
 	return 0;
 }

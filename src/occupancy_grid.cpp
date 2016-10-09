@@ -40,6 +40,8 @@ void OccupancyGrid::initAreas(){
             areas[i][j].destiny.x = (areas[i][j].start.x + areas[i][j].end.x)/2;
             areas[i][j].destiny.y = (areas[i][j].start.y + areas[i][j].end.y)/2;
 
+            ROS_INFO("Areas destiny: %.1lf %1.lf", areas[i][j].destiny.x, areas[i][j].destiny.y);
+
             areas[i][j].occupied = false;
         }
     }
@@ -93,7 +95,7 @@ void OccupancyGrid::getNewGoal(_2DPoint* goal){
 
 void OccupancyGrid::clearOccupancyGrid(){
 
-	ROS_INFO("Clearing occupancy grid");
+	//ROS_INFO("Clearing occupancy grid");
 
 	for(int i = 0; i < TO_CELLS(length); i++){
 		memset(map[i], 0, TO_CELLS(width)*sizeof(int));
@@ -221,8 +223,8 @@ void OccupancyGrid::updatePosition(double x, double y){
 }
 
 inline void OccupancyGrid::updateTail(double x, double y){
-	if(tail.size() == 0)
-		return;
+	//if(tail.size() == 0)
+	//	return;
 
 	int map_x = (int) (TO_CELLS(x) + BASE_X);
 	int map_y = (int) (TO_CELLS(y) + BASE_Y);

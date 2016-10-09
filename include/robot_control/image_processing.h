@@ -18,7 +18,7 @@ public:
 	~ImageProcessing();
 
 	void handleImage(const sensor_msgs::ImageConstPtr& img);
-	bool processImage(const robot_control::processImageGoalConstPtr& image_goal);
+	void processImage(const robot_control::processImageGoalConstPtr& image_goal);
 	bool getBombDisplacement(robot_control::getBombDisplacement::Request& req,
                       robot_control::getBombDisplacement::Response& res);
 

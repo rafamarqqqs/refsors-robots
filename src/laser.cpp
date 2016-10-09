@@ -17,6 +17,8 @@ void Laser::handleSubscription(const sensor_msgs::LaserScan::ConstPtr& laser_dat
 
     measures.header = laser_data -> header;
     //ROS_INFO("%3.2f", (laser_data -> angle_increment*360)/(2*M_PI) * 119);
+
+
     for(i = 0; i < 480; i++){
         measures.range.push_back(laser_data -> ranges[i+120]);
         measures.angle.push_back(ANGLE_MAX - (ANGLE_INCREMENT*i));

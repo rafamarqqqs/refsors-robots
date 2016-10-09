@@ -84,11 +84,11 @@ void PathPlanning::defineLocalPath(vector<int>* x_path, vector<int>* y_path){
 bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& req,
                       robot_control::defineGlobalPath::Response& res){
 
-    ROS_INFO("calculating path from %d %d to %d %d", (int)TO_UNKNOWN_CELLS(req.x, req.cell_size)  + UNKNOWN_CELL_BASE_X(req.cell_size), 
+    /*ROS_INFO("calculating path from %d %d to %d %d", (int)TO_UNKNOWN_CELLS(req.x, req.cell_size)  + UNKNOWN_CELL_BASE_X(req.cell_size), 
                                                     (int)TO_UNKNOWN_CELLS(req.y, req.cell_size)  + UNKNOWN_CELL_BASE_Y(req.cell_size),
                                                     (int)TO_UNKNOWN_CELLS(req.destiny_x, req.cell_size)  + UNKNOWN_CELL_BASE_X(req.cell_size), 
                                                     (int)TO_UNKNOWN_CELLS(req.destiny_y, req.cell_size) + UNKNOWN_CELL_BASE_Y(req.cell_size));
-
+*/
     vector<unsigned char> map = req.map;
     
     vector<Node*>* open_nodes = new vector<Node*>();
@@ -125,7 +125,7 @@ bool PathPlanning::defineGlobalPath(robot_control::defineGlobalPath::Request& re
         sort(open_nodes -> begin(), open_nodes -> end(), cmpNodes);
 
         if(open_nodes -> empty()){
-            ROS_INFO("Could not find path");
+            //ROS_INFO("Could not find path");
             return false;
         }
         

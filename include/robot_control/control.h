@@ -32,9 +32,9 @@ public:
 	Control(ros::NodeHandle n, char* type);
 	~Control();
 
-	bool search(const robot_control::searchGoalConstPtr& goal);
-	bool exit(const robot_control::exitGoalConstPtr& goal);
-	bool driveToBombPosition(const robot_control::driveToGoalConstPtr& goal);
+	void search(const robot_control::searchGoalConstPtr& goal);
+	void exit(const robot_control::exitGoalConstPtr& goal);
+	void driveToBombPosition(const robot_control::driveToGoalConstPtr& goal);
 
 private:
 	void startMapping();
