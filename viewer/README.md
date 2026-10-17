@@ -6,14 +6,15 @@ commit history and a capture of a 2026 re-run.
 
 ## Open
 
-Open [index.html](index.html) in a browser, or serve this folder:
+Open [index.html](index.html) in a browser, or serve the repository root, so
+that the page's link to `sim/README.md` also works:
 
 ```sh
-cd viewer && python3 -m http.server 8000
+python3 -m http.server 8000 --bind 127.0.0.1
 ```
 
-and open <http://127.0.0.1:8000>. The page makes no network requests beyond
-its own files.
+and open <http://127.0.0.1:8000/viewer/>. The page makes no network requests
+beyond its own files.
 
 ## Sections and sources
 
