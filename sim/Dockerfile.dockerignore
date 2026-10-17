@@ -1,0 +1,13 @@
+*
+!CMakeLists.txt
+!package.xml
+!action
+!msg
+!srv
+!include
+!src
+!launch
+!world
+!maps
+!sim/start.sh
+!sim/deps.patch
