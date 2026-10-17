@@ -209,14 +209,12 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Localization",
       "file": "src/localization.cpp",
-      "line": 5,
-      "macro": "MODEL_STATES_TOPIC"
+      "line": 5
      },
      {
       "node": "/smaller_robot/Localization",
       "file": "src/localization.cpp",
-      "line": 5,
-      "macro": "MODEL_STATES_TOPIC"
+      "line": 5
      }
     ]
    },
@@ -229,8 +227,7 @@ window.REFSORS = {
      {
       "node": "/larger_robot/ImageProcessing",
       "file": "src/image_processing.cpp",
-      "line": 5,
-      "macro": "CAMERA_TOPIC"
+      "line": 5
      }
     ]
    },
@@ -242,8 +239,7 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 49,
-      "macro": "VEL_TOPIC"
+      "line": 49
      }
     ],
     "users": []
@@ -256,22 +252,19 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Laser",
       "file": "src/laser.cpp",
-      "line": 42,
-      "macro": "LASER_TOPIC"
+      "line": 42
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Mapping",
       "file": "src/mapping.cpp",
-      "line": 9,
-      "macro": "LASER_TOPIC"
+      "line": 9
      },
      {
       "node": "/larger_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 52,
-      "macro": "LASER_TOPIC"
+      "line": 52
      }
     ]
    },
@@ -283,22 +276,19 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Localization",
       "file": "src/localization.cpp",
-      "line": 53,
-      "macro": "POSE_TOPIC"
+      "line": 53
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Mapping",
       "file": "src/mapping.cpp",
-      "line": 10,
-      "macro": "POSE_TOPIC"
+      "line": 10
      },
      {
       "node": "/larger_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 53,
-      "macro": "POSE_TOPIC"
+      "line": 53
      }
     ]
    },
@@ -311,8 +301,7 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Laser",
       "file": "src/laser.cpp",
-      "line": 5,
-      "macro": "SCAN_TOPIC"
+      "line": 5
      }
     ]
    },
@@ -324,8 +313,7 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 49,
-      "macro": "VEL_TOPIC"
+      "line": 49
      }
     ],
     "users": []
@@ -339,8 +327,7 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/ImageProcessing",
       "file": "src/image_processing.cpp",
-      "line": 5,
-      "macro": "CAMERA_TOPIC"
+      "line": 5
      }
     ]
    },
@@ -353,8 +340,7 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Laser",
       "file": "src/laser.cpp",
-      "line": 5,
-      "macro": "SCAN_TOPIC"
+      "line": 5
      }
     ]
    },
@@ -366,22 +352,19 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Laser",
       "file": "src/laser.cpp",
-      "line": 42,
-      "macro": "LASER_TOPIC"
+      "line": 42
      }
     ],
     "users": [
      {
       "node": "/smaller_robot/Mapping",
       "file": "src/mapping.cpp",
-      "line": 9,
-      "macro": "LASER_TOPIC"
+      "line": 9
      },
      {
       "node": "/smaller_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 52,
-      "macro": "LASER_TOPIC"
+      "line": 52
      }
     ]
    },
@@ -393,22 +376,19 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Localization",
       "file": "src/localization.cpp",
-      "line": 53,
-      "macro": "POSE_TOPIC"
+      "line": 53
      }
     ],
     "users": [
      {
       "node": "/smaller_robot/Mapping",
       "file": "src/mapping.cpp",
-      "line": 10,
-      "macro": "POSE_TOPIC"
+      "line": 10
      },
      {
       "node": "/smaller_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 53,
-      "macro": "POSE_TOPIC"
+      "line": 53
      }
     ]
    },
@@ -420,22 +400,19 @@ window.REFSORS = {
      {
       "node": "/Knowledge",
       "file": "src/knowledge.cpp",
-      "line": 415,
-      "macro": "ADD_TO_MAP_SERVICE"
+      "line": 415
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Mapping",
       "file": "src/mapping.cpp",
-      "line": 12,
-      "macro": "ADD_TO_MAP_SERVICE"
+      "line": 12
      },
      {
       "node": "/smaller_robot/Mapping",
       "file": "src/mapping.cpp",
-      "line": 12,
-      "macro": "ADD_TO_MAP_SERVICE"
+      "line": 12
      }
     ]
    },
@@ -447,22 +424,19 @@ window.REFSORS = {
      {
       "node": "/Knowledge",
       "file": "src/knowledge.cpp",
-      "line": 413,
-      "macro": "GET_MAP_SERVICE"
+      "line": 413
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Control",
       "file": "src/control.cpp",
-      "line": 32,
-      "macro": "GET_MAP_SERVICE"
+      "line": 32
      },
      {
       "node": "/smaller_robot/Control",
       "file": "src/control.cpp",
-      "line": 32,
-      "macro": "GET_MAP_SERVICE"
+      "line": 32
      }
     ]
    },
@@ -474,22 +448,19 @@ window.REFSORS = {
      {
       "node": "/Knowledge",
       "file": "src/knowledge.cpp",
-      "line": 419,
-      "macro": "GET_NEW_GOAL_SERVICE"
+      "line": 419
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Navigation",
       "file": "src/occupancy_grid.cpp",
-      "line": 10,
-      "macro": "GET_NEW_GOAL_SERVICE"
+      "line": 10
      },
      {
       "node": "/smaller_robot/Navigation",
       "file": "src/occupancy_grid.cpp",
-      "line": 10,
-      "macro": "GET_NEW_GOAL_SERVICE"
+      "line": 10
      }
     ]
    },
@@ -501,22 +472,19 @@ window.REFSORS = {
      {
       "node": "/Knowledge",
       "file": "src/knowledge.cpp",
-      "line": 417,
-      "macro": "GET_POSITIONS_SERVICE"
+      "line": 417
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 55,
-      "macro": "GET_POSITIONS_SERVICE"
+      "line": 55
      },
      {
       "node": "/smaller_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 55,
-      "macro": "GET_POSITIONS_SERVICE"
+      "line": 55
      }
     ]
    },
@@ -528,22 +496,19 @@ window.REFSORS = {
      {
       "node": "/PathPlanning",
       "file": "src/path_planning.cpp",
-      "line": 271,
-      "macro": "DEFINE_GLOBAL_PATH_SERVICE"
+      "line": 271
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Control",
       "file": "src/control.cpp",
-      "line": 33,
-      "macro": "DEFINE_GLOBAL_PATH_SERVICE"
+      "line": 33
      },
      {
       "node": "/smaller_robot/Control",
       "file": "src/control.cpp",
-      "line": 33,
-      "macro": "DEFINE_GLOBAL_PATH_SERVICE"
+      "line": 33
      }
     ]
    },
@@ -555,16 +520,14 @@ window.REFSORS = {
      {
       "node": "/larger_robot/ImageProcessing",
       "file": "src/image_processing.cpp",
-      "line": 154,
-      "macro": "GET_BOMB_DISPLACEMENT_SERVICE"
+      "line": 154
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 410,
-      "macro": "GET_BOMB_DISPLACEMENT_SERVICE"
+      "line": 410
      }
     ]
    },
@@ -576,16 +539,14 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/ImageProcessing",
       "file": "src/image_processing.cpp",
-      "line": 154,
-      "macro": "GET_BOMB_DISPLACEMENT_SERVICE"
+      "line": 154
      }
     ],
     "users": [
      {
       "node": "/smaller_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 410,
-      "macro": "GET_BOMB_DISPLACEMENT_SERVICE"
+      "line": 410
      }
     ]
    },
@@ -597,16 +558,14 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Control",
       "file": "src/control.cpp",
-      "line": 8,
-      "macro": "CONTROL_DRIVE_TO_ACTION"
+      "line": 8
      }
     ],
     "users": [
      {
       "node": "/Application",
       "file": "src/application.cpp",
-      "line": 122,
-      "macro": "CONTROL_DRIVE_TO_ACTION"
+      "line": 122
      }
     ]
    },
@@ -618,16 +577,14 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Control",
       "file": "src/control.cpp",
-      "line": 7,
-      "macro": "EXIT_ACTION"
+      "line": 7
      }
     ],
     "users": [
      {
       "node": "/Application",
       "file": "src/application.cpp",
-      "line": 119,
-      "macro": "EXIT_ACTION"
+      "line": 119
      }
     ]
    },
@@ -639,16 +596,14 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Control",
       "file": "src/control.cpp",
-      "line": 6,
-      "macro": "CONTROL_SEARCH_ACTION"
+      "line": 6
      }
     ],
     "users": [
      {
       "node": "/Application",
       "file": "src/application.cpp",
-      "line": 116,
-      "macro": "CONTROL_SEARCH_ACTION"
+      "line": 116
      }
     ]
    },
@@ -660,16 +615,14 @@ window.REFSORS = {
      {
       "node": "/larger_robot/ImageProcessing",
       "file": "src/image_processing.cpp",
-      "line": 4,
-      "macro": "PROCESS_IMAGE_ACTION"
+      "line": 4
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Control",
       "file": "src/control.cpp",
-      "line": 5,
-      "macro": "PROCESS_IMAGE_ACTION"
+      "line": 5
      }
     ]
    },
@@ -681,16 +634,14 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Mapping",
       "file": "src/mapping.cpp",
-      "line": 4,
-      "macro": "CREATE_MAP_ACTION"
+      "line": 4
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Control",
       "file": "src/control.cpp",
-      "line": 4,
-      "macro": "CREATE_MAP_ACTION"
+      "line": 4
      }
     ]
    },
@@ -702,22 +653,19 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 8,
-      "macro": "ALIGN_WITH_BOMB_ACTION"
+      "line": 8
      }
     ],
     "users": [
      {
       "node": "/Application",
       "file": "src/application.cpp",
-      "line": 76,
-      "macro": "ALIGN_WITH_BOMB_ACTION"
+      "line": 76
      },
      {
       "node": "/larger_robot/Control",
       "file": "src/control.cpp",
-      "line": 151,
-      "macro": "ALIGN_WITH_BOMB_ACTION"
+      "line": 151
      }
     ]
    },
@@ -729,16 +677,14 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 7,
-      "macro": "DRIVE_TO_ACTION"
+      "line": 7
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Control",
       "file": "src/control.cpp",
-      "line": 4,
-      "macro": "DRIVE_TO_ACTION"
+      "line": 4
      }
     ]
    },
@@ -750,16 +696,14 @@ window.REFSORS = {
      {
       "node": "/larger_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 6,
-      "macro": "SEARCH_ACTION"
+      "line": 6
      }
     ],
     "users": [
      {
       "node": "/larger_robot/Control",
       "file": "src/control.cpp",
-      "line": 3,
-      "macro": "SEARCH_ACTION"
+      "line": 3
      }
     ]
    },
@@ -771,8 +715,7 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Control",
       "file": "src/control.cpp",
-      "line": 8,
-      "macro": "CONTROL_DRIVE_TO_ACTION"
+      "line": 8
      }
     ],
     "users": []
@@ -785,16 +728,14 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Control",
       "file": "src/control.cpp",
-      "line": 7,
-      "macro": "EXIT_ACTION"
+      "line": 7
      }
     ],
     "users": [
      {
       "node": "/Application",
       "file": "src/application.cpp",
-      "line": 128,
-      "macro": "EXIT_ACTION"
+      "line": 128
      }
     ]
    },
@@ -806,16 +747,14 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Control",
       "file": "src/control.cpp",
-      "line": 6,
-      "macro": "CONTROL_SEARCH_ACTION"
+      "line": 6
      }
     ],
     "users": [
      {
       "node": "/Application",
       "file": "src/application.cpp",
-      "line": 125,
-      "macro": "CONTROL_SEARCH_ACTION"
+      "line": 125
      }
     ]
    },
@@ -827,16 +766,14 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/ImageProcessing",
       "file": "src/image_processing.cpp",
-      "line": 4,
-      "macro": "PROCESS_IMAGE_ACTION"
+      "line": 4
      }
     ],
     "users": [
      {
       "node": "/smaller_robot/Control",
       "file": "src/control.cpp",
-      "line": 5,
-      "macro": "PROCESS_IMAGE_ACTION"
+      "line": 5
      }
     ]
    },
@@ -848,16 +785,14 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Mapping",
       "file": "src/mapping.cpp",
-      "line": 4,
-      "macro": "CREATE_MAP_ACTION"
+      "line": 4
      }
     ],
     "users": [
      {
       "node": "/smaller_robot/Control",
       "file": "src/control.cpp",
-      "line": 4,
-      "macro": "CREATE_MAP_ACTION"
+      "line": 4
      }
     ]
    },
@@ -869,16 +804,14 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 8,
-      "macro": "ALIGN_WITH_BOMB_ACTION"
+      "line": 8
      }
     ],
     "users": [
      {
       "node": "/smaller_robot/Control",
       "file": "src/control.cpp",
-      "line": 151,
-      "macro": "ALIGN_WITH_BOMB_ACTION"
+      "line": 151
      }
     ]
    },
@@ -890,16 +823,14 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 7,
-      "macro": "DRIVE_TO_ACTION"
+      "line": 7
      }
     ],
     "users": [
      {
       "node": "/smaller_robot/Control",
       "file": "src/control.cpp",
-      "line": 4,
-      "macro": "DRIVE_TO_ACTION"
+      "line": 4
      }
     ]
    },
@@ -911,16 +842,14 @@ window.REFSORS = {
      {
       "node": "/smaller_robot/Navigation",
       "file": "src/navigation.cpp",
-      "line": 6,
-      "macro": "SEARCH_ACTION"
+      "line": 6
      }
     ],
     "users": [
      {
       "node": "/smaller_robot/Control",
       "file": "src/control.cpp",
-      "line": 3,
-      "macro": "SEARCH_ACTION"
+      "line": 3
      }
     ]
    }
@@ -1588,7 +1517,7 @@ window.REFSORS = {
     "date": "2016-05-30"
    },
    "title": "A* result over the resampled map",
-   "writer": "same format as Path_planning_*.map",
+   "writer": "PathPlanning::writeMap, src/path_planning.cpp until 13f5bdd (2016-05-30)",
    "kind": "chars",
    "legend": {
     " ": "free (< 30)",

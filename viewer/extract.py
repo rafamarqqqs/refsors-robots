@@ -167,10 +167,9 @@ def callback_types():
     return result
 
 
-def scan_source(rel):
-    """Find ROS endpoints a source file creates. Returns (role, kind, macro or literal, ns, type, line)."""
+def scan_source(rel, callbacks):
+    """Find ROS endpoints a source file creates. Returns (role, kind, macro, absolute ns, type, line)."""
     code = strip_comments(read(rel))
-    callbacks = callback_types()
     found = []
     patterns = [
         ("provides", "topic", r"advertise<([\w:]+)>\(\s*(\w+)"),
@@ -198,13 +197,14 @@ def architecture():
     sources = executables()
     iface = interfaces()
     nodes = launch_nodes()
+    callbacks = callback_types()
     endpoints = {}
 
     for node in nodes:
         robot_type = node["args"] or None
-        node["sources"] = [s for s in sources[node["executable"]]]
+        node["sources"] = sources[node["executable"]]
         for rel in node["sources"]:
-            for role, kind, macro, abs_ns, ftype, line in scan_source(rel):
+            for role, kind, macro, abs_ns, ftype, line in scan_source(rel, callbacks):
                 value = macros[macro]
                 if isinstance(value, dict):
                     value = value[robot_type]
@@ -216,7 +216,7 @@ def architecture():
                                                  "providers": [], "users": []})
                 if ftype and not ep["type"]:
                     ep["type"] = ftype.replace("robot_control::", "")
-                ref = {"node": node["id"], "file": rel, "line": line, "macro": macro}
+                ref = {"node": node["id"], "file": rel, "line": line}
                 ep["providers" if role == "provides" else "users"].append(ref)
 
     for ep in endpoints.values():
@@ -242,7 +242,7 @@ MAP_INFO = [
      {" ": "free", "#": "occupied"}),
     ("Path_planning_", "A* result over the resampled map", "PathPlanning::writeMap, src/path_planning.cpp",
      {" ": "free (< 30)", ":": "uncertain", "#": "occupied (> 70)", "x": "A* path", "X": "path point kept"}),
-    ("containers_path_planning.map", "A* result over the resampled map", "same format as Path_planning_*.map",
+    ("containers_path_planning.map", "A* result over the resampled map", "PathPlanning::writeMap, src/path_planning.cpp until 13f5bdd (2016-05-30)",
      {" ": "free (< 30)", ":": "uncertain", "#": "occupied (> 70)", "x": "A* path", "X": "path point kept"}),
     ("occupancy_grid_", "Force-based occupancy grid used for exploration", "OccupancyGrid::writeMap, src/occupancy_grid.cpp",
      None),
@@ -274,7 +274,7 @@ def parse_map(path):
         rows = [line.strip("|").split("|") for line in text.splitlines() if line]
         kind = "chars"
     else:
-        rows = [line for line in text.split("\n")[:-1]] if text.endswith("\n") else text.split("\n")
+        rows = text.removesuffix("\n").split("\n")
         kind = "chars"
     cols = max(len(r) for r in rows)
     return {
