@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RefSORS robots</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1 id="title">RefSORS robots</h1>
+  <p class="sub">A viewer for the 2016 undergraduate research code in this repository. Everything here is read from the repository files.</p>
+  <nav>
+    <a href="#overview">Overview</a>
+    <a href="#simulation">Simulation</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#maps">Maps</a>
+    <a href="#world">World</a>
+    <a href="#history">History</a>
+  </nav>
+</header>
+
+<main>
+  <section id="overview">
+    <h2>Overview</h2>
+    <div id="overview-intro" class="md"></div>
+    <h3>Mission</h3>
+    <div id="overview-mission" class="md"></div>
+    <h3>Robots</h3>
+    <div class="scroll"><table id="robots"></table></div>
+    <h3>Services</h3>
+    <div id="overview-services" class="md"></div>
+  </section>
+
+  <section id="simulation">
+    <h2>Simulation</h2>
+    <figure class="capture">
+      <video src="media/sim-2026-10-17.mp4" controls muted loop playsinline preload="metadata"></video>
+      <figcaption>
+        Recorded 2026-10-17: a 2026 re-run of the 2016 code, not a 2016 recording.
+        ROS Indigo and Gazebo 2.2 in Docker (amd64 under Rosetta on Apple Silicon),
+        Gazebo window captured from the container's virtual display, shown at 4× speed.
+        Husky start pose chosen for the re-run; see <code>sim/README.md</code>.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section id="architecture">
+    <h2>Architecture</h2>
+    <p>Nodes from <code>launch/master.launch</code>, built from the sources in <code>CMakeLists.txt</code>.
+      Topics, services and actions are found in <code>src/</code> and resolved with <code>include/robot_control/topics.h</code>.
+      Select a node to filter the table.</p>
+    <div id="nodes" class="nodes"></div>
+    <div class="scroll"><table id="endpoints"></table></div>
+    <h3>Message, service and action definitions</h3>
+    <div id="interfaces" class="interfaces"></div>
+  </section>
+
+  <section id="maps">
+    <h2>Maps</h2>
+    <p>Text grids in <code>maps/</code>, written by the nodes during runs and last committed in 2016. Each grid is drawn in file order, first line at the top.
+      Cell size is the 40 m mapped area divided by the grid width.</p>
+    <div id="map-tabs" class="tabs" role="tablist"></div>
+    <div class="map-view">
+      <canvas id="map-canvas" width="480" height="480"></canvas>
+      <div id="map-info"></div>
+    </div>
+  </section>
+
+  <section id="world">
+    <h2>World</h2>
+    <p id="world-note"></p>
+    <div class="world-view"><svg id="world-svg" role="img" aria-label="Top-down view of the harbor world"></svg></div>
+  </section>
+
+  <section id="history">
+    <h2>History</h2>
+    <p>The 2016 commits, oldest first.</p>
+    <ol id="commits" class="commits"></ol>
+  </section>
+</main>
+
+<footer>Generated data: <code>viewer/data.js</code>, from <code>viewer/extract.py</code>.</footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
