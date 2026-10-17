@@ -65,11 +65,13 @@ class Latest(object):
         self.msg_class = msg_class
         self.msg = None
         self.count = 0
+        self.at = None
         rospy.Subscriber(topic, rospy.AnyMsg, self.store, queue_size=1)
 
     def store(self, msg):
         self.msg = msg
         self.count += 1
+        self.at = time.time()
 
     def read(self):
         msg = self.msg
@@ -179,7 +181,9 @@ class Relay(object):
 
     def base_frame(self, now):
         clock = self.clock.read() if self.clock else None
-        return {'wall': round(now, 3), 'ros': self.models is not None,
+        # Seconds since Gazebo last published model states; cached poses keep being sent.
+        age = r(now - self.models.at, 1) if self.models and self.models.at else None
+        return {'wall': round(now, 3), 'ros': self.models is not None, 'age': age,
                 't': r(clock.clock.to_sec(), 3) if clock else None, 'models': self.read_models()}
 
     def snapshot(self):

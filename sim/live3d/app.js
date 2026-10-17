@@ -28,6 +28,7 @@ const LEVELS = { 4: 'warn', 8: 'error', 16: 'error' };
 const MAX_HITS = 50000;
 const MAX_TRAIL = 20000;
 const MAX_LOG_LINES = 150;
+const STALE_AFTER = 3; // seconds without new data before the view stops showing "Live"
 const HOME = { position: new THREE.Vector3(-26, -34, 30), target: new THREE.Vector3(0, 0, 0) };
 
 const $ = (id) => document.getElementById(id);
@@ -462,6 +463,7 @@ let lastFrame = null;
 function status(frame) {
   if (!frame.ros) return setConn('wait', 'Connected. Waiting for the ROS master…');
   if (!Object.keys(frame.models).length) return setConn('wait', 'Waiting for Gazebo…');
+  if (frame.age > STALE_AFTER) return setConn('wait', `No Gazebo data for ${Math.round(frame.age)} s`);
   const missing = Object.values(ROBOTS).filter((s) => !(s.model in frame.models)).map((s) => s.name);
   if (missing.length) return setConn('wait', `Waiting for ${missing.join(' and ')} to spawn…`);
   setConn('live', 'Live');
@@ -508,7 +510,7 @@ function connect() {
 setInterval(() => {
   updatePanel();
   const silent = (performance.now() - lastFrameAt) / 1000;
-  if (lastFrame && lastFrame.ros && source?.readyState === EventSource.OPEN && silent > 3) {
+  if (lastFrame && lastFrame.ros && source?.readyState === EventSource.OPEN && silent > STALE_AFTER) {
     setConn('wait', `No data for ${Math.round(silent)} s`);
   }
 }, 250);
