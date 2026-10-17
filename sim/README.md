@@ -102,12 +102,30 @@ The patch applies to `/opt/ros/indigo/share` inside the image only.
 
 ## Known behavior in this re-run
 
-- Both robots drive. The Jackal leaves its spawn point (-17, 15) at about
-  1.9 m/s for under a second, then slows down; that is the 2016 navigation's
-  first command, not a physics glitch.
+- Both robots drive. The Jackal leaves its spawn point (-17, 15) at up to
+  about 1.5 m/s for a fraction of a second, then slows down. Its height, roll
+  and pitch stay level meanwhile, so this is driving, not the robot being
+  thrown.
 - Both lasers are upside down (roll 180° in tf), the Husky's by
   `husky_description` and the Jackal's by the variables above. The 3D view
   mirrors both scans accordingly.
+- Under Rosetta the container's memory grows by about 15 MB per second of sim
+  time, about 0.74 GB per minute on an Apple Silicon Mac. It grows in
+  `gzserver` and in every ROS node, in an anonymous region above the x86-64
+  user address space that Rosetta uses, not in the nodes' heaps. With the
+  7.75 GB Docker Desktop VM used here, the kernel kills `gzserver` after about
+  445 s of sim time: three runs on 2026-10-17 ended between sim 12422 and
+  12432, with the mission starting at 11977. The 3D view then shows "No
+  Gazebo data".
+- So far no run reached a detection. In the three recorded runs both robots
+  searched until Gazebo was killed, and neither camera saw enough red to
+  report the target. The rest of the mission (the A* drive, alignment and
+  exit) has not been observed in this re-run. A full mission needs more memory
+  for Docker, or a native amd64 host.
+  [../viewer/media/sim-mission-2026-10-17.mp4](../viewer/media/sim-mission-2026-10-17.mp4)
+  shows one such run.
+- In one run the Husky drove nose first into `container_18` and did not move
+  for the remaining three minutes of sim time, through a change of goal.
 - `gzserver` sometimes dies at start with `X Error of failed request:
   BadDrawable` (twice in ten starts on 2026-10-17, both while the Mac was
   heavily loaded). The 3D view then stays on "Waiting for Gazebo…". Restart the
