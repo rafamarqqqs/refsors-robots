@@ -21,7 +21,7 @@ beyond its own files.
 | Section | Read from |
 | --- | --- |
 | Overview | `README.md`, `launch/*.launch`, `include/robot_control/topics.h` |
-| Simulation | [media/sim-2026-10-17.mp4](media/sim-2026-10-17.mp4), recorded with [../sim](../sim) |
+| Simulation | [media/sim-2026-10-17.mp4](media/sim-2026-10-17.mp4) and [media/sim-mission-2026-10-17.mp4](media/sim-mission-2026-10-17.mp4), recorded with [../sim](../sim) |
 | Architecture | `launch/master.launch`, `CMakeLists.txt`, `src/`, `include/robot_control/topics.h`, `msg/`, `srv/`, `action/` |
 | Maps | `maps/*.map`, with the file formats from the writers in `src/` |
 | World | `world/harbor.world`, the world `master.launch` loads |
