@@ -1,4 +1,5 @@
-# ROS Indigo + Gazebo 2 image that builds robot_control and shows Gazebo through noVNC.
+# ROS Indigo + Gazebo 2 image that builds robot_control and shows the running mission
+# as a live 3D page (port 8080) and the Gazebo window through noVNC (port 6080).
 # Build context is the repository root: docker build -f sim/Dockerfile -t refsors-sim .
 FROM osrf/ros:indigo-desktop-full@sha256:53729ecd137c19e0c82658d1a7468533c3b8e7951254a699bf57e0033ea3ed4e
 
@@ -39,6 +40,8 @@ COPY maps /catkin_ws/src/robot_control/maps
 # catkin looks up its OpenCV component only under ROS prefixes; Indigo ships it in /usr/share/OpenCV.
 RUN bash -c 'source /opt/ros/indigo/setup.bash && catkin_make -DOpenCV_DIR=/usr/share/OpenCV'
 
+# Watch-only 3D page and the relay that streams ROS topics to it.
+COPY sim/live3d /opt/live3d
 COPY sim/start.sh /start.sh
-EXPOSE 6080
+EXPOSE 8080 6080
 CMD ["bash", "/start.sh"]

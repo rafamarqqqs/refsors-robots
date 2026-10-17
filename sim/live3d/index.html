@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RefSORS live 3D</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports": {"three": "./vendor/three/three.module.min.js"}}</script>
+</head>
+<body>
+<main class="stage">
+  <div id="view" class="view" role="img" aria-label="3D view of the harbor simulation"></div>
+  <div id="labels" class="labels" aria-hidden="true"></div>
+  <div class="camera-bar" role="toolbar" aria-label="Camera">
+    <button type="button" data-follow="larger_robot" aria-pressed="false">Follow Husky <kbd>1</kbd></button>
+    <button type="button" data-follow="smaller_robot" aria-pressed="false">Follow Jackal <kbd>2</kbd></button>
+    <button type="button" id="top">Top <kbd>T</kbd></button>
+    <button type="button" id="reset">Reset <kbd>R</kbd></button>
+  </div>
+  <p class="hint">Drag to orbit, right-drag, Shift-drag or arrow keys to pan, scroll to zoom. <kbd>Esc</kbd> stops following.</p>
+</main>
+
+<aside class="panel">
+  <header>
+    <h1>RefSORS live</h1>
+    <p id="conn" class="conn" data-state="connecting" aria-live="polite">Connecting…</p>
+    <p id="mission" class="mission"></p>
+  </header>
+
+  <dl class="clock">
+    <div><dt>Sim time</dt><dd id="simtime">–</dd></div>
+    <div><dt>Real-time factor</dt><dd id="rtf">–</dd></div>
+  </dl>
+
+  <div id="robots" class="robots"></div>
+
+  <fieldset class="layers">
+    <legend>Show</legend>
+    <label><input type="checkbox" data-layer="scans" checked> Laser scans</label>
+    <label><input type="checkbox" data-layer="hits" checked> Laser hits so far</label>
+    <label><input type="checkbox" data-layer="trails" checked> Trails</label>
+    <label><input type="checkbox" data-layer="goals" checked> Goals and paths</label>
+    <label><input type="checkbox" data-layer="labels" checked> Labels</label>
+  </fieldset>
+
+  <section class="log">
+    <h2>Mission log <small>newest first</small></h2>
+    <ol id="log"></ol>
+  </section>
+
+  <footer>
+    Watch-only: this page receives data from the simulation and has no way to send commands.
+    Robot shapes are simplified. Laser hits are collected by this page since it opened;
+    the robots' own maps stay inside their nodes, and no topic publishes them.
+    3D by <a href="vendor/three/LICENSE">three.js r170 (MIT)</a>.
+  </footer>
+</aside>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
