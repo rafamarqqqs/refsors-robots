@@ -373,9 +373,8 @@ function clearTraces() {
 let lastLogId = 0;
 const logList = $('log');
 
-function onLog(entry) {
-  if (entry.id <= lastLogId) return;
-  lastLogId = entry.id;
+// Sets the mission line and the robots' goals from a log entry.
+function applyState(entry) {
   const nav = /^\/(larger_robot|smaller_robot)\/Navigation$/.exec(entry.node);
   if (nav) {
     const robot = robots[nav[1]];
@@ -385,6 +384,12 @@ function onLog(entry) {
     else if (entry.msg.startsWith("Time's up")) endGoal(robot, 'timed out');
   }
   if (entry.node === '/Application') $('mission').textContent = entry.msg;
+}
+
+function onLog(entry) {
+  if (entry.id <= lastLogId) return;
+  lastLogId = entry.id;
+  applyState(entry);
   const li = document.createElement('li');
   const meta = document.createElement('span');
   meta.textContent = `${formatSimTime(Math.max(entry.t - simStart, 0))} ${entry.node.slice(1)}`;
@@ -475,6 +480,8 @@ function onFrame(frame) {
       robot.goalMarker.visible = false;
     }
     $('mission').textContent = '';
+    // The relay keeps the latest mission line and goal events beyond its log window.
+    for (const entry of frame.state || []) applyState(entry);
   }
   if (frame.t != null) {
     simT = frame.t;

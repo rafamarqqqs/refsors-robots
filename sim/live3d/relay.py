@@ -80,6 +80,18 @@ class Latest(object):
         return msg
 
 
+def state_key(node, msg):
+    """Names the state a log line sets: the mission line, or a robot's goal or goal end."""
+    if node == '/Application':
+        return node
+    if node.endswith('/Navigation'):
+        if 'Driving to' in msg:
+            return node + ' goal'
+        if msg.startswith('Reached destination') or msg.startswith("Time's up"):
+            return node + ' goal end'
+    return None
+
+
 def r(value, digits):
     # JSON has no Infinity or NaN.
     return round(value, digits) if not (math.isinf(value) or math.isnan(value)) else 0
@@ -92,6 +104,8 @@ class Relay(object):
         self.logs = collections.deque(maxlen=LOG_KEEP)
         self.log_id = 0
         self.sent_log_id = 0
+        # Latest entry per mission line and goal event, kept after the log window drops it.
+        self.state = {}
         self.paths = {}
         self.paths_changed = False
         self.scans = {}
@@ -120,8 +134,11 @@ class Relay(object):
         t = clock.clock.to_sec() if clock else msg.header.stamp.to_sec()
         with self.lock:
             self.log_id += 1
-            self.logs.append({'id': self.log_id, 'node': msg.name, 'level': msg.level,
-                              't': r(t, 2), 'msg': msg.msg})
+            entry = {'id': self.log_id, 'node': msg.name, 'level': msg.level, 't': r(t, 2), 'msg': msg.msg}
+            self.logs.append(entry)
+            key = state_key(msg.name, msg.msg)
+            if key:
+                self.state[key] = entry
 
     def on_path(self, msg, robot):
         goal = msg.goal
@@ -168,7 +185,8 @@ class Relay(object):
     def snapshot(self):
         frame = self.base_frame(time.time())
         with self.lock:
-            frame.update(snapshot=True, logs=list(self.logs), paths=dict(self.paths), scans=dict(self.scans))
+            frame.update(snapshot=True, logs=list(self.logs), paths=dict(self.paths), scans=dict(self.scans),
+                         state=sorted(self.state.values(), key=lambda entry: entry['id']))
         return json.dumps(frame, separators=(',', ':'))
 
     def tick(self):
