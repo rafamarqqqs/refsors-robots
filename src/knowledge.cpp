@@ -247,7 +247,7 @@ bool Knowledge::getNewGoal(robot_control::getNewGoal::Request& req, robot_contro
 
 inline void Knowledge::writeAreas(){
     int counter = 0;
-    std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/areas.map");
+    std::ofstream file(MAPS_DIR + "areas.map");
 
     for(int i = floor(length/area_size) - 1; i >= 0 ; i--){
         for(int j = 0; j < floor(width/area_size) ; j++){
@@ -303,7 +303,7 @@ bool Knowledge::getMap(robot_control::getMap::Request& req, robot_control::getMa
 
     string aux = to_string(req.cell_size);
 
-    std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/new" + aux + ".map");
+    std::ofstream file(MAPS_DIR + "new" + aux + ".map");
 
     for(int i = 0; i < TO_CELLS(length); i+=cell_diff){
         for(int j = 0; j < TO_CELLS(width); j+=cell_diff){

@@ -2,6 +2,8 @@
 #define _TOPICS_H_
 
 #include <cstring>
+#include <string>
+#include <ros/package.h>
 
 #define LARGER_ROBOT "larger_robot"
 #define SMALLER_ROBOT "smaller_robot"
@@ -15,8 +17,10 @@
 #define MODEL_NAME(type) (strcmp(type, LARGER_ROBOT) == 0 ? "husky" : "jackal")
 #define LASER_DISPLACEMENT(type) (strcmp(type, LARGER_ROBOT) == 0 ? 0.2206 : 0.120)
 
-#define CONTAINERS_MAP "/home/rafael/SORS_Application/src/robot_control/maps/containers.map"
-#define PATH_PLANNING_MAP "/home/rafael/SORS_Application/src/robot_control/maps/containers_path_planning.map"
+// Maps are read from and written to the package's maps/ folder, wherever it is installed.
+#define MAPS_DIR (ros::package::getPath("robot_control") + "/maps/")
+#define CONTAINERS_MAP (MAPS_DIR + "containers.map")
+#define PATH_PLANNING_MAP (MAPS_DIR + "containers_path_planning.map")
 
 #define KNOWLEDGE_NODE "Knowledge"
 #define GET_MAP_SERVICE "/Knowledge/getMap"

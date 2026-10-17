@@ -230,9 +230,9 @@ void PathPlanning::writeMap(vector<unsigned char> map, double req_cell_size){
     std::ofstream file;
     
     if(req_cell_size == 0.5)
-        file.open("/home/rafael/SORS_Application/src/robot_control/maps/Path_planning_0.5.map", std::ofstream::trunc);
+        file.open(MAPS_DIR + "Path_planning_0.5.map", std::ofstream::trunc);
     else
-        file.open("/home/rafael/SORS_Application/src/robot_control/maps/Path_planning_1.0.map", std::ofstream::trunc);
+        file.open(MAPS_DIR + "Path_planning_1.0.map", std::ofstream::trunc);
 
     for(it = map.begin(); it != map.end(); it++){
             if((*it) == 'X')

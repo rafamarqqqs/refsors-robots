@@ -252,7 +252,7 @@ inline void OccupancyGrid::updateTail(double x, double y){
 void OccupancyGrid::writeMap(std::string t){
 	int i, j;
 	
-	std::ofstream file("/home/rafael/SORS_Application/src/robot_control/maps/occupancy_grid_" + t + ".map");
+	std::ofstream file(MAPS_DIR + "occupancy_grid_" + t + ".map");
 
 	for(i = 0; i < TO_CELLS(length); i++){
 		for(j = 0; j < TO_CELLS(width); j++){

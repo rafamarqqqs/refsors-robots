@@ -9,6 +9,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11")
 find_package(catkin REQUIRED COMPONENTS
   tf
   roscpp
+  roslib
   genmsg
   std_msgs
   message_generation
