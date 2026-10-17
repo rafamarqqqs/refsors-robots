@@ -9,6 +9,22 @@ L. B. R. de Oliveira's PhD thesis.
 The code is from 2016 and targets ROS Indigo with Gazebo 2. It is kept as it
 was, apart from portable map paths and package metadata.
 
+## See it
+
+- **Live simulation.** Build and run the 2016 code in Docker, then watch the
+  mission in a 3D view you can orbit, zoom, pan and point at either robot:
+
+  ```sh
+  docker build --platform linux/amd64 -f sim/Dockerfile -t refsors-sim . && docker run --rm --name refsors-sim --platform linux/amd64 -p 127.0.0.1:8080:8080 -p 127.0.0.1:6080:6080 refsors-sim
+  ```
+
+  Open <http://127.0.0.1:8080>. The Gazebo window itself is at
+  <http://127.0.0.1:6080/vnc_auto.html?host=127.0.0.1&port=6080>. Details and
+  requirements are in [sim/README.md](sim/README.md).
+- **Static viewer.** Open [viewer/index.html](viewer/index.html) for the
+  mission, node graph, saved maps, world, history and a recorded run, with no
+  ROS or Docker. See [viewer/README.md](viewer/README.md).
+
 ## Mission
 
 1. A Husky (larger, Kinect) and a Jackal (smaller, camera) start in a harbor
