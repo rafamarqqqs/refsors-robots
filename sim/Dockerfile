@@ -19,7 +19,10 @@ RUN patch -p1 -d /opt/ros/indigo/share < /tmp/deps.patch
 
 # Jackal accessories are chosen by environment: a front laser (front/scan) and
 # a stereo camera pair (front/left/image_raw), the topics topics.h subscribes to.
-ENV JACKAL_LASER=1 JACKAL_STEREO_FLEA3=1
+# laser.cpp reads scans in the beam order of an upside-down laser, which is how
+# husky_description mounts the Husky's. The Jackal's laser is turned over the same
+# way; the bracket is 0.149 m tall, so the offset keeps the laser where it was.
+ENV JACKAL_LASER=1 JACKAL_STEREO_FLEA3=1 JACKAL_LASER_RPY="3.14159 0 0" JACKAL_LASER_OFFSET="0 0 0.298"
 
 # husky_gazebo spawns at ROBOT_INITIAL_POSE, the origin by default, which harbor.world
 # fills with container_10. The repository never set a Husky pose; this is the free

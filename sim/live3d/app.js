@@ -5,8 +5,8 @@ import { OrbitControls } from './vendor/three/OrbitControls.js';
 
 // Simplified robot shapes in each Gazebo model frame (base_link), in meters.
 // Chassis sizes follow the Husky A200 and Jackal specs. Wheel positions, laser
-// mounts and the Husky's upside-down laser were measured with tf in the
-// running simulation.
+// mounts and the upside-down lasers were measured with tf in the running
+// simulation; sim/Dockerfile turns the Jackal's laser over like the Husky's.
 const ROBOTS = {
   larger_robot: {
     model: 'husky', name: 'Husky', color: '#e3a52b', key: '1',
@@ -20,7 +20,7 @@ const ROBOTS = {
     body: { size: [0.42, 0.31, 0.16], z: 0.08 },
     wheel: { r: 0.098, width: 0.04, x: 0.131, y: 0.187, z: 0.035 },
     laser: [0.12, 0, 0.333],
-    laserUpsideDown: false,
+    laserUpsideDown: true,
   },
 };
 const TARGET_MODEL = 'bomb';
