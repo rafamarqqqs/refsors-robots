@@ -1,0 +1,41 @@
+--- a/husky_gazebo/urdf/description.gazebo.xacro
++++ b/husky_gazebo/urdf/description.gazebo.xacro
+@@ -34,7 +34,6 @@
+   <!-- Gazebo plugin for ROS Control -->
+   <gazebo>
+     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+-      <robotNamespace>/</robotNamespace>
+     </plugin>
+   </gazebo>
+ 
+--- a/jackal_description/urdf/jackal.gazebo
++++ b/jackal_description/urdf/jackal.gazebo
+@@ -2,7 +2,6 @@
+ <robot>
+   <gazebo>
+     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+-      <robotNamespace>/</robotNamespace>
+     </plugin>
+   </gazebo>
+ 
+--- a/lms1xx/urdf/sick_lms1xx.urdf.xacro
++++ b/lms1xx/urdf/sick_lms1xx.urdf.xacro
+@@ -83,7 +83,6 @@
+         <plugin name="gazebo_ros_laser" filename="libgazebo_ros_laser.so">
+           <topicName>${topic}</topicName>
+           <frameName>${frame}</frameName>
+-          <robotNamespace>${robot_namespace}</robotNamespace>
+         </plugin>
+       </sensor>
+     </gazebo>
+--- a/husky_gazebo/launch/spawn_husky.launch
++++ b/husky_gazebo/launch/spawn_husky.launch
+@@ -91,7 +91,7 @@
+ 
+   <!-- Spawn robot in gazebo -->
+   <node name="spawn_husky_model" pkg="gazebo_ros" type="spawn_model"
+-    args="$(arg robot_initial_pose) -unpause -urdf -param robot_description -model mobile_base"/>
++    args="$(arg robot_initial_pose) -unpause -urdf -param robot_description -model husky"/>
+ 
+ 
+ </launch>
