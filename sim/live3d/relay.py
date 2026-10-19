@@ -65,11 +65,13 @@ class Latest(object):
         self.msg_class = msg_class
         self.msg = None
         self.count = 0
+        self.at = None
         rospy.Subscriber(topic, rospy.AnyMsg, self.store, queue_size=1)
 
     def store(self, msg):
         self.msg = msg
         self.count += 1
+        self.at = time.time()
 
     def read(self):
         msg = self.msg
@@ -78,6 +80,18 @@ class Latest(object):
         if isinstance(msg, rospy.AnyMsg):
             return self.msg_class().deserialize(msg._buff)
         return msg
+
+
+def state_key(node, msg):
+    """Names the state a log line sets: the mission line, or a robot's goal or goal end."""
+    if node == '/Application':
+        return node
+    if node.endswith('/Navigation'):
+        if 'Driving to' in msg:
+            return node + ' goal'
+        if msg.startswith('Reached destination') or msg.startswith("Time's up"):
+            return node + ' goal end'
+    return None
 
 
 def r(value, digits):
@@ -92,6 +106,8 @@ class Relay(object):
         self.logs = collections.deque(maxlen=LOG_KEEP)
         self.log_id = 0
         self.sent_log_id = 0
+        # Latest entry per mission line and goal event, kept after the log window drops it.
+        self.state = {}
         self.paths = {}
         self.paths_changed = False
         self.scans = {}
@@ -120,8 +136,11 @@ class Relay(object):
         t = clock.clock.to_sec() if clock else msg.header.stamp.to_sec()
         with self.lock:
             self.log_id += 1
-            self.logs.append({'id': self.log_id, 'node': msg.name, 'level': msg.level,
-                              't': r(t, 2), 'msg': msg.msg})
+            entry = {'id': self.log_id, 'node': msg.name, 'level': msg.level, 't': r(t, 2), 'msg': msg.msg}
+            self.logs.append(entry)
+            key = state_key(msg.name, msg.msg)
+            if key:
+                self.state[key] = entry
 
     def on_path(self, msg, robot):
         goal = msg.goal
@@ -162,13 +181,16 @@ class Relay(object):
 
     def base_frame(self, now):
         clock = self.clock.read() if self.clock else None
-        return {'wall': round(now, 3), 'ros': self.models is not None,
+        # Seconds since Gazebo last published model states; cached poses keep being sent.
+        age = r(now - self.models.at, 1) if self.models and self.models.at else None
+        return {'wall': round(now, 3), 'ros': self.models is not None, 'age': age,
                 't': r(clock.clock.to_sec(), 3) if clock else None, 'models': self.read_models()}
 
     def snapshot(self):
         frame = self.base_frame(time.time())
         with self.lock:
-            frame.update(snapshot=True, logs=list(self.logs), paths=dict(self.paths), scans=dict(self.scans))
+            frame.update(snapshot=True, logs=list(self.logs), paths=dict(self.paths), scans=dict(self.scans),
+                         state=sorted(self.state.values(), key=lambda entry: entry['id']))
         return json.dumps(frame, separators=(',', ':'))
 
     def tick(self):
