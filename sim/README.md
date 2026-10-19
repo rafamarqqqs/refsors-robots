@@ -95,18 +95,37 @@ environment around them:
 | [deps.patch](deps.patch), LMS1xx laser namespace | Same issue: the laser would publish `/scan` and `/front/scan` instead of `/larger_robot/scan` and `/smaller_robot/front/scan`, which `topics.h` subscribes to. |
 | [deps.patch](deps.patch), Husky model name | `husky_gazebo` spawns the model as `mobile_base`; the localization node looks for `husky` (`MODEL_NAME` in `topics.h`). |
 | `JACKAL_LASER=1`, `JACKAL_STEREO_FLEA3=1` | Jackal accessories are chosen by environment. These give the `front/scan` and `front/left/image_raw` topics the code subscribes to. |
+| `JACKAL_LASER_RPY="3.14159 0 0"`, `JACKAL_LASER_OFFSET="0 0 0.298"` | A 2026 simulation change. `src/laser.cpp` gives beam 120 the angle +1.57 (left) and beam 599 the angle -1.57 (right), the beam order of an upside-down laser. `husky_description` mounts the Husky's LMS1xx upside down, but `jackal_description` mounts the Jackal's upright, so the Jackal saw its scan mirrored: it steered into `container_23`, climbed its corner and flipped over within the first 80 s of sim time. These variables turn the Jackal's laser over like the Husky's. The offset puts it back at the same point, 0.12 m forward and 0.333 m up from `base_link`. |
 | `ROBOT_INITIAL_POSE="-x -2.5 -y 0"` | The Husky spawns at the origin by default, inside `container_10` of `harbor.world`. The repository never set a Husky pose, so this is the free spot closest to the origin. |
 
 The patch applies to `/opt/ros/indigo/share` inside the image only.
 
 ## Known behavior in this re-run
 
-- The Jackal is thrown at spawn: within one second of sim time it jumps about
-  1.4 m from its spawn point (-17, 15), then slides to `container_23` and stays
-  there. In one observed run it landed upside down. The Husky drives normally.
-- The 2019 `husky_description` mounts the Husky's LMS1xx laser upside down
-  (roll 180° in tf), while the Jackal's laser is upright. The 3D view mirrors
-  the Husky scan accordingly.
+- Both robots drive. The Jackal leaves its spawn point (-17, 15) at up to
+  about 1.5 m/s for a fraction of a second, then slows down. Its height, roll
+  and pitch stay level meanwhile, so this is driving, not the robot being
+  thrown.
+- Both lasers are upside down (roll 180° in tf), the Husky's by
+  `husky_description` and the Jackal's by the variables above. The 3D view
+  mirrors both scans accordingly.
+- Under Rosetta the container's memory grows by about 15 MB per second of sim
+  time, about 0.74 GB per minute on an Apple Silicon Mac. It grows in
+  `gzserver` and in every ROS node, in an anonymous region above the x86-64
+  user address space that Rosetta uses, not in the nodes' heaps. With the
+  7.75 GB Docker Desktop VM used here, the kernel kills `gzserver` after about
+  445 s of sim time: three runs on 2026-10-17 ended between sim 12422 and
+  12432, with the mission starting at 11977. The 3D view then shows "No
+  Gazebo data".
+- So far no run reached a detection. In the three recorded runs both robots
+  searched until Gazebo was killed, and neither camera saw enough red to
+  report the target. The rest of the mission (the A* drive, alignment and
+  exit) has not been observed in this re-run. A full mission needs more memory
+  for Docker, or a native amd64 host.
+  [../viewer/media/sim-mission-2026-10-17.mp4](../viewer/media/sim-mission-2026-10-17.mp4)
+  shows one such run.
+- In one run the Husky drove nose first into `container_18` and did not move
+  for the remaining three minutes of sim time, through a change of goal.
 - `gzserver` sometimes dies at start with `X Error of failed request:
   BadDrawable` (twice in ten starts on 2026-10-17, both while the Mac was
   heavily loaded). The 3D view then stays on "Waiting for Gazebo…". Restart the

@@ -81,6 +81,7 @@ th { font-weight: 600; color: var(--muted); }
 .md li { margin: 4px 0; }
 
 .capture { margin: 0; }
+.capture + .capture { margin-top: 24px; }
 .capture video { width: 100%; max-width: 720px; display: block; border: 1px solid var(--line); background: #000; }
 .capture figcaption { color: var(--muted); font-size: 0.9rem; margin-top: 8px; max-width: 720px; }
 
