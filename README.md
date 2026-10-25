@@ -11,6 +11,8 @@ was, apart from portable map paths and package metadata.
 
 ## See it
 
+- **In the browser.** <https://rafamarqqqs.github.io/refsors-robots/> shows the
+  static viewer online.
 - **Live simulation.** Build and run the 2016 code in Docker, then watch the
   mission in a 3D view you can orbit, zoom, pan and point at either robot:
 
